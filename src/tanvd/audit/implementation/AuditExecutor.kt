@@ -1,6 +1,6 @@
 package tanvd.audit.implementation
 
-import tanvd.audit.AuditRecord
+import tanvd.audit.model.AuditRecord
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue

@@ -1,4 +1,4 @@
-package tanvd.audit.implementation.jdbc
+package tanvd.audit.implementation.mysql
 
 import java.sql.Connection
 import java.sql.Statement
@@ -7,9 +7,9 @@ import kotlin.reflect.KClass
 
 
 /**
- * Provides simple DSL for JDBC connection
+ * Provides simple DSL for JDBC mysqlConnection
  */
-class JdbcConnection(val connection: Connection) {
+class JdbcMysqlConnection(val connection: Connection) {
     /**
      * Creates table with specified header (uses ifNotExists modifier by default)
      */

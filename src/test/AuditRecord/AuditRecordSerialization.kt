@@ -1,61 +1,106 @@
 package test
 
 import org.testng.Assert
+import org.testng.annotations.BeforeClass
 import org.testng.annotations.Test
-import tanvd.audit.AuditRecord
+import tanvd.audit.model.AuditRecord
+import tanvd.audit.model.AuditSerializer
+import tanvd.audit.model.AuditType
+import tanvd.audit.model.AuditType.TypesResolution.addType
+import tanvd.audit.serializers.IntSerializer
+import tanvd.audit.serializers.StringSerializer
 import java.util.*
+
 
 
 internal class AuditSerializationTest {
 
-    class TestClassFirst()
+    class TestClassFirst(){
+        companion object serializer : AuditSerializer<TestClassFirst> {
+            override fun deserialize(serializedString: String): TestClassFirst {
+                throw UnsupportedOperationException("not implemented")
+            }
 
-    class TestClassSecond()
+            override fun serialize(value: TestClassFirst): String {
+                throw UnsupportedOperationException("not implemented")
+            }
+
+        }
+    }
+
+    class TestClassSecond() {
+        companion object serializer : AuditSerializer<TestClassFirst> {
+            override fun deserialize(serializedString: String): TestClassFirst {
+                throw UnsupportedOperationException("not implemented")
+            }
+
+            override fun serialize(value: TestClassFirst): String {
+                throw UnsupportedOperationException("not implemented")
+            }
+
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    @BeforeClass
+    fun initTypeSystem() {
+        AuditType.addType(AuditType(TestClassFirst::class, "TestClassFirst", TestClassFirst) as AuditType<Any>)
+        AuditType.addType(AuditType(String::class, "String", StringSerializer) as AuditType<Any>)
+        addType(AuditType(Int::class, "Int", IntSerializer) as AuditType<Any>)
+        addType(AuditType(TestClassSecond::class, "TestClassSecond", TestClassSecond) as AuditType<Any>)
+    }
 
     @Test
     fun serializeArray_PrimitiveTypes_serializedAsExpected() {
-        val auditRecord = AuditRecord(ArrayList(listOf(Pair(String::class, "1234"), Pair(Int::class, "123"))))
+        val auditRecord = AuditRecord(ArrayList(listOf(
+                Pair(AuditType.resolveType(String::class), "1234"),
+                Pair(AuditType.resolveType(Int::class), "123"))))
         val serializedString = AuditRecord.serialize(auditRecord)
-        Assert.assertEquals(serializedString, "1234kotlin.Int123")
+        Assert.assertEquals(serializedString, "String1234Int123")
     }
 
     @Test
     fun serializeArray_NonPrimitiveTypes_serializedAsExpected() {
-        val auditRecord = AuditRecord(ArrayList(listOf(Pair(TestClassFirst::class, "1234"),
-                Pair(TestClassSecond::class, "123"))))
+        val auditRecord = AuditRecord(ArrayList(listOf(
+                Pair(AuditType.resolveType(TestClassFirst::class), "1234"),
+                Pair(AuditType.resolveType(TestClassSecond::class), "123"))))
         val serializedString = AuditRecord.serialize(auditRecord)
-        Assert.assertEquals(serializedString, "test.AuditSerializationTest.TestClassFirst1234" +
-                "test.AuditSerializationTest.TestClassSecond123")
+        Assert.assertEquals(serializedString, "TestClassFirst1234TestClassSecond123")
     }
 
     @Test
     fun deserializeArray_PrimitiveTypes_deserializedAsExpected() {
-        val serializedString = "1234kotlin.Int123"
-        val types = listOf(String::class, Int::class)
-        val auditRecord = AuditRecord.deserialize(serializedString, types)
+        val serializedString = "String1234Int123"
+        val auditRecord = AuditRecord.deserialize(serializedString)
         Assert.assertEquals(auditRecord.objects,
-                ArrayList(listOf(Pair(String::class, "1234"),Pair(Int::class, "123"))))
+                ArrayList(listOf(
+                        Pair(AuditType.resolveType(String::class), "1234"),
+                        Pair(AuditType.resolveType(Int::class), "123"))))
     }
 
     @Test
     fun deserializeArray_NonPrimitiveTypes_deserializedAsExpected() {
-        val serializedString = "test.AuditSerializationTest.TestClassFirst1234" +
-                "test.AuditSerializationTest.TestClassSecond123"
-        val types = listOf(TestClassFirst::class, TestClassSecond::class)
-        val auditRecord = AuditRecord.deserialize(serializedString, types)
+        val serializedString = "TestClassFirst1234TestClassSecond123"
+        val auditRecord = AuditRecord.deserialize(serializedString)
 
         Assert.assertEquals(auditRecord.objects,
-                ArrayList(listOf(Pair(TestClassFirst::class, "1234"), Pair(TestClassSecond::class, "123"))))
+                ArrayList(listOf(
+                        Pair(AuditType.resolveType(TestClassFirst::class), "1234"),
+                        Pair(AuditType.resolveType(TestClassSecond::class), "123"))))
     }
 
     @Test
     fun serializeDeserializeArray_NonPrimitiveTypes_deserializedAsExpected() {
-        val arrayObjects = ArrayList(listOf(Pair(TestClassFirst::class, "TestClassFirstId"),
-                Pair(String::class, "have been called"), Pair(Int::class, "27"), Pair(String::class, " times by "),
-                Pair(TestClassFirst::class, "TestClassSecondId")))
-        val types = listOf(TestClassFirst::class, TestClassSecond::class, String::class, Int::class)
+
+        val arrayObjects = ArrayList(listOf(
+                Pair(AuditType.resolveType(TestClassFirst::class), "TestClassFirstId"),
+                Pair(AuditType.resolveType(String::class), "have been called"),
+                Pair(AuditType.resolveType(Int::class), "27"),
+                Pair(AuditType.resolveType(String::class), " times by "),
+                Pair(AuditType.resolveType(TestClassSecond::class), "TestClassSecondId")))
+
         val serializedString = AuditRecord.serialize(AuditRecord(arrayObjects))
-        val deserializedRecord = AuditRecord.deserialize(serializedString, types)
+        val deserializedRecord = AuditRecord.deserialize(serializedString)
 
         Assert.assertEquals(deserializedRecord.objects, arrayObjects)
     }

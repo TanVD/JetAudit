@@ -1,6 +1,8 @@
 package tanvd.audit.implementation
 
-import tanvd.audit.AuditRecord
+import tanvd.audit.implementation.dao.AuditDao
+import tanvd.audit.implementation.dao.AuditDaoFactory
+import tanvd.audit.model.AuditRecord
 import java.util.concurrent.LinkedBlockingQueue
 
 /**
@@ -10,7 +12,7 @@ class AuditWorker(val auditQueue: LinkedBlockingQueue<AuditRecord>) {
     val auditDao : AuditDao
 
     init {
-        auditDao = AuditDao()
+        auditDao = AuditDaoFactory.getDao()
     }
 
     fun start() {
