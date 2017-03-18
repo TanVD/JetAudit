@@ -1,8 +1,9 @@
-package test
+package MySQL.AuditRecord
 
 import org.testng.Assert
 import org.testng.annotations.BeforeClass
 import org.testng.annotations.Test
+import tanvd.audit.implementation.mysql.MysqlRecordSerializer
 import tanvd.audit.model.AuditRecord
 import tanvd.audit.model.AuditSerializer
 import tanvd.audit.model.AuditType
@@ -11,9 +12,7 @@ import tanvd.audit.serializers.IntSerializer
 import tanvd.audit.serializers.StringSerializer
 import java.util.*
 
-
-
-internal class AuditSerializationTest {
+internal class AuditRecordSerialization {
 
     class TestClassFirst(){
         companion object serializer : AuditSerializer<TestClassFirst> {
@@ -44,8 +43,8 @@ internal class AuditSerializationTest {
     @Suppress("UNCHECKED_CAST")
     @BeforeClass
     fun initTypeSystem() {
-        AuditType.addType(AuditType(TestClassFirst::class, "TestClassFirst", TestClassFirst) as AuditType<Any>)
-        AuditType.addType(AuditType(String::class, "String", StringSerializer) as AuditType<Any>)
+        addType(AuditType(TestClassFirst::class, "TestClassFirst", TestClassFirst) as AuditType<Any>)
+        addType(AuditType(String::class, "String", StringSerializer) as AuditType<Any>)
         addType(AuditType(Int::class, "Int", IntSerializer) as AuditType<Any>)
         addType(AuditType(TestClassSecond::class, "TestClassSecond", TestClassSecond) as AuditType<Any>)
     }
@@ -55,7 +54,7 @@ internal class AuditSerializationTest {
         val auditRecord = AuditRecord(ArrayList(listOf(
                 Pair(AuditType.resolveType(String::class), "1234"),
                 Pair(AuditType.resolveType(Int::class), "123"))))
-        val serializedString = AuditRecord.serialize(auditRecord)
+        val serializedString = MysqlRecordSerializer.serialize(auditRecord)
         Assert.assertEquals(serializedString, "String1234Int123")
     }
 
@@ -64,14 +63,14 @@ internal class AuditSerializationTest {
         val auditRecord = AuditRecord(ArrayList(listOf(
                 Pair(AuditType.resolveType(TestClassFirst::class), "1234"),
                 Pair(AuditType.resolveType(TestClassSecond::class), "123"))))
-        val serializedString = AuditRecord.serialize(auditRecord)
+        val serializedString = MysqlRecordSerializer.serialize(auditRecord)
         Assert.assertEquals(serializedString, "TestClassFirst1234TestClassSecond123")
     }
 
     @Test
     fun deserializeArray_PrimitiveTypes_deserializedAsExpected() {
         val serializedString = "String1234Int123"
-        val auditRecord = AuditRecord.deserialize(serializedString)
+        val auditRecord = MysqlRecordSerializer.deserialize(serializedString)
         Assert.assertEquals(auditRecord.objects,
                 ArrayList(listOf(
                         Pair(AuditType.resolveType(String::class), "1234"),
@@ -81,7 +80,7 @@ internal class AuditSerializationTest {
     @Test
     fun deserializeArray_NonPrimitiveTypes_deserializedAsExpected() {
         val serializedString = "TestClassFirst1234TestClassSecond123"
-        val auditRecord = AuditRecord.deserialize(serializedString)
+        val auditRecord = MysqlRecordSerializer.deserialize(serializedString)
 
         Assert.assertEquals(auditRecord.objects,
                 ArrayList(listOf(
@@ -99,8 +98,8 @@ internal class AuditSerializationTest {
                 Pair(AuditType.resolveType(String::class), " times by "),
                 Pair(AuditType.resolveType(TestClassSecond::class), "TestClassSecondId")))
 
-        val serializedString = AuditRecord.serialize(AuditRecord(arrayObjects))
-        val deserializedRecord = AuditRecord.deserialize(serializedString)
+        val serializedString = MysqlRecordSerializer.serialize(AuditRecord(arrayObjects))
+        val deserializedRecord = MysqlRecordSerializer.deserialize(serializedString)
 
         Assert.assertEquals(deserializedRecord.objects, arrayObjects)
     }

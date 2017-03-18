@@ -7,7 +7,7 @@ import kotlin.reflect.KClass
 
 
 /**
- * Provides simple DSL for JDBC mysqlConnection
+ * Provides simple DSL for JDBC clickhouseConnection
  */
 class JdbcMysqlConnection(val connection: Connection) {
     /**
@@ -36,7 +36,7 @@ class JdbcMysqlConnection(val connection: Connection) {
 
     /**
      * Insert only Int or String. All other values will be ignored.
-     * Specify type of inserted value, not actual type of object which this value represents.
+     * Specify name of inserted value, not actual name of object which this value represents.
      */
     fun insertRow(tableName: String, columns : List<String>, values: List<Pair<String, KClass<*>>>): Int {
         val sqlInsert = StringBuilder()
@@ -68,7 +68,7 @@ class JdbcMysqlConnection(val connection: Connection) {
      */
     fun loadRows(typeName : String, id : String) : List<String>{
         val sqlSelect = "SELECT description FROM Audit INNER JOIN $typeName ON $typeName.ID = Audit.ID WHERE " +
-                "$typeName.TYPEID = $id;"
+                "$typeName.TYPEID = '$id';"
         val stmt = connection.createStatement()
         val result = stmt.executeQuery(sqlSelect)
 
@@ -78,5 +78,12 @@ class JdbcMysqlConnection(val connection: Connection) {
         }
 
         return resultList
+    }
+
+    fun dropTable(tableName : String, ifExists : Boolean) {
+        val sqlDrop = "DROP TABLE ${if (ifExists) "IF EXISTS" else ""} $tableName;"
+
+        val stmt = connection.createStatement()
+        stmt.executeUpdate(sqlDrop)
     }
 }

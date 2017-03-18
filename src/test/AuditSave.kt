@@ -43,4 +43,26 @@ internal class AuditSave {
         val result = auditApi.loadAudit(AuditType.TypesResolution.resolveType(Long::class), "123")
         Assert.assertEquals(result[0], ArrayList(arrayList.toMutableList()))
     }
+
+    @Test
+    fun testSave1() {
+        val auditApi = AuditAPI("jdbc:clickhouse://localhost:8123/example", "default", "")
+        auditApi.addTypeForAudit(AuditType(Int::class, "Type_Int", IntSerializer))
+        auditApi.addTypeForAudit(AuditType(Long::class, "Type_Long", LongSerializer))
+        auditApi.addTypeForAudit(AuditType(EmpireStateBuilding::class, "Type_EmpireStateBuilding",
+                EmpireStateBuilding))
+        val arrayList = arrayOf(123L, "got", 456, "dollars from the", EmpireStateBuilding())
+        auditApi.saveAudit(*arrayList)
+        Thread.sleep(20000)
+        val result = auditApi.loadAudit(AuditType.TypesResolution.resolveType(Long::class), "123")
+        Assert.assertEquals(result[0], ArrayList(arrayList.toMutableList()))
+    }
+
+    @Test
+    fun testSave2() {
+        val auditApi = AuditAPI("jdbc:clickhouse://localhost:8123/example", "default", "")
+        auditApi.addTypeForAudit(AuditType(Int::class, "Int", IntSerializer))
+        auditApi.addTypeForAudit(AuditType(EmpireStateBuilding::class, "Type_EmpireStateBuilding",
+                EmpireStateBuilding))
+    }
 }

@@ -16,7 +16,7 @@ import java.util.concurrent.LinkedBlockingQueue
  *
  * So, let's imagine you got entities WOLF (id = Jack), FOX (id = Lisa), GIRL (id = RedHat) and
  * you got saving (returns ID) and loading (parameter -- ID, returns entity) functions working
- * in some other persistent context. Array [GIRL, "robbed by", FOX, "and", WOLF] will be saved as
+ * in some other persistent context. DbArrayString [GIRL, "robbed by", FOX, "and", WOLF] will be saved as
  * "RedHat robbed by Lisa and Jack" (with some simplification) where ID's are retrieved with appropriate
  * saving function. After it you can load original array, all ID's will be resolved to objects with
  * appropriate loading function.
@@ -40,12 +40,12 @@ class AuditAPI(connectionUrl : String, user : String, password : String) {
 
         executor = AuditExecutor(auditQueue)
 
-        addTypeForAudit(AuditType(String::class, "String", StringSerializer))
+        addTypeForAudit(AuditType(String::class, "DbString", StringSerializer))
     }
 
     /**
      * Add types for audit saving.
-     * You need to specify code for audit type
+     * You need to specify code for audit name
      */
     fun <T> addTypeForAudit(type: AuditType<T>) {
         @Suppress("UNCHECKED_CAST")

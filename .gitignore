@@ -2,3 +2,4 @@
 .idea/dataSources
 out
 **/*.vpp.bak*
+**/*.vpp.lck*

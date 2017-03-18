@@ -20,5 +20,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="mysql:mysql-connector-java:6.0.6" level="project" />
+    <orderEntry type="library" name="ru.yandex.clickhouse:clickhouse-jdbc:0.1.17" level="project" />
   </component>
 </module>
