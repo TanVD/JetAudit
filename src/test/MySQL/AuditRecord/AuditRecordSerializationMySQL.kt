@@ -12,7 +12,7 @@ import tanvd.audit.serializers.IntSerializer
 import tanvd.audit.serializers.StringSerializer
 import java.util.*
 
-internal class AuditRecordSerialization {
+internal class AuditRecordSerializationMySQL {
 
     class TestClassFirst(){
         companion object serializer : AuditSerializer<TestClassFirst> {

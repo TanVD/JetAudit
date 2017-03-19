@@ -1,11 +1,11 @@
-package Clickhouse.AuditDao
+package MySQL.AuditDao
 
 import org.testng.Assert
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
-import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.dao.AuditDao
+import tanvd.audit.implementation.mysql.AuditDaoMysqlImpl
 import tanvd.audit.model.AuditRecord
 import tanvd.audit.model.AuditSerializer
 import tanvd.audit.model.AuditType
@@ -15,7 +15,7 @@ import tanvd.audit.serializers.IntSerializer
 import tanvd.audit.serializers.StringSerializer
 import java.sql.DriverManager
 
-internal class AuditDaoSaving() {
+internal class AuditDaoSavingMySQL() {
 
     companion object {
         var auditDao : AuditDao? = null
@@ -50,18 +50,19 @@ internal class AuditDaoSaving() {
     @BeforeMethod
     @Suppress("UNCHECKED_CAST")
     fun createAll() {
-        val rawConnection = DriverManager.getConnection("jdbc:clickhouse://localhost:8123/example", "default", "")
-        auditDao = AuditDaoClickhouseImpl(rawConnection)
+        val rawConnection = DriverManager.getConnection("jdbc:mysql://localhost/example?useLegacyDatetimeCode=false" +
+                "&serverTimezone=Europe/Moscow", "root", "root")
+        auditDao = AuditDaoMysqlImpl(rawConnection)
 
         val typeTestClassFirst = AuditType(TestClassFirst::class, "TestClassFirst", TestClassFirst) as AuditType<Any>
         addType(typeTestClassFirst)
         auditDao!!.addType(typeTestClassFirst)
 
-        val typeString = AuditType(String::class, "String", StringSerializer) as AuditType<Any>
+        val typeString = AuditType(String::class, "Type_String", StringSerializer) as AuditType<Any>
         addType(typeString)
         auditDao!!.addType(typeString)
 
-        val typeInt = AuditType(Int::class, "Int", IntSerializer) as AuditType<Any>
+        val typeInt = AuditType(Int::class, "Type_Int", IntSerializer) as AuditType<Any>
         addType(typeInt)
         auditDao!!.addType(typeInt)
 
@@ -74,7 +75,10 @@ internal class AuditDaoSaving() {
     @AfterMethod
     fun clearAll() {
         auditDao!!.dropTable("Audit")
-        AuditDaoClickhouseImpl.types.clear()
+        for (type in AuditDaoMysqlImpl.types) {
+            auditDao!!.dropTable(type.code)
+        }
+        AuditDaoMysqlImpl.types.clear()
         AuditType.auditTypesByClass.clear()
         AuditType.auditTypesByCode.clear()
     }

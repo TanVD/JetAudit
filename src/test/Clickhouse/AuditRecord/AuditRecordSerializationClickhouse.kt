@@ -15,7 +15,7 @@ import tanvd.audit.serializers.IntSerializer
 import tanvd.audit.serializers.StringSerializer
 import java.util.*
 
-internal class AuditRecordSerialization {
+internal class AuditRecordSerializationClickhouse {
 
     class TestClassFirst(){
         companion object serializer : AuditSerializer<TestClassFirst> {
@@ -57,11 +57,11 @@ internal class AuditRecordSerialization {
         val auditRecord = AuditRecord(ArrayList(listOf(
                 Pair(AuditType.resolveType(String::class), "1234"),
                 Pair(AuditType.resolveType(Int::class), "123"))))
-        val (serializedString, row) = ClickhouseRecordSerializer.serialize(auditRecord)
-        Assert.assertEquals(serializedString, "StringInt")
+        val row = ClickhouseRecordSerializer.serialize(auditRecord)
         Assert.assertEquals(row, DbRow(arrayListOf(
                 DbColumn("String", listOf("1234"), DbColumnType.DbArrayString),
-                DbColumn("Int", listOf("123"), DbColumnType.DbArrayString))))
+                DbColumn("Int", listOf("123"), DbColumnType.DbArrayString),
+                DbColumn("description", listOf("String", "Int"), DbColumnType.DbArrayString))))
     }
 
     @Test
@@ -69,10 +69,10 @@ internal class AuditRecordSerialization {
         val auditRecord = AuditRecord(ArrayList(listOf(
                 Pair(AuditType.resolveType(String::class), "1234"),
                 Pair(AuditType.resolveType(String::class), "123"))))
-        val (serializedString, row) = ClickhouseRecordSerializer.serialize(auditRecord)
-        Assert.assertEquals(serializedString, "StringString")
+        val row = ClickhouseRecordSerializer.serialize(auditRecord)
         Assert.assertEquals(row, DbRow(arrayListOf(
-                DbColumn("String", listOf("1234", "123"), DbColumnType.DbArrayString))))
+                DbColumn("String", listOf("1234", "123"), DbColumnType.DbArrayString),
+                DbColumn("description", listOf("String", "String"), DbColumnType.DbArrayString))))
     }
 
     @Test
@@ -80,11 +80,11 @@ internal class AuditRecordSerialization {
         val auditRecord = AuditRecord(ArrayList(listOf(
                 Pair(AuditType.resolveType(TestClassFirst::class), "1234"),
                 Pair(AuditType.resolveType(TestClassSecond::class), "123"))))
-        val (serializedString, row) = ClickhouseRecordSerializer.serialize(auditRecord)
-        Assert.assertEquals(serializedString, "TestClassFirstTestClassSecond")
+        val row = ClickhouseRecordSerializer.serialize(auditRecord)
         Assert.assertEquals(row, DbRow(arrayListOf(
                 DbColumn("TestClassFirst", listOf("1234"), DbColumnType.DbArrayString),
-                DbColumn("TestClassSecond", listOf("123"), DbColumnType.DbArrayString))))
+                DbColumn("TestClassSecond", listOf("123"), DbColumnType.DbArrayString),
+                DbColumn("description", listOf("TestClassFirst", "TestClassSecond"), DbColumnType.DbArrayString))))
     }
 
     @Test
@@ -92,16 +92,16 @@ internal class AuditRecordSerialization {
         val auditRecord = AuditRecord(ArrayList(listOf(
                 Pair(AuditType.resolveType(TestClassFirst::class), "1234"),
                 Pair(AuditType.resolveType(TestClassFirst::class), "123"))))
-        val (serializedString, row) = ClickhouseRecordSerializer.serialize(auditRecord)
-        Assert.assertEquals(serializedString, "TestClassFirstTestClassFirst")
+        val row = ClickhouseRecordSerializer.serialize(auditRecord)
         Assert.assertEquals(row, DbRow(arrayListOf(
-                DbColumn("TestClassFirst", listOf("1234", "123"), DbColumnType.DbArrayString))))
+                DbColumn("TestClassFirst", listOf("1234", "123"), DbColumnType.DbArrayString),
+                DbColumn("description", listOf("TestClassFirst", "TestClassFirst"), DbColumnType.DbArrayString))))
     }
 
     @Test
     fun deserializeArray_PrimitiveTypesDifferent_deserializedAsExpected() {
         val auditRecord = ClickhouseRecordSerializer.deserialize(DbRow(arrayListOf(
-                DbColumn("description", arrayListOf("StringInt"), DbColumnType.DbString),
+                DbColumn("description", arrayListOf("String", "Int"), DbColumnType.DbArrayString),
                 DbColumn("String", arrayListOf("1234"), DbColumnType.DbArrayString),
                 DbColumn("Int", arrayListOf("123"), DbColumnType.DbArrayString)
         )))
@@ -113,7 +113,7 @@ internal class AuditRecordSerialization {
     @Test
     fun deserializeArray_PrimitiveTypesCoincident_deserializedAsExpected() {
         val auditRecord = ClickhouseRecordSerializer.deserialize(DbRow(arrayListOf(
-                DbColumn("description", arrayListOf("StringString"), DbColumnType.DbString),
+                DbColumn("description", arrayListOf("String", "String"), DbColumnType.DbArrayString),
                 DbColumn("String", arrayListOf("1234", "123"), DbColumnType.DbArrayString)
         )))
         Assert.assertEquals(auditRecord.objects, ArrayList(listOf(
@@ -124,7 +124,7 @@ internal class AuditRecordSerialization {
     @Test
     fun deserializeArray_NonPrimitiveTypesDifferent_deserializedAsExpected() {
         val auditRecord = ClickhouseRecordSerializer.deserialize(DbRow(arrayListOf(
-                DbColumn("description", arrayListOf("TestClassFirstTestClassSecond"), DbColumnType.DbString),
+                DbColumn("description", arrayListOf("TestClassFirst", "TestClassSecond"), DbColumnType.DbArrayString),
                 DbColumn("TestClassFirst", arrayListOf("1234"), DbColumnType.DbArrayString),
                 DbColumn("TestClassSecond", arrayListOf("123"), DbColumnType.DbArrayString)
         )))
@@ -144,8 +144,7 @@ internal class AuditRecordSerialization {
                 Pair(AuditType.resolveType(String::class), " times by "),
                 Pair(AuditType.resolveType(TestClassSecond::class), "TestClassSecondId")))
 
-        val (serializedString, row) = ClickhouseRecordSerializer.serialize(AuditRecord(arrayObjects))
-        row.columns.add(DbColumn("description", listOf(serializedString), DbColumnType.DbString))
+        val row = ClickhouseRecordSerializer.serialize(AuditRecord(arrayObjects))
         val deserializedRecord = ClickhouseRecordSerializer.deserialize(row)
 
         Assert.assertEquals(deserializedRecord.objects, arrayObjects)

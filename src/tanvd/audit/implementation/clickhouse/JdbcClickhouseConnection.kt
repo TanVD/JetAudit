@@ -1,6 +1,7 @@
 package tanvd.audit.implementation.clickhouse
 
 import ru.yandex.clickhouse.except.ClickHouseUnknownException
+import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl.Config.auditDescriptionColumnName
 import tanvd.audit.implementation.clickhouse.model.*
 import java.sql.Connection
 import java.util.*
@@ -8,8 +9,7 @@ import java.util.*
 class JdbcClickhouseConnection(val connection: Connection) {
     /**
      * Creates table with specified header (uses ifNotExists modifier by default)
-     * You must specify date field
-     * We use MergeTree engine
+     * You must specify date field cause we use MergeTree Engine
      */
     fun createTable(tableName: String, tableHeader: DbTableHeader,
                     primaryKey: String, dateKey: String,
@@ -129,7 +129,10 @@ class JdbcClickhouseConnection(val connection: Connection) {
         val selectedTable = ArrayList<DbRow>()
         while (result.next()) {
             val row = DbRow()
-            row.columns.add(DbColumn("description", listOf(result.getString("description")), DbColumnType.DbString))
+            @Suppress("UNCHECKED_CAST")
+            row.columns.add(
+                    DbColumn(auditDescriptionColumnName, (result.getArray("description").array as Array<String>)
+                            .toList(), DbColumnType.DbArrayString))
             for (type in AuditDaoClickhouseImpl.types) {
                 @Suppress("UNCHECKED_CAST")
                 val resultArray = result.getArray(type.code).array as Array<String>

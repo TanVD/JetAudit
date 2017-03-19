@@ -1,6 +1,7 @@
 package tanvd.audit.implementation
 
 import tanvd.audit.model.AuditRecord
+import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
@@ -8,14 +9,25 @@ import java.util.concurrent.LinkedBlockingQueue
 /**
  * Starts audit saving workers
  */
-class AuditExecutor(val auditQueue : LinkedBlockingQueue<AuditRecord>, numberOfExecutors: Int = 5) {
+class AuditExecutor(val auditQueue : LinkedBlockingQueue<AuditRecord>,
+                    numberOfExecutors: Int = 5) {
+
+    val workers : MutableList<AuditWorker> = ArrayList()
+
     val executorService : ExecutorService
+
     init {
-        executorService = Executors.newFixedThreadPool(5)
+        executorService = Executors.newFixedThreadPool(numberOfExecutors)
         for (i in 1..numberOfExecutors) {
             executorService.execute {
-                AuditWorker(auditQueue).start()
+                val auditWorker = AuditWorker(auditQueue)
+                workers.add(auditWorker)
+                auditWorker.start()
             }
         }
+    }
+
+    fun isStillWorking() : Boolean {
+        return workers.any { it.isWorking }
     }
 }

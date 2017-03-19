@@ -1,7 +1,6 @@
 package Clickhouse.benchmark
 
 import org.testng.annotations.BeforeClass
-import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.JdbcClickhouseConnection
 import tanvd.audit.implementation.clickhouse.model.*
 import java.math.BigInteger
@@ -10,7 +9,7 @@ import java.sql.DriverManager
 import java.util.*
 
 
-internal class ClickhouseBenchmark() {
+internal class JdbcBenchmarkClickhouse() {
 
     companion object {
         val random = SecureRandom()
@@ -28,7 +27,7 @@ internal class ClickhouseBenchmark() {
                 "date_time", "date_time")
     }
 
-    @Test
+    //@Test
     fun saveRows() {
         for (counter in 1..40) {
             val stringsAll = ArrayList<DbRow>()
@@ -41,16 +40,19 @@ internal class ClickhouseBenchmark() {
                 stringsAll.add(DbRow(arrayListOf(DbColumn("arrays", arrayOfString, DbColumnType.DbArrayString))))
             }
 
+            val time = System.currentTimeMillis()
             connection!!.insertRows("STRINGS", DbTableHeader(arrayListOf(
                     DbColumnHeader("arrays", DbColumnType.DbArrayString))),
                     stringsAll)
-            println("Saved 30000")
+            println("Time: " + (System.currentTimeMillis() - time))
         }
     }
 
-    @Test
+    //@Test
     fun loadRows() {
+        val time = System.currentTimeMillis()
         connection!!.loadRows("STRINGS", "arrays", "1234")
+        println("Time: " + (System.currentTimeMillis() - time))
     }
 
 }

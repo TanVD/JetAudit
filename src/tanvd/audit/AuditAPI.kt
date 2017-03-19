@@ -5,9 +5,12 @@ import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.implementation.dao.AuditDaoFactory
 import tanvd.audit.model.AuditRecord
 import tanvd.audit.model.AuditType
+import tanvd.audit.serializers.IntSerializer
+import tanvd.audit.serializers.LongSerializer
 import tanvd.audit.serializers.StringSerializer
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
+import kotlin.reflect.KClass
 
 /**
  * Asynchronous saving of connected entities.
@@ -40,7 +43,9 @@ class AuditAPI(connectionUrl : String, user : String, password : String) {
 
         executor = AuditExecutor(auditQueue)
 
-        addTypeForAudit(AuditType(String::class, "DbString", StringSerializer))
+        addTypeForAudit(AuditType(String::class, "Type_String", StringSerializer))
+        addTypeForAudit(AuditType(Int::class, "Type_Int", IntSerializer))
+        addTypeForAudit(AuditType(Long::class, "Type_Long", LongSerializer))
     }
 
     /**
@@ -56,6 +61,7 @@ class AuditAPI(connectionUrl : String, user : String, password : String) {
     /**
      * Save audit entry resolving dependencies.
      * Unknown types will be ignored (for now).
+     * Audit will be saved after buffer of worker will be filled
      */
     fun saveAudit(vararg objects: Any) {
         val audit = AuditRecord()
@@ -72,8 +78,8 @@ class AuditAPI(connectionUrl : String, user : String, password : String) {
     /**
      * Load audits containing specified object
      */
-    fun <T>loadAudit(auditType: AuditType<T>, idToLoad: String): MutableList<MutableList<Any>> {
-
+    fun loadAudit(klass: KClass<*>, idToLoad: String): MutableList<MutableList<Any>> {
+        val auditType = AuditType.resolveType(klass)
         val auditRecords = auditDao.loadRow(auditType, idToLoad)
         val resultList = ArrayList<MutableList<Any>>()
 

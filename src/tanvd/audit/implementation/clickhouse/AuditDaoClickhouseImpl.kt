@@ -1,6 +1,8 @@
 package tanvd.audit.implementation.clickhouse
 
-import tanvd.audit.implementation.clickhouse.model.*
+import tanvd.audit.implementation.clickhouse.model.DbColumnHeader
+import tanvd.audit.implementation.clickhouse.model.DbColumnType
+import tanvd.audit.implementation.clickhouse.model.DbTableHeader
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.AuditRecord
 import tanvd.audit.model.AuditType
@@ -30,10 +32,9 @@ class AuditDaoClickhouseImpl(rawConnection : Connection) : AuditDao {
      * Creates necessary columns for current types
      */
     private fun initTables() {
-        //TODO take a closer look to length of description
         val tableHeader = DbTableHeader(arrayListOf(
                 DbColumnHeader(auditDateColumnName, DbColumnType.DbDate),
-                DbColumnHeader(auditDescriptionColumnName, DbColumnType.DbString)))
+                DbColumnHeader(auditDescriptionColumnName, DbColumnType.DbArrayString)))
         types.mapTo(tableHeader.columnsHeader) { DbColumnHeader(it.code, DbColumnType.DbArrayString) }
         clickhouseConnection.createTable(auditTableName, tableHeader, auditDateColumnName, auditDateColumnName)
     }
@@ -42,26 +43,19 @@ class AuditDaoClickhouseImpl(rawConnection : Connection) : AuditDao {
      * Saves audit record and all its objects
      */
     override fun saveRow(auditRecord: AuditRecord) {
-        val (stringToSave, row) = ClickhouseRecordSerializer.serialize(auditRecord)
-        row.columns.add(DbColumn(auditDescriptionColumnName, arrayListOf(stringToSave), DbColumnType.DbString))
-
+        val row = ClickhouseRecordSerializer.serialize(auditRecord)
         clickhouseConnection.insertRow(auditTableName, row)
     }
 
     /**
-     * Saves audit records. Makes it faster, than for with saveRow
+     * Saves audit records. Makes it faster, than for loop with saveRow
      */
     override fun saveRows(auditRecords: List<AuditRecord>) {
         val tableHeader = DbTableHeader(arrayListOf(
-                DbColumnHeader(auditDescriptionColumnName, DbColumnType.DbString)))
+                DbColumnHeader(auditDescriptionColumnName, DbColumnType.DbArrayString)))
         types.mapTo(tableHeader.columnsHeader) { DbColumnHeader(it.code, DbColumnType.DbArrayString) }
 
-        val rows = ArrayList<DbRow>()
-        for (auditRecord in auditRecords) {
-            val (stringToSave, row) = ClickhouseRecordSerializer.serialize(auditRecord)
-            row.columns.add(DbColumn(auditDescriptionColumnName, arrayListOf(stringToSave), DbColumnType.DbString))
-            rows.add(row)
-        }
+        val rows = auditRecords.map { ClickhouseRecordSerializer.serialize(it) }
 
         clickhouseConnection.insertRows(auditTableName, tableHeader, rows)
     }
@@ -87,6 +81,9 @@ class AuditDaoClickhouseImpl(rawConnection : Connection) : AuditDao {
         return auditRecordList
     }
 
+    /**
+     * Drops table with specified name
+     */
     override fun dropTable(tableName : String) {
         clickhouseConnection.dropTable(tableName, true)
     }

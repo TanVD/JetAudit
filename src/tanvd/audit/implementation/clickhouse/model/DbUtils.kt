@@ -36,6 +36,12 @@ enum class DbColumnType {
     }
 }
 
+/**
+ * Header for Clickhouse DB
+ */
 data class DbTableHeader(val columnsHeader : MutableList<DbColumnHeader>)
 
+/**
+ * Header for Clickhouse Column
+ */
 data class DbColumnHeader(val name : String, val type : DbColumnType)
