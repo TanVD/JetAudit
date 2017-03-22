@@ -5,7 +5,7 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.dao.AuditDao
-import tanvd.audit.implementation.mysql.AuditDaoMysqlImpl
+import tanvd.audit.implementation.dao.DbType
 import tanvd.audit.model.AuditRecord
 import tanvd.audit.model.AuditSerializer
 import tanvd.audit.model.AuditType
@@ -13,7 +13,6 @@ import tanvd.audit.model.AuditType.TypesResolution.addType
 import tanvd.audit.model.AuditType.TypesResolution.resolveType
 import tanvd.audit.serializers.IntSerializer
 import tanvd.audit.serializers.StringSerializer
-import java.sql.DriverManager
 
 internal class AuditDaoSavingMySQL() {
 
@@ -50,37 +49,34 @@ internal class AuditDaoSavingMySQL() {
     @BeforeMethod
     @Suppress("UNCHECKED_CAST")
     fun createAll() {
-        val rawConnection = DriverManager.getConnection("jdbc:mysql://localhost/example?useLegacyDatetimeCode=false" +
+        auditDao = DbType.MySQL.getDao("jdbc:mysql://localhost/example?useLegacyDatetimeCode=false" +
                 "&serverTimezone=Europe/Moscow", "root", "root")
-        auditDao = AuditDaoMysqlImpl(rawConnection)
 
         val typeTestClassFirst = AuditType(TestClassFirst::class, "TestClassFirst", TestClassFirst) as AuditType<Any>
         addType(typeTestClassFirst)
-        auditDao!!.addType(typeTestClassFirst)
+        auditDao!!.addTypeInDbModel(typeTestClassFirst)
 
         val typeString = AuditType(String::class, "Type_String", StringSerializer) as AuditType<Any>
         addType(typeString)
-        auditDao!!.addType(typeString)
+        auditDao!!.addTypeInDbModel(typeString)
 
         val typeInt = AuditType(Int::class, "Type_Int", IntSerializer) as AuditType<Any>
         addType(typeInt)
-        auditDao!!.addType(typeInt)
+        auditDao!!.addTypeInDbModel(typeInt)
 
         val typeTestClassSecond = AuditType(TestClassSecond::class, "TestClassSecond", TestClassSecond) as AuditType<Any>
         addType(typeTestClassSecond)
-        auditDao!!.addType(typeTestClassSecond)
+        auditDao!!.addTypeInDbModel(typeTestClassSecond)
 
     }
 
     @AfterMethod
     fun clearAll() {
         auditDao!!.dropTable("Audit")
-        for (type in AuditDaoMysqlImpl.types) {
+        for (type in AuditType.getTypes()) {
             auditDao!!.dropTable(type.code)
         }
-        AuditDaoMysqlImpl.types.clear()
-        AuditType.auditTypesByClass.clear()
-        AuditType.auditTypesByCode.clear()
+        AuditType.clearTypes()
     }
 
     @Test
@@ -90,8 +86,8 @@ internal class AuditDaoSavingMySQL() {
                 Pair(resolveType(Int::class), "27"),
                 Pair(resolveType(String::class), " in the army?"))
         val auditRecordOriginal = AuditRecord(arrayObjects)
-        auditDao!!.saveRow(auditRecordOriginal)
-        val recordsLoaded = auditDao!!.loadRow(resolveType(Int::class), "27")
+        auditDao!!.saveRecord(auditRecordOriginal)
+        val recordsLoaded = auditDao!!.loadRecords(resolveType(Int::class), "27")
         Assert.assertEquals(recordsLoaded.size, 1)
         Assert.assertEquals(recordsLoaded[0].objects, auditRecordOriginal.objects)
     }
@@ -109,8 +105,8 @@ internal class AuditDaoSavingMySQL() {
                 Pair(resolveType(String::class), "i came to berlin "),
                 Pair(resolveType(String::class), "in the army?"))
         val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond)
-        auditDao!!.saveRows(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
-        val recordsLoaded = auditDao!!.loadRow(resolveType(Int::class), "27")
+        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
+        val recordsLoaded = auditDao!!.loadRecords(resolveType(Int::class), "27")
         Assert.assertEquals(recordsLoaded.size, 1)
         Assert.assertEquals(recordsLoaded[0].objects, auditRecordFirstOriginal.objects)
     }
@@ -128,8 +124,8 @@ internal class AuditDaoSavingMySQL() {
                 Pair(resolveType(String::class), "i came to berlin "),
                 Pair(resolveType(String::class), "in the army?"))
         val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond)
-        auditDao!!.saveRows(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
-        val recordsLoaded = auditDao!!.loadRow(resolveType(String::class), "in the army?")
+        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
+        val recordsLoaded = auditDao!!.loadRecords(resolveType(String::class), "in the army?")
         Assert.assertEquals(recordsLoaded.size, 2)
         Assert.assertTrue(recordsLoaded.map { it.objects }.containsAll(listOf(arrayObjectsFirst, arrayObjectsSecond)))
     }
@@ -147,8 +143,8 @@ internal class AuditDaoSavingMySQL() {
                 Pair(resolveType(String::class), "i came to berlin "),
                 Pair(resolveType(String::class), "in the army?"))
         val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond)
-        auditDao!!.saveRows(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
-        val recordsLoaded = auditDao!!.loadRow(resolveType(String::class), "Bad String")
+        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
+        val recordsLoaded = auditDao!!.loadRecords(resolveType(String::class), "Bad String")
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
@@ -161,8 +157,8 @@ internal class AuditDaoSavingMySQL() {
                 Pair(resolveType(String::class), " times by "),
                 Pair(resolveType(TestClassSecond::class), "TestClassSecondId"))
         val auditRecordOriginal = AuditRecord(arrayObjects)
-        auditDao!!.saveRow(auditRecordOriginal)
-        val recordsLoaded = auditDao!!.loadRow(resolveType(TestClassFirst::class), "TestClassFirstId")
+        auditDao!!.saveRecord(auditRecordOriginal)
+        val recordsLoaded = auditDao!!.loadRecords(resolveType(TestClassFirst::class), "TestClassFirstId")
         Assert.assertEquals(recordsLoaded.size, 1)
         Assert.assertEquals(recordsLoaded[0].objects, auditRecordOriginal.objects)
     }
@@ -183,8 +179,8 @@ internal class AuditDaoSavingMySQL() {
                 Pair(resolveType(String::class), "you"),
                 Pair(resolveType(String::class), "have been called"))
         val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond)
-        auditDao!!.saveRows(listOf(auditRecordFirstOriginal,auditRecordSecondOriginal))
-        val recordsLoaded = auditDao!!.loadRow(resolveType(TestClassFirst::class), "TestClassFirstId")
+        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal,auditRecordSecondOriginal))
+        val recordsLoaded = auditDao!!.loadRecords(resolveType(TestClassFirst::class), "TestClassFirstId")
         Assert.assertEquals(recordsLoaded.size, 1)
         Assert.assertEquals(recordsLoaded[0].objects, auditRecordFirstOriginal.objects)
     }
@@ -205,8 +201,8 @@ internal class AuditDaoSavingMySQL() {
                 Pair(resolveType(String::class), "you"),
                 Pair(resolveType(String::class), "have been called"))
         val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond)
-        auditDao!!.saveRows(listOf(auditRecordFirstOriginal,auditRecordSecondOriginal))
-        val recordsLoaded = auditDao!!.loadRow(resolveType(String::class), "have been called")
+        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal,auditRecordSecondOriginal))
+        val recordsLoaded = auditDao!!.loadRecords(resolveType(String::class), "have been called")
         Assert.assertEquals(recordsLoaded.size, 2)
         Assert.assertTrue(recordsLoaded.map { it.objects }.containsAll(listOf(arrayObjectsFirst, arrayObjectsSecond)))
     }
@@ -227,8 +223,8 @@ internal class AuditDaoSavingMySQL() {
                 Pair(resolveType(String::class), "you"),
                 Pair(resolveType(String::class), "have been called"))
         val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond)
-        auditDao!!.saveRows(listOf(auditRecordFirstOriginal,auditRecordSecondOriginal))
-        val recordsLoaded = auditDao!!.loadRow(resolveType(String::class), "Bad String")
+        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal,auditRecordSecondOriginal))
+        val recordsLoaded = auditDao!!.loadRecords(resolveType(String::class), "Bad String")
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 

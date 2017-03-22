@@ -4,13 +4,13 @@ import tanvd.audit.model.AuditRecord
 import tanvd.audit.model.AuditType
 
 interface AuditDao {
-    fun saveRow(auditRecord: AuditRecord)
+    fun saveRecord(auditRecord: AuditRecord)
 
-    fun saveRows(auditRecords: List<AuditRecord>)
+    fun saveRecords(auditRecords: List<AuditRecord>)
 
-    fun <T> addType(type : AuditType<T>)
+    fun <T> addTypeInDbModel(type : AuditType<T>)
 
-    fun <T> loadRow(type : AuditType<T>, id : String) : List<AuditRecord>
+    fun <T> loadRecords(type : AuditType<T>, id : String) : List<AuditRecord>
 
     fun dropTable(tableName : String)
 }

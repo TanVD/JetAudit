@@ -1,6 +1,7 @@
 package Clickhouse.benchmark
 
 import tanvd.audit.AuditAPI
+import tanvd.audit.implementation.dao.DbType
 import java.math.BigInteger
 import java.security.SecureRandom
 import java.util.*
@@ -10,7 +11,8 @@ internal class AuditApiBenchmarkClickhouse() {
 
     companion object {
         val random = SecureRandom()
-        val auditApi: AuditAPI = AuditAPI("jdbc:clickhouse://localhost:8123/benchmark", "default", "")
+        val auditApi: AuditAPI = AuditAPI(DbType.Clickhouse, "jdbc:clickhouse://localhost:8123/benchmark",
+                "default", "")
     }
 
     //@Test

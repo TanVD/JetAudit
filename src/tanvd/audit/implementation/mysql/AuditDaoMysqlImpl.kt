@@ -3,26 +3,17 @@ package tanvd.audit.implementation.mysql
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.AuditRecord
 import tanvd.audit.model.AuditType
-import java.sql.Connection
-import java.util.*
+import javax.sql.DataSource
 
 /**
  * Dao to MySQL DB.
  * Please, remember not to use dots in names or parameters
  */
-class AuditDaoMysqlImpl(rawConnection: Connection) : AuditDao {
+class AuditDaoMysqlImpl(dataSource: DataSource) : AuditDao {
 
-
-    companion object Config {
-        val types: MutableList<AuditType<Any>> = ArrayList()
-    }
-
-    val mysqlConnection: JdbcMysqlConnection
+    val mysqlConnection: JdbcMysqlConnection = JdbcMysqlConnection(dataSource)
 
     init {
-
-        mysqlConnection = JdbcMysqlConnection(rawConnection)
-
         initTables()
     }
 
@@ -34,7 +25,7 @@ class AuditDaoMysqlImpl(rawConnection: Connection) : AuditDao {
         val header = listOf(Pair("ID", "int"), Pair("description", "varchar(255)"))
         mysqlConnection.createTable("Audit", header, "ID", true)
 
-        for (type in types) {
+        for (type in AuditType.getTypes()) {
             val headerConnect = listOf(Pair("ID", "int"), Pair("TYPEID", "varchar(255)"))
             mysqlConnection.createTable(type.code, headerConnect, "ID, TYPEID", false)
         }
@@ -43,7 +34,7 @@ class AuditDaoMysqlImpl(rawConnection: Connection) : AuditDao {
     /**
      * Saves audit record and all its objects into appropriate tables (separate tables for objects for better search)
      */
-    override fun saveRow(auditRecord: AuditRecord) {
+    override fun saveRecord(auditRecord: AuditRecord) {
         val stringToSave = MysqlRecordSerializer.serialize(auditRecord)
         val auditId = mysqlConnection.insertRow("Audit", listOf("description"), listOf(Pair(stringToSave, String::class)))
 
@@ -53,29 +44,24 @@ class AuditDaoMysqlImpl(rawConnection: Connection) : AuditDao {
         }
     }
 
-    override fun saveRows(auditRecords: List<AuditRecord>) {
+    override fun saveRecords(auditRecords: List<AuditRecord>) {
         for (auditRecord in auditRecords) {
-            saveRow(auditRecord)
+            saveRecord(auditRecord)
         }
     }
 
     /**
      * Adds new name and creates tables for it
      */
-    override fun <T> addType(type: AuditType<T>) {
+    override fun <T> addTypeInDbModel(type: AuditType<T>) {
         val headerConnect = listOf(Pair("ID", "int"), Pair("TYPEID", "varchar(255)"))
         mysqlConnection.createTable(type.code, headerConnect, "ID, TYPEID", false)
-
-        synchronized(types) {
-            @Suppress("UNCHECKED_CAST")
-            types.add(type as AuditType<Any>)
-        }
     }
 
     /**
      * Loads all auditRecords with specified object
      */
-    override fun <T> loadRow(type: AuditType<T>, id: String): List<AuditRecord> {
+    override fun <T> loadRecords(type: AuditType<T>, id: String): List<AuditRecord> {
         val resultList = mysqlConnection.loadRows(type.code, id)
         val auditRecordList = resultList.map { MysqlRecordSerializer.deserialize(it) }
         return auditRecordList

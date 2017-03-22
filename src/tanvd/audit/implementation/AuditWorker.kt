@@ -23,18 +23,19 @@ class AuditWorker(val auditQueue: LinkedBlockingQueue<AuditRecord>, val maxBuffe
         auditDao = AuditDaoFactory.getDao()
     }
 
+    //TODO Check if reconnection too slow
     fun start() {
         while (true) {
             synchronized (isWorking) {
                 val record = auditQueue.poll(timeToWait, TimeUnit.MILLISECONDS)
                 isWorking = record != null || buffer.isNotEmpty()
                 if (record == null && buffer.isNotEmpty()) {
-                    auditDao.saveRows(buffer.take(buffer.size))
+                    auditDao.saveRecords(buffer.take(buffer.size))
                     buffer.clear()
                 }
                 if (record != null) {
                     if (buffer.size == maxBuffer) {
-                        auditDao.saveRows(buffer.take(buffer.size))
+                        auditDao.saveRecords(buffer.take(buffer.size))
                         buffer.clear()
                     }
                     buffer.add(record as AuditRecord)

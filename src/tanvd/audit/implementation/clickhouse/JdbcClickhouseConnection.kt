@@ -3,10 +3,14 @@ package tanvd.audit.implementation.clickhouse
 import ru.yandex.clickhouse.except.ClickHouseUnknownException
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl.Config.auditDescriptionColumnName
 import tanvd.audit.implementation.clickhouse.model.*
+import tanvd.audit.model.AuditType
 import java.sql.Connection
+import java.sql.ResultSet
+import java.sql.Statement
 import java.util.*
+import javax.sql.DataSource
 
-class JdbcClickhouseConnection(val connection: Connection) {
+class JdbcClickhouseConnection(val dataSource: DataSource) {
     /**
      * Creates table with specified header (uses ifNotExists modifier by default)
      * You must specify date field cause we use MergeTree Engine
@@ -18,12 +22,23 @@ class JdbcClickhouseConnection(val connection: Connection) {
         sqlCreate.append("CREATE TABLE ")
         sqlCreate.append(if (ifNotExists) "IF NOT EXISTS " else "")
         sqlCreate.append(tableHeader.columnsHeader.joinToString(prefix = "$tableName (", postfix = ") ") {
-            if (it.name == dateKey && setDefaultDate) "${it.name} ${it.type} DEFAULT today()"
-                else "${it.name} ${it.type}" })
+            if (it.name == dateKey && setDefaultDate)
+                "${it.name} ${it.type} DEFAULT today()"
+            else
+                "${it.name} ${it.type}"
+        })
         sqlCreate.append("ENGINE = MergeTree($dateKey, ($primaryKey), 8192);")
 
-        val stmt = connection.createStatement()
-        stmt.execute(sqlCreate.toString())
+        var connection : Connection? = null
+        var stmt : Statement? = null
+        try {
+            connection = dataSource.connection
+            stmt = connection.createStatement()
+            stmt.execute(sqlCreate.toString())
+        } finally {
+            stmt?.close()
+            connection?.close()
+        }
     }
 
     /**
@@ -32,28 +47,17 @@ class JdbcClickhouseConnection(val connection: Connection) {
     fun addColumn(tableName: String, columnHeader : DbColumnHeader) {
         val sqlAlter = "ALTER TABLE $tableName ADD COLUMN ${columnHeader.name} ${columnHeader.type} ;"
 
-        val stmt = connection.createStatement()
+        var connection : Connection? = null
+        var stmt : Statement? = null
         try {
+            connection = dataSource.connection
+            stmt = connection.createStatement()
             stmt.execute(sqlAlter)
         } catch (e: ClickHouseUnknownException) {
             println("Column ${columnHeader.name} already exists.")
-        }
-    }
-
-    private fun DbRow.prepareForDb() : String {
-        return this.columns.joinToString(prefix = "(", postfix = ")") {
-            column ->
-            when (column.type) {
-                DbColumnType.DbDate -> {
-                    column.elements[0]
-                }
-                DbColumnType.DbString -> {
-                    "'${column.elements[0]}'"
-                }
-                DbColumnType.DbArrayString -> {
-                    "[${column.elements.joinToString { "'$it'" }}]"
-                }
-            }
+        } finally {
+            stmt?.close()
+            connection?.close()
         }
     }
 
@@ -64,12 +68,20 @@ class JdbcClickhouseConnection(val connection: Connection) {
         val sqlInsert = StringBuilder()
         sqlInsert.append("INSERT INTO $tableName (${row.columns.map { it.name }.joinToString()}) VALUES ")
 
-        sqlInsert.append(row.prepareForDb())
+        sqlInsert.append(row.toStringInsert())
 
         sqlInsert.append(";")
 
-        val stmt = connection.createStatement()
-        stmt.executeUpdate(sqlInsert.toString())
+        var connection : Connection? = null
+        var stmt : Statement? = null
+        try {
+            connection = dataSource.connection
+            stmt = connection.createStatement()
+            stmt.executeUpdate(sqlInsert.toString())
+        } finally {
+            stmt?.close()
+            connection?.close()
+        }
     }
 
     /**
@@ -78,7 +90,7 @@ class JdbcClickhouseConnection(val connection: Connection) {
      */
     fun insertRows(tableName: String, tableHeader: DbTableHeader, rows: List<DbRow>) {
         val sqlInsert = StringBuilder()
-        sqlInsert.append("INSERT INTO $tableName (${tableHeader.columnsHeader.joinToString {it.name}}) VALUES \n")
+        sqlInsert.append("INSERT INTO $tableName ${tableHeader.toStringInsert()} VALUES \n")
 
         for ((columns) in rows) {
             sqlInsert.append("(")
@@ -112,8 +124,16 @@ class JdbcClickhouseConnection(val connection: Connection) {
         }
         sqlInsert.append(";")
 
-        val stmt = connection.createStatement()
-        stmt.executeUpdate(sqlInsert.toString())
+        var connection : Connection? = null
+        var stmt : Statement? = null
+        try{
+            connection = dataSource.connection
+            stmt = connection.createStatement()
+            stmt.executeUpdate(sqlInsert.toString())
+        } finally {
+            stmt?.close()
+            connection?.close()
+        }
     }
 
     /**
@@ -123,31 +143,56 @@ class JdbcClickhouseConnection(val connection: Connection) {
      */
     fun loadRows(tableName : String, typeName: String, id: String): List<DbRow> {
         val sqlSelect = "SELECT * FROM $tableName WHERE has($typeName, '$id');"
-        val stmt = connection.createStatement()
-        val result = stmt.executeQuery(sqlSelect)
 
-        val selectedTable = ArrayList<DbRow>()
-        while (result.next()) {
-            val row = DbRow()
-            @Suppress("UNCHECKED_CAST")
-            row.columns.add(
-                    DbColumn(auditDescriptionColumnName, (result.getArray("description").array as Array<String>)
-                            .toList(), DbColumnType.DbArrayString))
-            for (type in AuditDaoClickhouseImpl.types) {
+        val rows = ArrayList<DbRow>()
+
+        var connection : Connection? = null
+        var stmt : Statement? = null
+        var resultSet : ResultSet? = null
+        try {
+            connection = dataSource.connection
+            stmt = connection.createStatement()
+            resultSet = stmt.executeQuery(sqlSelect)
+
+            while (resultSet.next()) {
+                val row = DbRow()
                 @Suppress("UNCHECKED_CAST")
-                val resultArray = result.getArray(type.code).array as Array<String>
-                row.columns.add(DbColumn(type.code, resultArray.toList(), DbColumnType.DbArrayString))
+                row.columns.add(
+                        DbColumn(auditDescriptionColumnName, (resultSet.getArray("description").array as Array<String>)
+                                .toList(), DbColumnType.DbArrayString))
+                for (type in AuditType.getTypes()) {
+                    @Suppress("UNCHECKED_CAST")
+                    val resultArray = resultSet.getArray(type.code).array as Array<String>
+                    row.columns.add(DbColumn(type.code, resultArray.toList(), DbColumnType.DbArrayString))
+                }
+                rows.add(row)
             }
-            selectedTable.add(row)
+        } finally {
+            resultSet?.close()
+            stmt?.close()
+            connection?.close()
         }
 
-        return selectedTable
+
+        return rows
     }
 
     fun dropTable(tableName: String, ifExists: Boolean) {
         val sqlDrop = "DROP TABLE ${if (ifExists) "IF EXISTS" else ""} $tableName;"
 
-        val stmt = connection.createStatement()
-        stmt.executeUpdate(sqlDrop)
+        var connection : Connection? = null
+        var stmt : Statement? = null
+        try {
+            connection = dataSource.connection
+            stmt = connection.createStatement()
+            stmt.executeUpdate(sqlDrop)
+        } finally {
+            stmt?.close()
+            connection?.close()
+        }
     }
+
+
+
+
 }

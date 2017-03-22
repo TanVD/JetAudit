@@ -35,7 +35,7 @@ object ClickhouseRecordSerializer {
      */
     fun deserialize(row : DbRow): AuditRecord {
         val description = row.columns.find { it.name == auditDescriptionColumnName }!!
-        val auditRecord = AuditRecord()
+        val objects = ArrayList<Pair<AuditType<Any>, String>>()
         val currentNumberOfType = HashMap<String, Int>()
 
        for (code in description.elements) {
@@ -43,12 +43,12 @@ object ClickhouseRecordSerializer {
             if (pair != null) {
                 val index = currentNumberOfType[code] ?: 0
                 if (pair.elements[index].isNotEmpty()) {
-                    auditRecord.objects.add(Pair(AuditType.resolveType(code), pair.elements[index]))
+                    objects.add(Pair(AuditType.resolveType(code), pair.elements[index]))
                 }
                 currentNumberOfType.put(code, index + 1)
             }
         }
 
-        return auditRecord
+        return AuditRecord(objects)
     }
 }

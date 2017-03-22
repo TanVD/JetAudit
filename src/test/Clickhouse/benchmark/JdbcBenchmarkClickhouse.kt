@@ -1,11 +1,12 @@
 package Clickhouse.benchmark
 
 import org.testng.annotations.BeforeClass
+import ru.yandex.clickhouse.ClickHouseDataSource
+import ru.yandex.clickhouse.settings.ClickHouseProperties
 import tanvd.audit.implementation.clickhouse.JdbcClickhouseConnection
 import tanvd.audit.implementation.clickhouse.model.*
 import java.math.BigInteger
 import java.security.SecureRandom
-import java.sql.DriverManager
 import java.util.*
 
 
@@ -19,8 +20,11 @@ internal class JdbcBenchmarkClickhouse() {
     @Suppress("UNCHECKED_CAST")
     @BeforeClass
     fun createAll() {
-        val rawConnection = DriverManager.getConnection("jdbc:clickhouse://localhost:8123/benchmark", "default", "")
-        connection = JdbcClickhouseConnection(rawConnection)
+        val properties = ClickHouseProperties()
+        properties.user = "default"
+        properties.password = ""
+        val dataSource = ClickHouseDataSource("jdbc:clickhouse://localhost:8123/benchmark", properties)
+        connection = JdbcClickhouseConnection(dataSource)
         connection!!.createTable("STRINGS", DbTableHeader(arrayListOf(
                 DbColumnHeader("date_time", DbColumnType.DbDate),
                 DbColumnHeader("arrays", DbColumnType.DbArrayString))),

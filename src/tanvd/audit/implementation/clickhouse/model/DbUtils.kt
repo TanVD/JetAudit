@@ -5,12 +5,30 @@ import java.util.*
 /**
  * Row of Clickhouse DB.
  */
-data class DbRow(val columns : MutableList<DbColumn> = ArrayList())
+data class DbRow(val columns : MutableList<DbColumn> = ArrayList()) {
+    fun toStringInsert() : String {
+        return this.columns.joinToString(prefix = "(", postfix = ")") { it.toStringInsert() }
+    }
+}
 
 /**
  * Column of Clickhouse DB.
  */
-data class DbColumn(val name: String, val elements : List<String>, val type : DbColumnType)
+data class DbColumn(val name: String, val elements : List<String>, val type : DbColumnType) {
+    fun toStringInsert() : String {
+        when (type) {
+            DbColumnType.DbDate -> {
+                return elements[0]
+            }
+            DbColumnType.DbString -> {
+                return "'${elements[0]}'"
+            }
+            DbColumnType.DbArrayString -> {
+                return "[${elements.joinToString { "'$it'" }}]"
+            }
+        }
+    }
+}
 
 /**
  * Clickhouse column type.
@@ -39,9 +57,17 @@ enum class DbColumnType {
 /**
  * Header for Clickhouse DB
  */
-data class DbTableHeader(val columnsHeader : MutableList<DbColumnHeader>)
+data class DbTableHeader(val columnsHeader : MutableList<DbColumnHeader>) {
+    fun toStringInsert() : String {
+        return columnsHeader.joinToString(prefix = "(", postfix = ")") { it.toStringInsert() }
+    }
+}
 
 /**
  * Header for Clickhouse Column
  */
-data class DbColumnHeader(val name : String, val type : DbColumnType)
+data class DbColumnHeader(val name : String, val type : DbColumnType) {
+    fun toStringInsert() : String {
+        return name
+    }
+}

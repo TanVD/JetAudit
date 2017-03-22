@@ -1,8 +1,6 @@
 package tanvd.audit.implementation.dao
 
-import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-import tanvd.audit.implementation.mysql.AuditDaoMysqlImpl
-import java.sql.DriverManager
+import javax.sql.DataSource
 
 object AuditDaoFactory {
     var connectionUrl : String? = null
@@ -11,20 +9,28 @@ object AuditDaoFactory {
 
     var password : String? = null
 
-    var dbName : DbName = DbName.Clickhouse
+    var dbType : DbType = DbType.Clickhouse
+
+    var dataSource : DataSource? = null
+
+    fun setConfig(dbType: DbType, connectionUrl : String, user : String, password : String) {
+        this.dbType = dbType
+        this.connectionUrl = connectionUrl
+        this.user = user
+        this.password = password
+    }
+
+    fun setConfig(dbType: DbType, dataSource: DataSource) {
+        this.dbType = dbType
+        this.dataSource = dataSource
+    }
 
     fun getDao() : AuditDao {
-        val rawConnection = DriverManager.getConnection(connectionUrl, user, password)
-        val auditDao : AuditDao
-        when (dbName) {
-            DbName.Clickhouse -> {
-                auditDao = AuditDaoClickhouseImpl(rawConnection)
-            }
-            DbName.MySQL -> {
-                auditDao = AuditDaoMysqlImpl(rawConnection)
-            }
+        if (dataSource != null) {
+            return dbType.getDao(dataSource!!)
+        } else {
+            return dbType.getDao(connectionUrl!!, user!!, password!!)
         }
-        return auditDao
     }
 
 }

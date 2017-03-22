@@ -2,6 +2,7 @@ package tanvd.audit.implementation.mysql
 
 import tanvd.audit.model.AuditRecord
 import tanvd.audit.model.AuditType
+import java.util.*
 
 object MysqlRecordSerializer {
     val delimiter = '\u0001'
@@ -28,7 +29,7 @@ object MysqlRecordSerializer {
      */
     fun deserialize(auditStringParam: String): AuditRecord {
         var auditString = auditStringParam
-        val auditRecord = AuditRecord()
+        val objects = ArrayList<Pair<AuditType<Any>, String>>()
         while (auditString.isNotEmpty()) {
             val code = auditString.subSequence(1, auditString.indexOf(delimiter, 1))
             auditString = auditString.drop(auditString.indexOf(delimiter, 1))
@@ -36,10 +37,10 @@ object MysqlRecordSerializer {
             auditString = auditString.drop(auditString.indexOf(delimiter, 1) + 1)
             val type: AuditType<Any>? = AuditType.resolveType(code.toString())
             if (type != null) {
-                auditRecord.objects.add(Pair(type, id))
+                objects.add(Pair(type, id))
             }
         }
 
-        return auditRecord
+        return AuditRecord(objects)
     }
 }

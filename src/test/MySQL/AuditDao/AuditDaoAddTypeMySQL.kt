@@ -5,7 +5,7 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.dao.AuditDao
-import tanvd.audit.implementation.mysql.AuditDaoMysqlImpl
+import tanvd.audit.implementation.dao.DbType
 import tanvd.audit.model.AuditRecord
 import tanvd.audit.model.AuditSerializer
 import tanvd.audit.model.AuditType
@@ -51,28 +51,25 @@ internal class AuditDaoAddTypeMySQL() {
     @BeforeMethod
     @Suppress("UNCHECKED_CAST")
     fun createAll() {
-        val rawConnection = DriverManager.getConnection("jdbc:mysql://localhost/example?useLegacyDatetimeCode=false" +
+        auditDao = DbType.MySQL.getDao("jdbc:mysql://localhost/example?useLegacyDatetimeCode=false" +
                 "&serverTimezone=Europe/Moscow", "root", "root")
-        auditDao = AuditDaoMysqlImpl(rawConnection)
 
         val typeString = AuditType(String::class, "Type_String", StringSerializer) as AuditType<Any>
         addType(typeString)
-        auditDao!!.addType(typeString)
+        auditDao!!.addTypeInDbModel(typeString)
 
         val typeInt = AuditType(Int::class, "Type_Int", IntSerializer) as AuditType<Any>
         addType(typeInt)
-        auditDao!!.addType(typeInt)
+        auditDao!!.addTypeInDbModel(typeInt)
     }
 
     @AfterMethod
     fun clearAll() {
         auditDao!!.dropTable("Audit")
-        for (type in AuditDaoMysqlImpl.types) {
+        for (type in AuditType.getTypes()) {
             auditDao!!.dropTable(type.code)
         }
-        AuditDaoMysqlImpl.types.clear()
-        AuditType.auditTypesByClass.clear()
-        AuditType.auditTypesByCode.clear()
+        AuditType.clearTypes()
     }
 
     @Test
@@ -82,14 +79,14 @@ internal class AuditDaoAddTypeMySQL() {
                 Pair(resolveType(Int::class), "27"),
                 Pair(resolveType(String::class), " in the army?"))
         val auditRecordOriginal = AuditRecord(arrayObjects)
-        auditDao!!.saveRow(auditRecordOriginal)
+        auditDao!!.saveRecord(auditRecordOriginal)
 
         @Suppress("UNCHECKED_CAST")
         val typeTestClassFirst = AuditType(TestClassFirst::class, "TestClassFirst", TestClassFirst) as AuditType<Any>
         AuditType.addType(typeTestClassFirst)
-        auditDao!!.addType(typeTestClassFirst)
+        auditDao!!.addTypeInDbModel(typeTestClassFirst)
 
-        val recordsLoaded = auditDao!!.loadRow(AuditType.resolveType(Int::class), "27")
+        val recordsLoaded = auditDao!!.loadRecords(AuditType.resolveType(Int::class), "27")
         Assert.assertEquals(recordsLoaded.size, 1)
         Assert.assertEquals(recordsLoaded[0].objects, auditRecordOriginal.objects)
     }
@@ -101,12 +98,12 @@ internal class AuditDaoAddTypeMySQL() {
                 Pair(resolveType(Int::class), "27"),
                 Pair(resolveType(String::class), " in the army?"))
         val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst)
-        auditDao!!.saveRow(auditRecordFirstOriginal)
+        auditDao!!.saveRecord(auditRecordFirstOriginal)
 
         @Suppress("UNCHECKED_CAST")
         val typeTestClassFirst = AuditType(TestClassFirst::class, "TestClassFirst", TestClassFirst) as AuditType<Any>
         AuditType.addType(typeTestClassFirst)
-        auditDao!!.addType(typeTestClassFirst)
+        auditDao!!.addTypeInDbModel(typeTestClassFirst)
 
         val arrayObjectsSecond = arrayListOf(
                 Pair(resolveType(TestClassFirst::class), "TestClassFirstId"),
@@ -114,9 +111,9 @@ internal class AuditDaoAddTypeMySQL() {
                 Pair(resolveType(Int::class), "27"),
                 Pair(resolveType(String::class), " times by "))
         val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond)
-        auditDao!!.saveRow(auditRecordSecondOriginal)
+        auditDao!!.saveRecord(auditRecordSecondOriginal)
 
-        val recordsLoaded = auditDao!!.loadRow(AuditType.resolveType(String::class), "Who is ")
+        val recordsLoaded = auditDao!!.loadRecords(AuditType.resolveType(String::class), "Who is ")
         Assert.assertEquals(recordsLoaded.size, 1)
         Assert.assertEquals(recordsLoaded[0].objects, auditRecordFirstOriginal.objects)
     }
@@ -128,12 +125,12 @@ internal class AuditDaoAddTypeMySQL() {
                 Pair(resolveType(Int::class), "27"),
                 Pair(resolveType(String::class), " in the army?"))
         val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst)
-        auditDao!!.saveRow(auditRecordFirstOriginal)
+        auditDao!!.saveRecord(auditRecordFirstOriginal)
 
         @Suppress("UNCHECKED_CAST")
         val typeTestClassFirst = AuditType(TestClassFirst::class, "TestClassFirst", TestClassFirst) as AuditType<Any>
         AuditType.addType(typeTestClassFirst)
-        auditDao!!.addType(typeTestClassFirst)
+        auditDao!!.addTypeInDbModel(typeTestClassFirst)
 
         val arrayObjectsSecond = arrayListOf(
                 Pair(resolveType(TestClassFirst::class), "TestClassFirstId"),
@@ -141,9 +138,9 @@ internal class AuditDaoAddTypeMySQL() {
                 Pair(resolveType(Int::class), "27"),
                 Pair(resolveType(String::class), " times by "))
         val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond)
-        auditDao!!.saveRow(auditRecordSecondOriginal)
+        auditDao!!.saveRecord(auditRecordSecondOriginal)
 
-        val recordsLoaded = auditDao!!.loadRow(AuditType.resolveType(TestClassFirst::class), "TestClassFirstId")
+        val recordsLoaded = auditDao!!.loadRecords(AuditType.resolveType(TestClassFirst::class), "TestClassFirstId")
         Assert.assertEquals(recordsLoaded.size, 1)
         Assert.assertEquals(recordsLoaded[0].objects, auditRecordSecondOriginal.objects)
     }
@@ -155,12 +152,12 @@ internal class AuditDaoAddTypeMySQL() {
                 Pair(resolveType(Int::class), "27"),
                 Pair(resolveType(String::class), " in the army?"))
         val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst)
-        auditDao!!.saveRow(auditRecordFirstOriginal)
+        auditDao!!.saveRecord(auditRecordFirstOriginal)
 
         @Suppress("UNCHECKED_CAST")
         val typeTestClassFirst = AuditType(TestClassFirst::class, "TestClassFirst", TestClassFirst) as AuditType<Any>
         AuditType.addType(typeTestClassFirst)
-        auditDao!!.addType(typeTestClassFirst)
+        auditDao!!.addTypeInDbModel(typeTestClassFirst)
 
         val arrayObjectsSecond = arrayListOf(
                 Pair(resolveType(TestClassFirst::class), "TestClassFirstId"),
@@ -168,9 +165,9 @@ internal class AuditDaoAddTypeMySQL() {
                 Pair(resolveType(Int::class), "27"),
                 Pair(resolveType(String::class), " times by "))
         val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond)
-        auditDao!!.saveRow(auditRecordSecondOriginal)
+        auditDao!!.saveRecord(auditRecordSecondOriginal)
 
-        val recordsLoaded = auditDao!!.loadRow(AuditType.resolveType(Int::class), "27")
+        val recordsLoaded = auditDao!!.loadRecords(AuditType.resolveType(Int::class), "27")
         Assert.assertEquals(recordsLoaded.size, 2)
         Assert.assertTrue(recordsLoaded.map{it.objects}.containsAll(listOf(arrayObjectsFirst, arrayObjectsSecond)))
     }
