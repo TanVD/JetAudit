@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/JetAudit.iml" filepath="$PROJECT_DIR$/JetAudit.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/JetAudit.iml" filepath="$PROJECT_DIR$/.idea/modules/JetAudit.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/JetAudit_main.iml" filepath="$PROJECT_DIR$/.idea/modules/JetAudit_main.iml" group="JetAudit" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/JetAudit_test.iml" filepath="$PROJECT_DIR$/.idea/modules/JetAudit_test.iml" group="JetAudit" />
     </modules>
   </component>
 </project>

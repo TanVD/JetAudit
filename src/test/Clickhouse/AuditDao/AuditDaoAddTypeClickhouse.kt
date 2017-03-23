@@ -14,27 +14,14 @@ import tanvd.audit.model.AuditType.TypesResolution.resolveType
 import tanvd.audit.serializers.IntSerializer
 import tanvd.audit.serializers.StringSerializer
 
+internal class AuditDaoAddTypeClickhouse {
 
-internal class AuditDaoAddTypeClickhouse() {
 
     companion object {
         var auditDao : AuditDao? = null
     }
 
-    class TestClassFirst(){
-        companion object serializer : AuditSerializer<TestClassFirst> {
-            override fun deserialize(serializedString: String): TestClassFirst {
-                throw UnsupportedOperationException("not implemented")
-            }
-
-            override fun serialize(value: TestClassFirst): String {
-                throw UnsupportedOperationException("not implemented")
-            }
-
-        }
-    }
-
-    class TestClassSecond() {
+    class TestClassFirst {
         companion object serializer : AuditSerializer<TestClassFirst> {
             override fun deserialize(serializedString: String): TestClassFirst {
                 throw UnsupportedOperationException("not implemented")

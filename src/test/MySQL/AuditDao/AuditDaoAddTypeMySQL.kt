@@ -35,19 +35,6 @@ internal class AuditDaoAddTypeMySQL() {
         }
     }
 
-    class TestClassSecond() {
-        companion object serializer : AuditSerializer<TestClassFirst> {
-            override fun deserialize(serializedString: String): TestClassFirst {
-                throw UnsupportedOperationException("not implemented")
-            }
-
-            override fun serialize(value: TestClassFirst): String {
-                throw UnsupportedOperationException("not implemented")
-            }
-
-        }
-    }
-
     @BeforeMethod
     @Suppress("UNCHECKED_CAST")
     fun createAll() {

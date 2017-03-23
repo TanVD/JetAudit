@@ -2,8 +2,6 @@
   <dictionary name="tanvd">
     <words>
       <w>clickhouse</w>
-      <w>deserialized</w>
-      <w>typeid</w>
     </words>
   </dictionary>
 </component>

@@ -55,7 +55,9 @@ internal class JdbcBenchmarkClickhouse() {
     //@Test
     fun loadRows() {
         val time = System.currentTimeMillis()
-        connection!!.loadRows("STRINGS", "arrays", "1234")
+        connection!!.loadRows("STRINGS", "arrays", "1234", DbTableHeader(listOf(
+                DbColumnHeader("date_time", DbColumnType.DbDate),
+                DbColumnHeader("arrays", DbColumnType.DbArrayString))))
         println("Time: " + (System.currentTimeMillis() - time))
     }
 
