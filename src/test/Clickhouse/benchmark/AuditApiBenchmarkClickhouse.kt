@@ -1,5 +1,6 @@
 package Clickhouse.benchmark
 
+import org.testng.annotations.Test
 import tanvd.audit.AuditAPI
 import tanvd.audit.implementation.dao.DbType
 import java.math.BigInteger
@@ -11,13 +12,13 @@ internal class AuditApiBenchmarkClickhouse() {
 
     companion object {
         val random = SecureRandom()
-        val auditApi: AuditAPI = AuditAPI(DbType.Clickhouse, "jdbc:clickhouse://localhost:8123/benchmark",
+        val auditApi: AuditAPI = AuditAPI(250000, DbType.Clickhouse, "jdbc:clickhouse://localhost:8123/benchmark",
                 "default", "")
     }
 
     //@Test
     fun saveRows() {
-        val times = 1
+        val times = 5
         for (k in 1..times) {
             val records = ArrayList<ArrayList<Any>>()
             for (i in 1..20000) {
@@ -40,7 +41,7 @@ internal class AuditApiBenchmarkClickhouse() {
             }
             val time = System.currentTimeMillis()
             for (record in records) {
-                auditApi.saveAudit(*(record.toArray()))
+                auditApi.saveAudit(*(record.toArray()), unixTimeStamp = 127)
             }
             while (auditApi.executor.isStillWorking()) {
                 Thread.sleep(20)

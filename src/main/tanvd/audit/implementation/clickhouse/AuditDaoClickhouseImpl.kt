@@ -14,13 +14,31 @@ import javax.sql.DataSource
  */
 class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
 
-    companion object Config {
+    /**
+     * Predefined scheme for clickhouse base.
+     */
+    companion object Scheme {
         val auditTable = PropertyLoader.load("schemeClickhouse.properties", "AuditTable")
         val dateColumn = PropertyLoader.load("schemeClickhouse.properties", "DateColumn")
         val descriptionColumn = PropertyLoader.load("schemeClickhouse.properties", "DescriptionColumn")
+        val unixTimeStampColumn = PropertyLoader.load("schemeClickhouse.properties", "UnixTimeStampColumn")
+
+        /** Default column with date for MergeTree Engine. Should not be inserted or selected.*/
+        val defaultColumns = arrayOf(DbColumnHeader(dateColumn, DbColumnType.DbDate))
+
+        /**
+         * Mandatory columns for audit. Should be presented in every insert. Treated specifically rather than
+         * normal types.
+         */
+        val mandatoryColumns = arrayOf(DbColumnHeader(descriptionColumn, DbColumnType.DbArrayString),
+                DbColumnHeader(unixTimeStampColumn, DbColumnType.DbInt))
+
+        fun getPredefinedAuditTableColumn(name: String): DbColumnHeader {
+            return arrayOf(*defaultColumns, *mandatoryColumns).find { it.name == name }!!
+        }
     }
 
-    private val clickhouseConnection  = JdbcClickhouseConnection(dataSource)
+    private val clickhouseConnection = JdbcClickhouseConnection(dataSource)
 
     init {
         initTables()
@@ -30,9 +48,7 @@ class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
      * Creates necessary columns for current types
      */
     private fun initTables() {
-        val columnsHeader = arrayListOf(
-                DbColumnHeader(dateColumn, DbColumnType.DbDate),
-                DbColumnHeader(descriptionColumn, DbColumnType.DbArrayString))
+        val columnsHeader = arrayListOf(*defaultColumns, *mandatoryColumns)
         AuditType.getTypes().mapTo(columnsHeader) { DbColumnHeader(it.code, DbColumnType.DbArrayString) }
         clickhouseConnection.createTable(auditTable, DbTableHeader(columnsHeader), dateColumn, dateColumn)
     }
@@ -49,8 +65,7 @@ class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
      * Saves audit records. Makes it faster, than for loop with saveRecord
      */
     override fun saveRecords(auditRecords: List<AuditRecord>) {
-        val columnsHeader = arrayListOf(
-                DbColumnHeader(descriptionColumn, DbColumnType.DbArrayString))
+        val columnsHeader = arrayListOf(*mandatoryColumns)
         AuditType.getTypes().mapTo(columnsHeader) { DbColumnHeader(it.code, DbColumnType.DbArrayString) }
 
         val rows = auditRecords.map { ClickhouseRecordSerializer.serialize(it) }
@@ -61,26 +76,26 @@ class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
     /**
      * Adds new type and creates column for it
      */
-    override fun <T> addTypeInDbModel(type : AuditType<T>) {
+    override fun <T> addTypeInDbModel(type: AuditType<T>) {
         clickhouseConnection.addColumn(auditTable, DbColumnHeader(type.code, DbColumnType.DbArrayString))
     }
 
     /**
      * Loads all auditRecords with specified object
      */
-    override fun <T> loadRecords(type : AuditType<T>, id : String) : List<AuditRecord> {
-        val selectColumns = arrayListOf(
-                DbColumnHeader(descriptionColumn, DbColumnType.DbArrayString))
+    override fun <T> loadRecords(type: AuditType<T>, id: String): List<AuditRecord> {
+        val selectColumns = arrayListOf(*mandatoryColumns)
         AuditType.getTypes().mapTo(selectColumns) { DbColumnHeader(it.code, DbColumnType.DbArrayString) }
+
         val resultList = clickhouseConnection.loadRows(auditTable, type.code, id, DbTableHeader(selectColumns))
-        val auditRecordList = resultList.map {  ClickhouseRecordSerializer.deserialize(it) }
+        val auditRecordList = resultList.map { ClickhouseRecordSerializer.deserialize(it) }
         return auditRecordList
     }
 
     /**
      * Drops table with specified name
      */
-    override fun dropTable(tableName : String) {
+    fun dropTable(tableName: String) {
         clickhouseConnection.dropTable(tableName, true)
     }
 }

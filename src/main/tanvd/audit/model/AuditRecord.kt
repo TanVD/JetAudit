@@ -1,3 +1,3 @@
 package tanvd.audit.model
 
-class AuditRecord(val objects: List<Pair<AuditType<Any>, String>>)
+class AuditRecord(val objects: List<Pair<AuditType<Any>, String>>, val unixTimeStamp: Int)

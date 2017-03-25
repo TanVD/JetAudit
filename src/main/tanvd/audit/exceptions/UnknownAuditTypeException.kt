@@ -1,3 +1,3 @@
 package tanvd.audit.exceptions
 
-class UnknownAuditTypeException(msg : String) : Throwable(msg)
+class UnknownAuditTypeException(msg: String) : Throwable(msg)

@@ -1,6 +1,7 @@
 package Clickhouse.benchmark
 
 import org.testng.annotations.BeforeClass
+import org.testng.annotations.Test
 import ru.yandex.clickhouse.ClickHouseDataSource
 import ru.yandex.clickhouse.settings.ClickHouseProperties
 import tanvd.audit.implementation.clickhouse.JdbcClickhouseConnection
@@ -32,6 +33,14 @@ internal class JdbcBenchmarkClickhouse() {
     }
 
     //@Test
+    fun checkForInjection() {
+        connection!!.insertRow("STRINGS",
+                DbRow(listOf(DbColumn("arrays", listOf("]); select * from benchmark.STRINGS;"), DbColumnType.DbArrayString))));
+    }
+
+
+
+    //@Test
     fun saveRows() {
         for (counter in 1..40) {
             val stringsAll = ArrayList<DbRow>()
@@ -55,7 +64,7 @@ internal class JdbcBenchmarkClickhouse() {
     //@Test
     fun loadRows() {
         val time = System.currentTimeMillis()
-        connection!!.loadRows("STRINGS", "arrays", "1234", DbTableHeader(listOf(
+        connection!!.loadRows("STRINGS", "arrays", "''''\n\t\b''", DbTableHeader(listOf(
                 DbColumnHeader("date_time", DbColumnType.DbDate),
                 DbColumnHeader("arrays", DbColumnType.DbArrayString))))
         println("Time: " + (System.currentTimeMillis() - time))

@@ -1,35 +1,26 @@
 package tanvd.audit.implementation.mysql.model
 
-import java.util.ArrayList
-
 
 /**
  * Row of MySQL DB.
  */
-data class DbRow(val columns : List<DbColumn>) {
-    fun toStringHeader() : String {
+data class DbRow(val columns: List<DbColumn>) {
+    constructor(vararg columns: DbColumn) : this(columns.toList())
+
+    fun toStringHeader(): String {
         return columns.map { it.name }.joinToString()
     }
 
-    fun toStringValues() : String {
-        return this.columns.joinToString { it.toStringValue() }
+    fun toPlaceholders(): String {
+        return columns.map { "?" }.joinToString()
     }
 }
 
 /**
  * Column of MySQL DB.
  */
-data class DbColumn(val name: String, val element: String, val type : DbColumnType) {
-    fun toStringValue() : String {
-        when (type) {
-            DbColumnType.DbInt -> {
-                return element
-            }
-            DbColumnType.DbString -> {
-                return "'$element'"
-            }
-        }
-    }
+data class DbColumn(val name: String, val element: String, val type: DbColumnType) {
+    constructor(header: DbColumnHeader, element: String) : this(header.name, element, header.type)
 }
 
 /**
@@ -40,12 +31,12 @@ enum class DbColumnType {
     DbInt,
     DbString;
 
-    override fun toString() : String {
+    override fun toString(): String {
         when (this) {
             DbInt -> {
                 return "int"
             }
-            //TODO take a closer look to length of String
+        //TODO take a closer look to length of String
             DbString -> {
                 return "varchar(255)"
             }
@@ -56,14 +47,16 @@ enum class DbColumnType {
 /**
  * Header for MySQL DB
  */
-data class DbTableHeader(val columnsHeader : List<DbColumnHeader>)
+data class DbTableHeader(val columnsHeader: List<DbColumnHeader>) {
+    constructor(vararg columnsHeader: DbColumnHeader) : this(columnsHeader.toList())
+}
 
 /**
  * Header for MySQL Column
  */
-data class DbColumnHeader(val name : String, val type : DbColumnType) {
+data class DbColumnHeader(val name: String, val type: DbColumnType) {
     /** Returns string definition of column -- name type **/
-    fun toDefString() : String {
+    fun toDefString(): String {
         return name + " " + type
     }
 }

@@ -12,11 +12,11 @@ enum class DbType {
      * Default Dao for Clickhouse
      */
     Clickhouse {
-        override fun getDao(dataSource: DataSource) : AuditDao {
+        override fun getDao(dataSource: DataSource): AuditDao {
             return AuditDaoClickhouseImpl(dataSource)
         }
 
-        override fun getDao(connectionUrl : String, username : String, password : String) : AuditDao {
+        override fun getDao(connectionUrl: String, username: String, password: String): AuditDao {
             val properties = ClickHouseProperties()
             properties.user = username
             properties.password = password
@@ -28,12 +28,11 @@ enum class DbType {
      * Default Dao for MySQL
      */
     MySQL {
-
-        override fun getDao(dataSource: DataSource) : AuditDao {
+        override fun getDao(dataSource: DataSource): AuditDao {
             return AuditDaoMysqlImpl(dataSource)
         }
 
-        override fun getDao(connectionUrl : String, username : String, password : String) : AuditDao {
+        override fun getDao(connectionUrl: String, username: String, password: String): AuditDao {
             val dataSource = MysqlDataSource()
             dataSource.setURL(connectionUrl)
             dataSource.user = username
@@ -42,8 +41,14 @@ enum class DbType {
         }
     };
 
-    abstract fun getDao(dataSource: DataSource) : AuditDao
+    /**
+     * Get DAO by DataSource
+     */
+    abstract fun getDao(dataSource: DataSource): AuditDao
 
-    abstract fun getDao(connectionUrl : String, username : String, password : String) : AuditDao
+    /**
+     * Get DAO by connection properties
+     */
+    abstract fun getDao(connectionUrl: String, username: String, password: String): AuditDao
 
 }

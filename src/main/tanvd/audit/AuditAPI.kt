@@ -1,8 +1,8 @@
 package tanvd.audit
 
+import tanvd.audit.exceptions.UnknownAuditTypeException
 import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.dao.AuditDao
-import tanvd.audit.implementation.dao.AuditDaoFactory
 import tanvd.audit.implementation.dao.DbType
 import tanvd.audit.model.AuditRecord
 import tanvd.audit.model.AuditType
@@ -10,10 +10,10 @@ import tanvd.audit.serializers.IntSerializer
 import tanvd.audit.serializers.LongSerializer
 import tanvd.audit.serializers.StringSerializer
 import java.util.*
-import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.BlockingQueue
 import javax.sql.DataSource
 import kotlin.reflect.KClass
-import tanvd.audit.exceptions.UnknownAuditTypeException
 
 /**
  * Asynchronous saving of connected entities.
@@ -30,36 +30,45 @@ import tanvd.audit.exceptions.UnknownAuditTypeException
  * Pay attention, that normal work of AuditAPI depends on external persistent context.
  */
 class AuditAPI {
-    //Factory for auditDao
-    val auditDao : AuditDao
+    val auditDao: AuditDao
 
     val executor: AuditExecutor
 
-    val auditQueue: LinkedBlockingQueue<AuditRecord> = LinkedBlockingQueue()
+    val auditQueue: BlockingQueue<AuditRecord>
 
     /**
      * Create AuditApi with default dataSource
+     *
+     * If queue will be overfilled all new audit  records will be lost
      */
-    constructor(dbType: DbType, connectionUrl : String, user : String, password : String) {
-        AuditDaoFactory.setConfig(dbType, connectionUrl, user, password)
-        auditDao = AuditDaoFactory.getDao()
+    constructor(queueCapacity: Int, dbType: DbType, connectionUrl: String, user: String, password: String) {
+        auditQueue = ArrayBlockingQueue(queueCapacity)
+
+        AuditDao.setConfig(dbType, connectionUrl, user, password)
+        auditDao = AuditDao.getDao()
 
         executor = AuditExecutor(auditQueue)
 
-        addTypeForAudit(AuditType(String::class, "Type_String", StringSerializer))
-        addTypeForAudit(AuditType(Int::class, "Type_Int", IntSerializer))
-        addTypeForAudit(AuditType(Long::class, "Type_Long", LongSerializer))
+        initTypes()
     }
 
     /**
      * Create AuditApi with your dataSource
+     *
+     * If queue will be overfilled all new audit  records will be lost
      */
-    constructor(dbType : DbType, dataSource : DataSource) {
-        AuditDaoFactory.setConfig(dbType, dataSource)
-        auditDao = AuditDaoFactory.getDao()
+    constructor(queueCapacity: Int, dbType: DbType, dataSource: DataSource) {
+        auditQueue = ArrayBlockingQueue(queueCapacity)
+
+        AuditDao.setConfig(dbType, dataSource)
+        auditDao = AuditDao.getDao()
 
         executor = AuditExecutor(auditQueue)
 
+        initTypes()
+    }
+
+    private fun initTypes() {
         addTypeForAudit(AuditType(String::class, "Type_String", StringSerializer))
         addTypeForAudit(AuditType(Int::class, "Type_Int", IntSerializer))
         addTypeForAudit(AuditType(Long::class, "Type_Long", LongSerializer))
@@ -83,7 +92,8 @@ class AuditAPI {
      *
      * @throws UnknownAuditTypeException
      */
-    fun saveAudit(vararg objects: Any) {
+    @Throws(UnknownAuditTypeException::class)
+    fun saveAudit(vararg objects: Any, unixTimeStamp: Int) {
         val recordObjects = ArrayList<Pair<AuditType<Any>, String>>()
         for (o in objects) {
             val type = AuditType.resolveType(o.javaClass.kotlin)
@@ -91,7 +101,7 @@ class AuditAPI {
             recordObjects.add(Pair(type, objectId))
         }
 
-        auditQueue.put(AuditRecord(recordObjects))
+        auditQueue.offer(AuditRecord(recordObjects, unixTimeStamp))
     }
 
     /**
@@ -99,6 +109,8 @@ class AuditAPI {
      *
      * @throws UnknownAuditTypeException
      */
+    //TODO add search by string
+    @Throws(UnknownAuditTypeException::class)
     fun loadAudit(klass: KClass<*>, idToLoad: String): MutableList<MutableList<Any>> {
         val auditRecords = auditDao.loadRecords(AuditType.resolveType(klass), idToLoad)
         val resultList = ArrayList<MutableList<Any>>()
@@ -113,6 +125,13 @@ class AuditAPI {
             resultList.add(currentRec)
         }
         return resultList
+    }
+
+    /**
+     * Stop audit saving
+     */
+    fun stopAudit(timeToWait : Long) : Boolean {
+        return executor.stopWorkers(timeToWait)
     }
 
 }

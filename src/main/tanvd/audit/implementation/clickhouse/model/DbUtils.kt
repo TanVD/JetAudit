@@ -5,45 +5,36 @@ import java.util.*
 /**
  * Row of Clickhouse DB.
  */
-data class DbRow(val columns : List<DbColumn> = ArrayList()) {
-    fun toStringHeader() : String {
+data class DbRow(val columns: List<DbColumn> = ArrayList()) {
+    fun toStringHeader(): String {
         return columns.map { it.name }.joinToString()
     }
 
-    fun toStringValues() : String {
-        return this.columns.joinToString { it.toStringValue() }
+    fun toPlaceholders(): String {
+        return columns.map { "?" }.joinToString()
     }
+
 }
 
 /**
  * Column of Clickhouse DB.
  */
-data class DbColumn(val name: String, val elements : List<String>, val type : DbColumnType) {
-    fun toStringValue() : String {
-        when (type) {
-            DbColumnType.DbDate -> {
-                return elements[0]
-            }
-            DbColumnType.DbString -> {
-                return "'${elements[0]}'"
-            }
-            DbColumnType.DbArrayString -> {
-                return "[${elements.joinToString { "'$it'" }}]"
-            }
-        }
-    }
+data class DbColumn(val name: String, val elements: List<String>, val type: DbColumnType) {
+    constructor(header: DbColumnHeader, elements: List<String>) : this(header.name, elements, header.type)
+    constructor(header: DbColumnHeader, vararg elements: String) : this(header.name, elements.toList(), header.type)
 }
 
 /**
  * Clickhouse column type.
- * ToString returns appropriate string representation of ColumnType
+ * ToString returns appropriate for db string representation of ColumnType
  */
 enum class DbColumnType {
     DbDate,
     DbArrayString,
-    DbString;
+    DbString,
+    DbInt;
 
-    override fun toString() : String {
+    override fun toString(): String {
         when (this) {
             DbDate -> {
                 return "Date"
@@ -54,6 +45,9 @@ enum class DbColumnType {
             DbString -> {
                 return "String"
             }
+            DbInt -> {
+                return "UInt32"
+            }
         }
     }
 }
@@ -61,19 +55,23 @@ enum class DbColumnType {
 /**
  * Header for Clickhouse DB
  */
-data class DbTableHeader(val columnsHeader : List<DbColumnHeader>) {
+data class DbTableHeader(val columnsHeader: List<DbColumnHeader>) {
     /** Returns string definition of TableHeader -- columnFirstName, columnSecondName, ... **/
-    fun toDefString() : String {
+    fun toDefString(): String {
         return columnsHeader.joinToString { it.toDefString() }
+    }
+
+    fun toPlaceholders(): String {
+        return columnsHeader.map { "?" }.joinToString()
     }
 }
 
 /**
  * Header for Clickhouse Column
  */
-data class DbColumnHeader(val name : String, val type : DbColumnType) {
+data class DbColumnHeader(val name: String, val type: DbColumnType) {
     /** Returns string definition of ColumnHeader -- name **/
-    fun toDefString() : String {
+    fun toDefString(): String {
         return name
     }
 }

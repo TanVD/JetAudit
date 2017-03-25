@@ -4,6 +4,7 @@ import org.testng.Assert
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
+import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.implementation.dao.DbType
 import tanvd.audit.model.AuditRecord
@@ -18,7 +19,7 @@ internal class AuditDaoAddTypeClickhouse {
 
 
     companion object {
-        var auditDao : AuditDao? = null
+        var auditDao : AuditDaoClickhouseImpl? = null
     }
 
     class TestClassFirst {
@@ -37,7 +38,7 @@ internal class AuditDaoAddTypeClickhouse {
     @BeforeMethod
     @Suppress("UNCHECKED_CAST")
     fun createAll() {
-        auditDao = DbType.Clickhouse.getDao("jdbc:clickhouse://localhost:8123/example", "default", "")
+        auditDao = DbType.Clickhouse.getDao("jdbc:clickhouse://localhost:8123/example", "default", "") as AuditDaoClickhouseImpl
 
         val typeString = AuditType(String::class, "String", StringSerializer) as AuditType<Any>
         addType(typeString)
@@ -60,7 +61,7 @@ internal class AuditDaoAddTypeClickhouse {
                 Pair(resolveType(String::class), "Who is "),
                 Pair(resolveType(Int::class), "27"),
                 Pair(resolveType(String::class), " in the army?"))
-        val auditRecordOriginal = AuditRecord(arrayObjects)
+        val auditRecordOriginal = AuditRecord(arrayObjects, 127)
         auditDao!!.saveRecord(auditRecordOriginal)
 
         @Suppress("UNCHECKED_CAST")
@@ -71,6 +72,7 @@ internal class AuditDaoAddTypeClickhouse {
         val recordsLoaded = auditDao!!.loadRecords(AuditType.resolveType(Int::class), "27")
         Assert.assertEquals(recordsLoaded.size, 1)
         Assert.assertEquals(recordsLoaded[0].objects, auditRecordOriginal.objects)
+        Assert.assertEquals(recordsLoaded[0].unixTimeStamp, auditRecordOriginal.unixTimeStamp)
     }
 
     @Test
@@ -79,7 +81,7 @@ internal class AuditDaoAddTypeClickhouse {
                 Pair(resolveType(String::class), "Who is "),
                 Pair(resolveType(Int::class), "27"),
                 Pair(resolveType(String::class), " in the army?"))
-        val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst)
+        val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 123)
         auditDao!!.saveRecord(auditRecordFirstOriginal)
 
         @Suppress("UNCHECKED_CAST")
@@ -92,12 +94,13 @@ internal class AuditDaoAddTypeClickhouse {
                 Pair(resolveType(String::class), "have been called"),
                 Pair(resolveType(Int::class), "27"),
                 Pair(resolveType(String::class), " times by "))
-        val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond)
+        val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond, 127)
         auditDao!!.saveRecord(auditRecordSecondOriginal)
 
         val recordsLoaded = auditDao!!.loadRecords(AuditType.resolveType(String::class), "Who is ")
         Assert.assertEquals(recordsLoaded.size, 1)
         Assert.assertEquals(recordsLoaded[0].objects, auditRecordFirstOriginal.objects)
+        Assert.assertEquals(recordsLoaded[0].unixTimeStamp, auditRecordFirstOriginal.unixTimeStamp)
     }
 
     @Test
@@ -106,7 +109,7 @@ internal class AuditDaoAddTypeClickhouse {
                 Pair(resolveType(String::class), "Who is "),
                 Pair(resolveType(Int::class), "27"),
                 Pair(resolveType(String::class), " in the army?"))
-        val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst)
+        val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 123)
         auditDao!!.saveRecord(auditRecordFirstOriginal)
 
         @Suppress("UNCHECKED_CAST")
@@ -119,12 +122,13 @@ internal class AuditDaoAddTypeClickhouse {
                 Pair(resolveType(String::class), "have been called"),
                 Pair(resolveType(Int::class), "27"),
                 Pair(resolveType(String::class), " times by "))
-        val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond)
+        val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond, 127)
         auditDao!!.saveRecord(auditRecordSecondOriginal)
 
         val recordsLoaded = auditDao!!.loadRecords(AuditType.resolveType(TestClassFirst::class), "TestClassFirstId")
         Assert.assertEquals(recordsLoaded.size, 1)
         Assert.assertEquals(recordsLoaded[0].objects, auditRecordSecondOriginal.objects)
+        Assert.assertEquals(recordsLoaded[0].unixTimeStamp, auditRecordSecondOriginal.unixTimeStamp)
     }
 
     @Test
@@ -133,7 +137,7 @@ internal class AuditDaoAddTypeClickhouse {
                 Pair(resolveType(String::class), "Who is "),
                 Pair(resolveType(Int::class), "27"),
                 Pair(resolveType(String::class), " in the army?"))
-        val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst)
+        val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 123)
         auditDao!!.saveRecord(auditRecordFirstOriginal)
 
         @Suppress("UNCHECKED_CAST")
@@ -146,11 +150,12 @@ internal class AuditDaoAddTypeClickhouse {
                 Pair(resolveType(String::class), "have been called"),
                 Pair(resolveType(Int::class), "27"),
                 Pair(resolveType(String::class), " times by "))
-        val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond)
+        val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond, 127)
         auditDao!!.saveRecord(auditRecordSecondOriginal)
 
         val recordsLoaded = auditDao!!.loadRecords(AuditType.resolveType(Int::class), "27")
         Assert.assertEquals(recordsLoaded.size, 2)
         Assert.assertTrue(recordsLoaded.map{it.objects}.containsAll(listOf(arrayObjectsFirst, arrayObjectsSecond)))
+        Assert.assertTrue(recordsLoaded.map{it.unixTimeStamp}.containsAll(arrayListOf(123, 127)))
     }
 }
