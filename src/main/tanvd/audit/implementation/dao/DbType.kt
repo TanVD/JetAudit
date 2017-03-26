@@ -44,11 +44,11 @@ enum class DbType {
     /**
      * Get DAO by DataSource
      */
-    abstract fun getDao(dataSource: DataSource): AuditDao
+    internal abstract fun getDao(dataSource: DataSource): AuditDao
 
     /**
      * Get DAO by connection properties
      */
-    abstract fun getDao(connectionUrl: String, username: String, password: String): AuditDao
+    internal abstract fun getDao(connectionUrl: String, username: String, password: String): AuditDao
 
 }

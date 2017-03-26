@@ -4,7 +4,7 @@ import org.slf4j.LoggerFactory
 import java.io.IOException
 
 /** Util class for property load. */
-object PropertyLoader {
+internal object PropertyLoader {
 
     private val logger = LoggerFactory.getLogger(PropertyLoader::class.java)
 

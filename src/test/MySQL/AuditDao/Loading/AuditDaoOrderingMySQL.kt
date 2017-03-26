@@ -1,4 +1,4 @@
-package MySQL.AuditDao
+package MySQL.AuditDao.Loading
 
 import org.testng.Assert
 import org.testng.annotations.AfterMethod
@@ -6,11 +6,12 @@ import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.dao.DbType
 import tanvd.audit.implementation.mysql.AuditDaoMysqlImpl
-import tanvd.audit.model.AuditRecord
-import tanvd.audit.model.AuditType
-import tanvd.audit.model.QueryParameters
-import tanvd.audit.model.QueryParameters.OrderByParameters.Order.ASC
-import tanvd.audit.model.QueryParameters.OrderByParameters.Order.DESC
+import tanvd.audit.model.external.AuditType
+import tanvd.audit.model.external.QueryParameters
+import tanvd.audit.model.external.QueryParameters.OrderByParameters.Order.ASC
+import tanvd.audit.model.external.QueryParameters.OrderByParameters.Order.DESC
+import tanvd.audit.model.external.equal
+import tanvd.audit.model.internal.AuditRecord
 import tanvd.audit.serializers.IntSerializer
 import tanvd.audit.serializers.StringSerializer
 
@@ -38,53 +39,43 @@ internal class AuditDaoOrderingMySQL {
 
     @AfterMethod
     fun clearAll() {
-        auditDao!!.dropTable("Audit")
+        auditDao!!.dropTable(AuditDaoMysqlImpl.auditTable)
         for (type in AuditType.getTypes()) {
             auditDao!!.dropTable(type.code)
         }
         AuditType.clearTypes()
     }
 
+
     @Test
     fun loadRows_AscendingByTimeStamp_AscendingOrder() {
-        val arrayObjectsFirst = arrayListOf(
-                Pair(AuditType.resolveType(String::class), "string"))
-        val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 25)
-        val arrayObjectsSecond = arrayListOf(
-                Pair(AuditType.resolveType(String::class), "string"))
-        val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond, 127)
+        val arrayObjectsFirst = arrayListOf(Pair(AuditType.resolveType(String::class), "string"))
+        val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 127)
+        val arrayObjectsSecond = arrayListOf(Pair(AuditType.resolveType(String::class), "string"))
+        val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond, 254)
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
         val parameters = QueryParameters()
         parameters.setOrder(true, ASC)
-        val recordsLoaded = auditDao!!.loadRecords(AuditType.resolveType(String::class), "string", parameters)
-        Assert.assertEquals(recordsLoaded.size, 2)
-        Assert.assertEquals(recordsLoaded[0].objects, auditRecordFirstOriginal.objects)
-        Assert.assertEquals(recordsLoaded[0].unixTimeStamp, auditRecordFirstOriginal.unixTimeStamp)
-        Assert.assertEquals(recordsLoaded[1].objects, auditRecordSecondOriginal.objects)
-        Assert.assertEquals(recordsLoaded[1].unixTimeStamp, auditRecordSecondOriginal.unixTimeStamp)
+        val recordsLoaded = auditDao!!.loadRecords(String::class equal "string", parameters)
 
+        Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
     }
 
     @Test
     fun loadRows_DescendingByTimeStamp_DescendingOrder() {
         val arrayObjectsFirst = arrayListOf(
                 Pair(AuditType.resolveType(String::class), "string"))
-        val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 25)
+        val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 127)
         val arrayObjectsSecond = arrayListOf(
                 Pair(AuditType.resolveType(String::class), "string"))
-        val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond, 127)
+        val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond, 254)
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
         val parameters = QueryParameters()
         parameters.setOrder(true, DESC)
-        val recordsLoaded = auditDao!!.loadRecords(AuditType.resolveType(String::class), "string", parameters)
-        Assert.assertEquals(recordsLoaded.size, 2)
-        Assert.assertEquals(recordsLoaded[0].objects, auditRecordSecondOriginal.objects)
-        Assert.assertEquals(recordsLoaded[0].unixTimeStamp, auditRecordSecondOriginal.unixTimeStamp)
-        Assert.assertEquals(recordsLoaded[1].objects, auditRecordFirstOriginal.objects)
-        Assert.assertEquals(recordsLoaded[1].unixTimeStamp, auditRecordFirstOriginal.unixTimeStamp)
+        val recordsLoaded = auditDao!!.loadRecords(String::class equal "string", parameters)
 
+        Assert.assertEquals(recordsLoaded, listOf(auditRecordSecondOriginal, auditRecordFirstOriginal))
     }
-
 }

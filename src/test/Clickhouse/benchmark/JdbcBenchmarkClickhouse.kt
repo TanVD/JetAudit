@@ -5,13 +5,12 @@ import ru.yandex.clickhouse.ClickHouseDataSource
 import ru.yandex.clickhouse.settings.ClickHouseProperties
 import tanvd.audit.implementation.clickhouse.JdbcClickhouseConnection
 import tanvd.audit.implementation.clickhouse.model.*
-import tanvd.audit.model.QueryParameters
 import java.math.BigInteger
 import java.security.SecureRandom
 import java.util.*
 
 
-internal class JdbcBenchmarkClickhouse() {
+internal class JdbcBenchmarkClickhouse {
 
     companion object {
         val random = SecureRandom()
@@ -62,11 +61,11 @@ internal class JdbcBenchmarkClickhouse() {
 
     //@Test
     fun loadRows() {
-        val time = System.currentTimeMillis()
-        connection!!.loadRows("STRINGS", "arrays", "''''\n\t\b''", DbTableHeader(listOf(
-                DbColumnHeader("date_time", DbColumnType.DbDate),
-                DbColumnHeader("arrays", DbColumnType.DbArrayString))), QueryParameters())
-        println("Time: " + (System.currentTimeMillis() - time))
+//        val time = System.currentTimeMillis()
+//        connection!!.loadRows("STRINGS", "arrays", "''''\n\t\b''", DbTableHeader(listOf(
+//                DbColumnHeader("date_time", DbColumnType.DbDate),
+//                DbColumnHeader("arrays", DbColumnType.DbArrayString))), QueryParameters())
+//        println("Time: " + (System.currentTimeMillis() - time))
     }
 
 }

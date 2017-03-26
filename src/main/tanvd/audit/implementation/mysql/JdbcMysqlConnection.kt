@@ -12,20 +12,19 @@ import tanvd.audit.implementation.mysql.model.DbColumn
 import tanvd.audit.implementation.mysql.model.DbColumnType
 import tanvd.audit.implementation.mysql.model.DbRow
 import tanvd.audit.implementation.mysql.model.DbTableHeader
-import tanvd.audit.model.QueryParameters
-import tanvd.audit.model.QueryParameters.OrderByParameters.Order
+import tanvd.audit.model.external.*
+import tanvd.audit.model.external.QueryParameters.OrderByParameters.Order
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.Statement
-import java.util.*
 import javax.sql.DataSource
 
 
 /**
- * Provides simple DSL for JDBC clickhouseConnection
+ * Provides simple DSL for JDBC mysqlConnection
  */
-class JdbcMysqlConnection(val dataSource: DataSource) {
+internal class JdbcMysqlConnection(val dataSource: DataSource) {
 
     private val logger = LoggerFactory.getLogger(JdbcMysqlConnection::class.java)
 
@@ -102,10 +101,15 @@ class JdbcMysqlConnection(val dataSource: DataSource) {
      * Loads all rows connected to object with specified id
      * Id will be sanitized by MySQL JDBC driver
      */
-    fun loadRows(typeName: String, id: String, parameters: QueryParameters): List<DbRow> {
+    fun loadRows(expression: QueryExpression, parameters: QueryParameters): List<DbRow> {
         val sqlSelect = StringBuilder()
-        sqlSelect.append("SELECT $descriptionColumn, $unixTimeStampColumn FROM $auditTable INNER JOIN $typeName ON " +
-                "$typeName.$auditIdInTypeTable = $auditTable.$auditIdColumn WHERE $typeName.$typeIdColumn = ? ")
+        sqlSelect.append("SELECT $descriptionColumn, $unixTimeStampColumn FROM $auditTable ")
+
+        addJoins(expression, sqlSelect)
+
+        sqlSelect.append("WHERE ")
+
+        addExpression(expression, sqlSelect)
 
         addOrderBy(parameters.orderBy, sqlSelect)
 
@@ -113,7 +117,8 @@ class JdbcMysqlConnection(val dataSource: DataSource) {
 
         sqlSelect.append(";")
 
-        val rows = ArrayList<DbRow>()
+        //To deduplicate selected rows (mandatory in case of OR operator)
+        val rows = LinkedHashSet<DbRow>()
 
         var connection: Connection? = null
         var preparedStatement: PreparedStatement? = null
@@ -123,12 +128,12 @@ class JdbcMysqlConnection(val dataSource: DataSource) {
             connection = dataSource.connection
             preparedStatement = connection.prepareStatement(sqlSelect.toString())
 
-            preparedStatement.setString(dbIndex, id)
-            dbIndex++
+            dbIndex = setQueryIds(expression, preparedStatement, dbIndex)
 
             dbIndex = setLimits(parameters.limits, preparedStatement, dbIndex)
 
             resultSet = preparedStatement.executeQuery()
+
             while (resultSet.next()) {
                 val description = resultSet.getString(descriptionColumn)
                 val timeStamp = resultSet.getInt(unixTimeStampColumn)
@@ -142,7 +147,77 @@ class JdbcMysqlConnection(val dataSource: DataSource) {
             preparedStatement?.close()
             connection?.close()
         }
-        return rows
+        return rows.toList()
+    }
+
+    private fun addJoins(expression: QueryExpression, sqlSelect: StringBuilder) {
+        val setOfTypes = getTypesFromExpression(expression)
+        for (code in setOfTypes) {
+            sqlSelect.append("LEFT JOIN $code ON $code.$auditIdInTypeTable = $auditTable.$auditIdColumn ")
+        }
+
+    }
+
+    private fun addExpression(expression: QueryExpression, sqlSelect: StringBuilder) {
+        sqlSelect.append(serializeExpression(expression))
+        sqlSelect.append(" ")
+    }
+
+    private fun getTypesFromExpression(expression: QueryExpression): MutableSet<String> {
+        return when (expression) {
+            is QueryNode -> {
+                getTypesFromExpression(expression.expressionFirst).
+                        union(getTypesFromExpression(expression.expressionSecond)).toMutableSet()
+            }
+            is QueryTypeLeaf -> {
+                hashSetOf(expression.type.code)
+            }
+            else -> {
+                HashSet<String>()
+            }
+        }
+    }
+
+
+    private fun serializeExpression(expression: QueryExpression): String {
+        return when (expression) {
+            is QueryNode -> {
+                when (expression.queryOperator) {
+                    QueryOperator.and -> {
+                        "(${serializeExpression(expression.expressionFirst)}) AND " +
+                                "(${serializeExpression(expression.expressionSecond)})"
+                    }
+                    QueryOperator.or -> {
+                        "(${serializeExpression(expression.expressionFirst)}) OR " +
+                                "(${serializeExpression(expression.expressionSecond)})"
+                    }
+                }
+            }
+            is QueryTypeLeaf -> {
+                expression.toStringSQL()
+            }
+            is QueryTimeStampLeaf -> {
+                expression.toStringSQL()
+            }
+            else -> {
+                ""
+            }
+        }
+    }
+
+    private fun setQueryIds(expression: QueryExpression, preparedStatement: PreparedStatement?, dbIndex: Int): Int {
+        var dbIndexVar = dbIndex
+        when (expression) {
+            is QueryNode -> {
+                dbIndexVar = setQueryIds(expression.expressionFirst, preparedStatement, dbIndexVar)
+                dbIndexVar = setQueryIds(expression.expressionSecond, preparedStatement, dbIndexVar)
+            }
+            is QueryTypeLeaf -> {
+                preparedStatement?.setString(dbIndex, expression.id)
+                dbIndexVar++
+            }
+        }
+        return dbIndexVar
     }
 
     /**
@@ -172,22 +247,31 @@ class JdbcMysqlConnection(val dataSource: DataSource) {
         }
     }
 
-    fun countRows(auditTable: String, typeName: String, id: String): Int {
+    fun countRows(expression: QueryExpression): Int {
         var count = 0
 
-        val sqlSelect = "SELECT COUNT(*) FROM $auditTable INNER JOIN $typeName ON " +
-                "$typeName.$auditIdInTypeTable = $auditTable.$auditIdColumn WHERE $typeName.$typeIdColumn = ?;"
+        val sqlSelect = StringBuilder()
+
+        sqlSelect.append("SELECT COUNT(*) FROM $auditTable ")
+
+        addJoins(expression, sqlSelect)
+
+        sqlSelect.append("WHERE ")
+
+        addExpression(expression, sqlSelect)
+
+        sqlSelect.append(";")
 
 
         var connection: Connection? = null
         var preparedStatement: PreparedStatement? = null
         var resultSet: ResultSet? = null
         try {
-            val dbIndex = 1
+            var dbIndex = 1
             connection = dataSource.connection
-            preparedStatement = connection.prepareStatement(sqlSelect)
+            preparedStatement = connection.prepareStatement(sqlSelect.toString())
 
-            preparedStatement.setString(dbIndex, id)
+            dbIndex = setQueryIds(expression, preparedStatement, dbIndex)
 
             resultSet = preparedStatement.executeQuery()
             if (resultSet.next()) {
@@ -228,6 +312,31 @@ class JdbcMysqlConnection(val dataSource: DataSource) {
             }
             DbColumnType.DbString -> {
                 this.setString(dbIndex, column.element)
+            }
+        }
+    }
+
+    private fun QueryTimeStampLeaf.toStringSQL(): String {
+        return when (condition) {
+            QueryTimeStampCondition.less -> {
+                "$unixTimeStampColumn < $timeStamp"
+            }
+            QueryTimeStampCondition.more -> {
+                "$unixTimeStampColumn > $timeStamp"
+            }
+            QueryTimeStampCondition.equal -> {
+                "$unixTimeStampColumn = $timeStamp"
+            }
+        }
+    }
+
+    private fun QueryTypeLeaf.toStringSQL(): String {
+        return when (typeCondition) {
+            QueryTypeCondition.equal -> {
+                "${type.code}.$typeIdColumn = ?"
+            }
+            QueryTypeCondition.like -> {
+                "${type.code}.$typeIdColumn REGEXP ?"
             }
         }
     }

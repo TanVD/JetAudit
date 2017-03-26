@@ -1,7 +1,7 @@
 package tanvd.audit.implementation
 
 import tanvd.audit.implementation.dao.AuditDao
-import tanvd.audit.model.AuditRecord
+import tanvd.audit.model.internal.AuditRecord
 import java.util.*
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.ExecutorService
@@ -11,8 +11,7 @@ import java.util.concurrent.TimeUnit
 /**
  * Starts audit saving workers
  */
-class AuditExecutor(val auditQueue: BlockingQueue<AuditRecord>,
-                    numberOfExecutors: Int = 5) {
+internal class AuditExecutor(val auditQueue: BlockingQueue<AuditRecord>, numberOfExecutors: Int = 5) {
 
     val workers: MutableList<AuditWorker> = ArrayList()
 

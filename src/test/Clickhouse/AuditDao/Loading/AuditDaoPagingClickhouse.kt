@@ -1,4 +1,4 @@
-package Clickhouse.AuditDao
+package Clickhouse.AuditDao.Loading
 
 import org.testng.Assert
 import org.testng.annotations.AfterMethod
@@ -6,9 +6,8 @@ import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.dao.DbType
-import tanvd.audit.model.AuditRecord
-import tanvd.audit.model.AuditType
-import tanvd.audit.model.QueryParameters
+import tanvd.audit.model.external.*
+import tanvd.audit.model.internal.AuditRecord
 import tanvd.audit.serializers.IntSerializer
 import tanvd.audit.serializers.StringSerializer
 
@@ -35,91 +34,86 @@ internal class AuditDaoPagingClickhouse() {
 
     @AfterMethod
     fun clearAll() {
-        auditDao!!.dropTable("Audit")
+        auditDao!!.dropTable(AuditDaoClickhouseImpl.auditTable)
         AuditType.clearTypes()
     }
 
     @Test
     fun loadRows_limitOneFromZero_gotFirst() {
         val arrayObjectsFirst = arrayListOf(
-                Pair(AuditType.resolveType(Int::class), "111"),
+                Pair(AuditType.resolveType(Int::class), "123"),
                 Pair(AuditType.resolveType(String::class), "string"))
         val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 127)
         val arrayObjectsSecond = arrayListOf(
-                Pair(AuditType.resolveType(Int::class), "129"),
+                Pair(AuditType.resolveType(Int::class), "456"),
                 Pair(AuditType.resolveType(String::class), "string"))
-        val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond, 255)
+        val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond, 254)
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
         val parameters = QueryParameters()
         parameters.setLimits(0, 1)
-        val recordsLoaded = auditDao!!.loadRecords(AuditType.resolveType(String::class), "string", parameters)
-        Assert.assertEquals(recordsLoaded.size, 1)
-        Assert.assertEquals(recordsLoaded[0].objects, auditRecordFirstOriginal.objects)
-        Assert.assertEquals(recordsLoaded[0].unixTimeStamp, auditRecordFirstOriginal.unixTimeStamp)
+        val recordsLoaded = auditDao!!.loadRecords(String::class equal "string", parameters)
+
+        Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
     @Test
     fun loadRows_limitOneFromFirst_gotSecond() {
         val arrayObjectsFirst = arrayListOf(
-                Pair(AuditType.resolveType(Int::class), "111"),
+                Pair(AuditType.resolveType(Int::class), "123"),
                 Pair(AuditType.resolveType(String::class), "string"))
         val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 127)
         val arrayObjectsSecond = arrayListOf(
-                Pair(AuditType.resolveType(Int::class), "129"),
+                Pair(AuditType.resolveType(Int::class), "456"),
                 Pair(AuditType.resolveType(String::class), "string"))
-        val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond, 255)
+        val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond, 254)
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
         val parameters = QueryParameters()
         parameters.setLimits(1, 1)
-        val recordsLoaded = auditDao!!.loadRecords(AuditType.resolveType(String::class), "string", parameters)
-        Assert.assertEquals(recordsLoaded.size, 1)
-        Assert.assertEquals(recordsLoaded[0].objects, auditRecordSecondOriginal.objects)
-        Assert.assertEquals(recordsLoaded[0].unixTimeStamp, auditRecordSecondOriginal.unixTimeStamp)
+        val recordsLoaded = auditDao!!.loadRecords(String::class equal "string", parameters)
+
+        Assert.assertEquals(recordsLoaded, listOf(auditRecordSecondOriginal))
     }
 
     @Test
     fun loadRows_limitTwoFromZero_gotBoth() {
         val arrayObjectsFirst = arrayListOf(
-                Pair(AuditType.resolveType(Int::class), "111"),
+                Pair(AuditType.resolveType(Int::class), "123"),
                 Pair(AuditType.resolveType(String::class), "string"))
         val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 127)
         val arrayObjectsSecond = arrayListOf(
-                Pair(AuditType.resolveType(Int::class), "129"),
+                Pair(AuditType.resolveType(Int::class), "456"),
                 Pair(AuditType.resolveType(String::class), "string"))
-        val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond, 255)
+        val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond, 254)
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
         val parameters = QueryParameters()
         parameters.setLimits(0, 2)
-        val recordsLoaded = auditDao!!.loadRecords(AuditType.resolveType(String::class), "string", parameters)
-        Assert.assertEquals(recordsLoaded.size, 2)
-        Assert.assertEquals(recordsLoaded[0].objects, auditRecordFirstOriginal.objects)
-        Assert.assertEquals(recordsLoaded[0].unixTimeStamp, auditRecordFirstOriginal.unixTimeStamp)
-        Assert.assertEquals(recordsLoaded[1].objects, auditRecordSecondOriginal.objects)
-        Assert.assertEquals(recordsLoaded[1].unixTimeStamp, auditRecordSecondOriginal.unixTimeStamp)
+        val recordsLoaded = auditDao!!.loadRecords(String::class equal "string", parameters)
+
+        Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
     }
 
     @Test
     fun countRows_countNoSavedRows_gotRightNumber() {
-        val count = auditDao!!.countRecords(AuditType.resolveType(String::class), "string")
+        val count = auditDao!!.countRecords(QueryTypeLeaf(QueryTypeCondition.equal, "string", String::class))
         Assert.assertEquals(count, 0)
     }
 
     @Test
     fun countRows_countTwoSavedRows_gotRightNumber() {
         val arrayObjectsFirst = arrayListOf(
-                Pair(AuditType.resolveType(Int::class), "111"),
+                Pair(AuditType.resolveType(Int::class), "123"),
                 Pair(AuditType.resolveType(String::class), "string"))
         val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 127)
         val arrayObjectsSecond = arrayListOf(
-                Pair(AuditType.resolveType(Int::class), "129"),
+                Pair(AuditType.resolveType(Int::class), "456"),
                 Pair(AuditType.resolveType(String::class), "string"))
-        val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond, 255)
+        val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond, 254)
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
-        val count = auditDao!!.countRecords(AuditType.resolveType(String::class), "string")
+        val count = auditDao!!.countRecords(String::class equal "string")
         Assert.assertEquals(count, 2)
     }
 }

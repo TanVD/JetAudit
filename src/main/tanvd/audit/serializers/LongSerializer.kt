@@ -1,8 +1,8 @@
 package tanvd.audit.serializers
 
-import tanvd.audit.model.AuditSerializer
+import tanvd.audit.model.external.AuditType
 
-object LongSerializer : AuditSerializer<Long> {
+internal object LongSerializer : AuditType.AuditSerializer<Long> {
     override fun deserialize(serializedString: String): Long {
         return serializedString.toLong()
     }

@@ -5,7 +5,7 @@ import java.util.*
 /**
  * Row of Clickhouse DB.
  */
-data class DbRow(val columns: List<DbColumn> = ArrayList()) {
+internal data class DbRow(val columns: List<DbColumn> = ArrayList()) {
     fun toStringHeader(): String {
         return columns.map { it.name }.joinToString()
     }
@@ -19,7 +19,7 @@ data class DbRow(val columns: List<DbColumn> = ArrayList()) {
 /**
  * Column of Clickhouse DB.
  */
-data class DbColumn(val name: String, val elements: List<String>, val type: DbColumnType) {
+internal data class DbColumn(val name: String, val elements: List<String>, val type: DbColumnType) {
     constructor(header: DbColumnHeader, elements: List<String>) : this(header.name, elements, header.type)
     constructor(header: DbColumnHeader, vararg elements: String) : this(header.name, elements.toList(), header.type)
 }
@@ -28,7 +28,7 @@ data class DbColumn(val name: String, val elements: List<String>, val type: DbCo
  * Clickhouse column type.
  * ToString returns appropriate for db string representation of ColumnType
  */
-enum class DbColumnType {
+internal enum class DbColumnType {
     DbDate,
     DbArrayString,
     DbString,
@@ -55,7 +55,7 @@ enum class DbColumnType {
 /**
  * Header for Clickhouse DB
  */
-data class DbTableHeader(val columnsHeader: List<DbColumnHeader>) {
+internal data class DbTableHeader(val columnsHeader: List<DbColumnHeader>) {
     /** Returns string definition of TableHeader -- columnFirstName, columnSecondName, ... **/
     fun toDefString(): String {
         return columnsHeader.joinToString { it.toDefString() }
@@ -69,7 +69,7 @@ data class DbTableHeader(val columnsHeader: List<DbColumnHeader>) {
 /**
  * Header for Clickhouse Column
  */
-data class DbColumnHeader(val name: String, val type: DbColumnType) {
+internal data class DbColumnHeader(val name: String, val type: DbColumnType) {
     /** Returns string definition of ColumnHeader -- name **/
     fun toDefString(): String {
         return name

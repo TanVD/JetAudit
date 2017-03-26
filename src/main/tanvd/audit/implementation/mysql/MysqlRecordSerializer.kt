@@ -6,11 +6,11 @@ import tanvd.audit.implementation.mysql.AuditDaoMysqlImpl.Scheme.getPredefinedAu
 import tanvd.audit.implementation.mysql.AuditDaoMysqlImpl.Scheme.unixTimeStampColumn
 import tanvd.audit.implementation.mysql.model.DbColumn
 import tanvd.audit.implementation.mysql.model.DbRow
-import tanvd.audit.model.AuditRecord
-import tanvd.audit.model.AuditType
+import tanvd.audit.model.external.AuditType
+import tanvd.audit.model.internal.AuditRecord
 import java.util.*
 
-object MysqlRecordSerializer {
+internal object MysqlRecordSerializer {
 
     private val logger = LoggerFactory.getLogger(MysqlRecordSerializer::class.java)
 

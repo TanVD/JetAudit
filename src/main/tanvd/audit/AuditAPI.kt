@@ -4,9 +4,10 @@ import tanvd.audit.exceptions.UnknownAuditTypeException
 import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.implementation.dao.DbType
-import tanvd.audit.model.AuditRecord
-import tanvd.audit.model.AuditType
-import tanvd.audit.model.QueryParameters
+import tanvd.audit.model.external.AuditType
+import tanvd.audit.model.external.QueryExpression
+import tanvd.audit.model.external.QueryParameters
+import tanvd.audit.model.internal.AuditRecord
 import tanvd.audit.serializers.IntSerializer
 import tanvd.audit.serializers.LongSerializer
 import tanvd.audit.serializers.StringSerializer
@@ -14,7 +15,6 @@ import java.util.*
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
 import javax.sql.DataSource
-import kotlin.reflect.KClass
 
 /**
  * Asynchronous saving of connected entities.
@@ -31,11 +31,11 @@ import kotlin.reflect.KClass
  * Pay attention, that normal work of AuditAPI depends on external persistent context.
  */
 class AuditAPI {
-    val auditDao: AuditDao
+    internal val auditDao: AuditDao
 
-    val executor: AuditExecutor
+    internal val executor: AuditExecutor
 
-    val auditQueue: BlockingQueue<AuditRecord>
+    internal val auditQueue: BlockingQueue<AuditRecord>
 
     /**
      * Create AuditApi with default dataSource
@@ -106,45 +106,19 @@ class AuditAPI {
     }
 
     /**
-     * Load audits containing specified object
-     *
-     * @throws UnknownAuditTypeException
-     */
-    //TODO add search by string
-    @Throws(UnknownAuditTypeException::class)
-    fun loadAudit(klass: KClass<*>, idToLoad: String): MutableList<MutableList<Any>> {
-        val auditRecords = auditDao.loadRecords(AuditType.resolveType(klass), idToLoad, QueryParameters())
-        val resultList = ArrayList<MutableList<Any>>()
-
-        for (auditRecord in auditRecords) {
-            val currentRec = ArrayList<Any>()
-            for (o in auditRecord.objects) {
-                val (type, id) = o
-                val objectRes = type.deserialize(id)
-                currentRec.add(objectRes)
-            }
-            resultList.add(currentRec)
-        }
-        return resultList
-    }
-
-    /**
      * Load audits containing specified object. Supports paging and ordering
      *
-     * In case of mysql ordering supported only be columns you are seeking
-     *
      * @throws UnknownAuditTypeException
      */
-    //TODO add search by string
     @Throws(UnknownAuditTypeException::class)
-    fun loadAudit(klass: KClass<*>, idToLoad: String, parameters: QueryParameters): MutableList<MutableList<Any>> {
+    fun loadAudit(expression: QueryExpression, parameters: QueryParameters): MutableList<MutableList<Any>> {
 
-        val auditRecords = auditDao.loadRecords(AuditType.resolveType(klass), idToLoad, parameters)
+        val auditRecords = auditDao.loadRecords(expression, parameters)
         val resultList = ArrayList<MutableList<Any>>()
 
-        for (auditRecord in auditRecords) {
+        for ((objects) in auditRecords) {
             val currentRec = ArrayList<Any>()
-            for (o in auditRecord.objects) {
+            for (o in objects) {
                 val (type, id) = o
                 val objectRes = type.deserialize(id)
                 currentRec.add(objectRes)

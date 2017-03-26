@@ -1,8 +1,8 @@
-package tanvd.audit.model
+package tanvd.audit.model.external
 
 import tanvd.audit.exceptions.UnknownAuditTypeException
-import tanvd.audit.model.QueryParameters.OrderByParameters.Order
-import tanvd.audit.model.QueryParameters.OrderByParameters.Order.DESC
+import tanvd.audit.model.external.QueryParameters.OrderByParameters.Order
+import tanvd.audit.model.external.QueryParameters.OrderByParameters.Order.DESC
 import kotlin.reflect.KClass
 
 class QueryParameters {
@@ -18,16 +18,7 @@ class QueryParameters {
 
     @Throws(UnknownAuditTypeException::class)
     fun setOrder(isOrderedByTimeStamp: Boolean, timeStampOrder: Order = DESC,
-                 klasses: List<Pair<KClass<*>, OrderByParameters.Order>>) {
-        orderBy.isOrdered = true
-        orderBy.codes = arrayListOf(*klasses.map { Pair(AuditType.resolveType(it.first).code, it.second) }.toTypedArray())
-        orderBy.isOrderedByTimeStamp = isOrderedByTimeStamp
-        orderBy.timeStampOrder = timeStampOrder
-    }
-
-    @Throws(UnknownAuditTypeException::class)
-    fun setOrder(isOrderedByTimeStamp: Boolean, timeStampOrder: Order = DESC,
-                 vararg klasses: Pair<KClass<*>, OrderByParameters.Order>) {
+                 vararg klasses: Pair<KClass<*>, Order>) {
         orderBy.isOrdered = true
         orderBy.codes = arrayListOf(*klasses.map { Pair(AuditType.resolveType(it.first).code, it.second) }.toTypedArray())
         orderBy.isOrderedByTimeStamp = isOrderedByTimeStamp
@@ -49,7 +40,7 @@ class QueryParameters {
         var isOrdered = false
         var codes = ArrayList<Pair<String, Order>>()
         var isOrderedByTimeStamp = false
-        var timeStampOrder = Order.DESC
+        var timeStampOrder = DESC
 
         enum class Order {
             ASC,

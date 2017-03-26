@@ -4,16 +4,17 @@ import tanvd.audit.implementation.clickhouse.model.DbColumnHeader
 import tanvd.audit.implementation.clickhouse.model.DbColumnType
 import tanvd.audit.implementation.clickhouse.model.DbTableHeader
 import tanvd.audit.implementation.dao.AuditDao
-import tanvd.audit.model.AuditRecord
-import tanvd.audit.model.AuditType
-import tanvd.audit.model.QueryParameters
+import tanvd.audit.model.external.AuditType
+import tanvd.audit.model.external.QueryExpression
+import tanvd.audit.model.external.QueryParameters
+import tanvd.audit.model.internal.AuditRecord
 import tanvd.audit.utils.PropertyLoader
 import javax.sql.DataSource
 
 /**
  * Dao to Clickhouse DB.
  */
-class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
+internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
 
     /**
      * Predefined scheme for clickhouse base.
@@ -84,7 +85,7 @@ class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
     /**
      * Loads all auditRecords with specified object
      */
-    override fun <T> loadRecords(type: AuditType<T>, id: String, parameters: QueryParameters): List<AuditRecord> {
+    override fun loadRecords(expression: QueryExpression, parameters: QueryParameters): List<AuditRecord> {
         val selectColumns = arrayListOf(*mandatoryColumns)
         AuditType.getTypes().mapTo(selectColumns) { DbColumnHeader(it.code, DbColumnType.DbArrayString) }
 
@@ -92,13 +93,13 @@ class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
             parameters.orderBy.codes.add(0, Pair(unixTimeStampColumn, parameters.orderBy.timeStampOrder))
         }
 
-        val resultList = clickhouseConnection.loadRows(auditTable, type.code, id, DbTableHeader(selectColumns), parameters)
+        val resultList = clickhouseConnection.loadRows(auditTable, DbTableHeader(selectColumns), expression, parameters)
         val auditRecordList = resultList.map { ClickhouseRecordSerializer.deserialize(it) }
         return auditRecordList
     }
 
-    override fun <T> countRecords(type: AuditType<T>, id: String): Int {
-        val resultNumber = clickhouseConnection.countRows(auditTable, type.code, id)
+    override fun countRecords(expression: QueryExpression): Int {
+        val resultNumber = clickhouseConnection.countRows(auditTable, expression)
         return resultNumber
     }
 

@@ -8,37 +8,37 @@ import tanvd.audit.implementation.mysql.AuditDaoMysqlImpl.Scheme.mandatoryColumn
 import tanvd.audit.implementation.mysql.MysqlRecordSerializer
 import tanvd.audit.implementation.mysql.model.DbColumn
 import tanvd.audit.implementation.mysql.model.DbRow
-import tanvd.audit.model.AuditRecord
-import tanvd.audit.model.AuditSerializer
-import tanvd.audit.model.AuditType
-import tanvd.audit.model.AuditType.TypesResolution.addType
+import tanvd.audit.model.external.AuditType
+import tanvd.audit.model.external.AuditType.AuditSerializer
+import tanvd.audit.model.external.AuditType.TypesResolution.addType
+import tanvd.audit.model.internal.AuditRecord
 import tanvd.audit.serializers.IntSerializer
 import tanvd.audit.serializers.StringSerializer
 import java.util.*
 
 internal class AuditRecordSerializationMySQL {
 
-    class TestClassFirst() {
+    class TestClassFirst {
         companion object serializer : AuditSerializer<TestClassFirst> {
             override fun deserialize(serializedString: String): TestClassFirst {
                 throw UnsupportedOperationException("not implemented")
             }
 
             override fun serialize(value: TestClassFirst): String {
-                throw UnsupportedOperationException("not implemented")
+                return "TestClassFirstId"
             }
 
         }
     }
 
-    class TestClassSecond() {
-        companion object serializer : AuditSerializer<TestClassFirst> {
-            override fun deserialize(serializedString: String): TestClassFirst {
+    class TestClassSecond {
+        companion object serializer : AuditSerializer<TestClassSecond> {
+            override fun deserialize(serializedString: String): TestClassSecond {
                 throw UnsupportedOperationException("not implemented")
             }
 
-            override fun serialize(value: TestClassFirst): String {
-                throw UnsupportedOperationException("not implemented")
+            override fun serialize(value: TestClassSecond): String {
+                return "TestClassSecondId"
             }
 
         }

@@ -2,6 +2,9 @@ package Clickhouse.benchmark
 
 import tanvd.audit.AuditAPI
 import tanvd.audit.implementation.dao.DbType
+import tanvd.audit.model.external.QueryParameters
+import tanvd.audit.model.external.QueryTypeCondition
+import tanvd.audit.model.external.QueryTypeLeaf
 import java.math.BigInteger
 import java.security.SecureRandom
 import java.util.*
@@ -54,7 +57,7 @@ internal class AuditApiBenchmarkClickhouse() {
         val times = 1
         for (i in 1..times) {
             val time = System.currentTimeMillis()
-            val result = auditApi.loadAudit(Int::class, "477")
+            val result = auditApi.loadAudit(QueryTypeLeaf(QueryTypeCondition.equal, "477", Int::class), QueryParameters())
             println("Time: " + (System.currentTimeMillis() - time))
             println("Size: " + result.size)
         }

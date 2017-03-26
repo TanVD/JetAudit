@@ -4,7 +4,7 @@ package tanvd.audit.implementation.mysql.model
 /**
  * Row of MySQL DB.
  */
-data class DbRow(val columns: List<DbColumn>) {
+internal data class DbRow(val columns: List<DbColumn>) {
     constructor(vararg columns: DbColumn) : this(columns.toList())
 
     fun toStringHeader(): String {
@@ -19,7 +19,7 @@ data class DbRow(val columns: List<DbColumn>) {
 /**
  * Column of MySQL DB.
  */
-data class DbColumn(val name: String, val element: String, val type: DbColumnType) {
+internal data class DbColumn(val name: String, val element: String, val type: DbColumnType) {
     constructor(header: DbColumnHeader, element: String) : this(header.name, element, header.type)
 }
 
@@ -27,7 +27,7 @@ data class DbColumn(val name: String, val element: String, val type: DbColumnTyp
  * MySQL column type.
  * ToString returns appropriate string representation of ColumnType
  */
-enum class DbColumnType {
+internal enum class DbColumnType {
     DbInt,
     DbString;
 
@@ -47,14 +47,14 @@ enum class DbColumnType {
 /**
  * Header for MySQL DB
  */
-data class DbTableHeader(val columnsHeader: List<DbColumnHeader>) {
+internal data class DbTableHeader(val columnsHeader: List<DbColumnHeader>) {
     constructor(vararg columnsHeader: DbColumnHeader) : this(columnsHeader.toList())
 }
 
 /**
  * Header for MySQL Column
  */
-data class DbColumnHeader(val name: String, val type: DbColumnType) {
+internal data class DbColumnHeader(val name: String, val type: DbColumnType) {
     /** Returns string definition of column -- name type **/
     fun toDefString(): String {
         return name + " " + type

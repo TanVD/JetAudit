@@ -1,9 +1,10 @@
 package tanvd.audit.implementation.clickhouse
 
 import org.slf4j.LoggerFactory
+import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl.Scheme.unixTimeStampColumn
 import tanvd.audit.implementation.clickhouse.model.*
-import tanvd.audit.model.QueryParameters
-import tanvd.audit.model.QueryParameters.OrderByParameters.Order
+import tanvd.audit.model.external.*
+import tanvd.audit.model.external.QueryParameters.OrderByParameters.Order
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
@@ -11,7 +12,7 @@ import java.util.*
 import javax.sql.DataSource
 
 /** Be aware that all exceptions in Clickhouse will be saved to the log as errors and than ignored. **/
-class JdbcClickhouseConnection(val dataSource: DataSource) {
+internal class JdbcClickhouseConnection(val dataSource: DataSource) {
 
     private val logger = LoggerFactory.getLogger(JdbcClickhouseConnection::class.java)
 
@@ -128,10 +129,12 @@ class JdbcClickhouseConnection(val dataSource: DataSource) {
      * Loads rows with all specified columns from specified table where column typeName has element id
      * Id will be sanitized by Clickhouse JDBC driver
      */
-    fun loadRows(tableName: String, typeName: String, id: String, columnsToSelect: DbTableHeader,
+    fun loadRows(tableName: String, columnsToSelect: DbTableHeader, expression: QueryExpression,
                  parameters: QueryParameters): List<DbRow> {
         val sqlSelect = StringBuilder()
-        sqlSelect.append("SELECT ${columnsToSelect.toDefString()} FROM $tableName WHERE has($typeName, ?) ")
+        sqlSelect.append("SELECT ${columnsToSelect.toDefString()} FROM $tableName WHERE ")
+
+        addExpression(expression, sqlSelect)
 
         addOrderBy(parameters.orderBy, sqlSelect)
 
@@ -149,8 +152,7 @@ class JdbcClickhouseConnection(val dataSource: DataSource) {
             connection = dataSource.connection
             preparedStatement = connection.prepareStatement(sqlSelect.toString())
 
-            preparedStatement.setString(dbIndex, id)
-            dbIndex++
+            dbIndex = setQueryIds(expression, preparedStatement, dbIndex)
 
             dbIndex = setLimits(parameters.limits, preparedStatement, dbIndex)
 
@@ -173,6 +175,52 @@ class JdbcClickhouseConnection(val dataSource: DataSource) {
 
 
         return rows
+    }
+
+    private fun addExpression(expression: QueryExpression, sqlSelect: StringBuilder) {
+        sqlSelect.append(serializeExpression(expression))
+        sqlSelect.append(" ")
+    }
+
+    private fun serializeExpression(expression: QueryExpression): String {
+        return when (expression) {
+            is QueryNode -> {
+                when (expression.queryOperator) {
+                    QueryOperator.and -> {
+                        "(${serializeExpression(expression.expressionFirst)}) AND " +
+                                "(${serializeExpression(expression.expressionSecond)})"
+                    }
+                    QueryOperator.or -> {
+                        "(${serializeExpression(expression.expressionFirst)}) OR " +
+                                "(${serializeExpression(expression.expressionSecond)})"
+                    }
+                }
+            }
+            is QueryTypeLeaf -> {
+                expression.toStringSQL()
+            }
+            is QueryTimeStampLeaf -> {
+                expression.toStringSQL()
+            }
+            else -> {
+                ""
+            }
+        }
+    }
+
+    private fun setQueryIds(expression: QueryExpression, preparedStatement: PreparedStatement?, dbIndex: Int): Int {
+        var dbIndexVar = dbIndex
+        when (expression) {
+            is QueryNode -> {
+                dbIndexVar = setQueryIds(expression.expressionFirst, preparedStatement, dbIndexVar)
+                dbIndexVar = setQueryIds(expression.expressionSecond, preparedStatement, dbIndexVar)
+            }
+            is QueryTypeLeaf -> {
+                preparedStatement?.setString(dbIndexVar, expression.id)
+                dbIndexVar++
+            }
+        }
+        return dbIndexVar
     }
 
 
@@ -205,20 +253,26 @@ class JdbcClickhouseConnection(val dataSource: DataSource) {
     }
 
 
-    fun countRows(tableName: String, typeName: String, id: String): Int {
+    fun countRows(tableName: String, expression: QueryExpression): Int {
         var count = 0
 
-        val sqlSelect = "SELECT COUNT(*) FROM $tableName WHERE has($typeName, ?);"
+        val sqlSelect = StringBuilder()
+
+        sqlSelect.append("SELECT COUNT(*) FROM $tableName WHERE ")
+
+        addExpression(expression, sqlSelect)
+
+        sqlSelect.append(";")
 
         var connection: Connection? = null
         var preparedStatement: PreparedStatement? = null
         var resultSet: ResultSet? = null
         try {
-            val dbIndex = 1
+            var dbIndex = 1
             connection = dataSource.connection
-            preparedStatement = connection.prepareStatement(sqlSelect)
+            preparedStatement = connection.prepareStatement(sqlSelect.toString())
 
-            preparedStatement.setString(dbIndex, id)
+            dbIndex = setQueryIds(expression, preparedStatement, dbIndex)
 
             resultSet = preparedStatement.executeQuery()
 
@@ -295,6 +349,32 @@ class JdbcClickhouseConnection(val dataSource: DataSource) {
         }
     }
 
+    private fun QueryTimeStampLeaf.toStringSQL(): String {
+        return when (condition) {
+            QueryTimeStampCondition.less -> {
+                "$unixTimeStampColumn < $timeStamp"
+            }
+            QueryTimeStampCondition.more -> {
+                "$unixTimeStampColumn > $timeStamp"
+            }
+            QueryTimeStampCondition.equal -> {
+                "$unixTimeStampColumn = $timeStamp"
+            }
+        }
+    }
+
+    private fun QueryTypeLeaf.toStringSQL(): String {
+        return when (typeCondition) {
+            QueryTypeCondition.equal -> {
+                "has(${type.code}, ?)"
+            }
+        //TODO Here we can use like, but it will work only for expression like %something%
+            QueryTypeCondition.like -> {
+                "arrayExists((x) -> match(x, ?), ${type.code})"
+            }
+        }
+    }
+
     private fun Order.toStringSQL(): String {
         return when (this) {
             Order.ASC -> {
@@ -305,5 +385,6 @@ class JdbcClickhouseConnection(val dataSource: DataSource) {
             }
         }
     }
+
 
 }

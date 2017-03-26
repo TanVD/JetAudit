@@ -9,10 +9,10 @@ import tanvd.audit.implementation.clickhouse.ClickhouseRecordSerializer
 import tanvd.audit.implementation.clickhouse.model.DbColumn
 import tanvd.audit.implementation.clickhouse.model.DbColumnType
 import tanvd.audit.implementation.clickhouse.model.DbRow
-import tanvd.audit.model.AuditRecord
-import tanvd.audit.model.AuditSerializer
-import tanvd.audit.model.AuditType
-import tanvd.audit.model.AuditType.TypesResolution.addType
+import tanvd.audit.model.external.AuditType
+import tanvd.audit.model.external.AuditType.AuditSerializer
+import tanvd.audit.model.external.AuditType.TypesResolution.addType
+import tanvd.audit.model.internal.AuditRecord
 import tanvd.audit.serializers.IntSerializer
 import tanvd.audit.serializers.StringSerializer
 import java.util.*
@@ -98,7 +98,7 @@ internal class AuditRecordSerializationClickhouse {
                 Pair(AuditType.resolveType(TestClassFirst::class), "1234"),
                 Pair(AuditType.resolveType(TestClassFirst::class), "123"))), 127)
         val row = ClickhouseRecordSerializer.serialize(auditRecord)
-        Assert.assertEquals(row, DbRow(arrayListOf(
+        Assert.assertEquals(row, DbRow(listOf(
                 DbColumn("TestClassFirst", listOf("1234", "123"), DbColumnType.DbArrayString),
                 DbColumn(descriptionColumn, listOf("TestClassFirst", "TestClassFirst"), DbColumnType.DbArrayString),
                 DbColumn(unixTimeStampColumn, listOf("127"), DbColumnType.DbInt))))
@@ -112,10 +112,9 @@ internal class AuditRecordSerializationClickhouse {
                 DbColumn("String", arrayListOf("1234"), DbColumnType.DbArrayString),
                 DbColumn("Int", arrayListOf("123"), DbColumnType.DbArrayString)
         )))
-        Assert.assertEquals(auditRecord.objects, ArrayList(listOf(
+        Assert.assertEquals(auditRecord, AuditRecord(listOf(
                 Pair(AuditType.resolveType(String::class), "1234"),
-                Pair(AuditType.resolveType(Int::class), "123"))))
-        Assert.assertEquals(auditRecord.unixTimeStamp, 127)
+                Pair(AuditType.resolveType(Int::class), "123")), 127))
     }
 
     @Test
@@ -125,10 +124,9 @@ internal class AuditRecordSerializationClickhouse {
                 DbColumn(descriptionColumn, arrayListOf("String", "String"), DbColumnType.DbArrayString),
                 DbColumn("String", arrayListOf("1234", "123"), DbColumnType.DbArrayString)
         )))
-        Assert.assertEquals(auditRecord.objects, ArrayList(listOf(
+        Assert.assertEquals(auditRecord, AuditRecord(listOf(
                 Pair(AuditType.resolveType(String::class), "1234"),
-                Pair(AuditType.resolveType(String::class), "123"))))
-        Assert.assertEquals(auditRecord.unixTimeStamp, 127)
+                Pair(AuditType.resolveType(String::class), "123")), 127))
     }
 
     @Test
@@ -152,15 +150,13 @@ internal class AuditRecordSerializationClickhouse {
 
         val arrayObjects = ArrayList(listOf(
                 Pair(AuditType.resolveType(TestClassFirst::class), "TestClassFirstId"),
-                Pair(AuditType.resolveType(String::class), "have been called"),
+                Pair(AuditType.resolveType(String::class), "string"),
                 Pair(AuditType.resolveType(Int::class), "27"),
-                Pair(AuditType.resolveType(String::class), " times by "),
                 Pair(AuditType.resolveType(TestClassSecond::class), "TestClassSecondId")))
 
         val row = ClickhouseRecordSerializer.serialize(AuditRecord(arrayObjects, 127))
         val deserializedRecord = ClickhouseRecordSerializer.deserialize(row)
 
-        Assert.assertEquals(deserializedRecord.objects, arrayObjects)
-        Assert.assertEquals(deserializedRecord.unixTimeStamp, 127)
+        Assert.assertEquals(deserializedRecord, AuditRecord(arrayObjects, 127))
     }
 }

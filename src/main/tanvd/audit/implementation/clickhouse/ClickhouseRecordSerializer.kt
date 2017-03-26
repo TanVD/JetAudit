@@ -7,11 +7,11 @@ import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl.Scheme.unixT
 import tanvd.audit.implementation.clickhouse.model.DbColumn
 import tanvd.audit.implementation.clickhouse.model.DbColumnType
 import tanvd.audit.implementation.clickhouse.model.DbRow
-import tanvd.audit.model.AuditRecord
-import tanvd.audit.model.AuditType
+import tanvd.audit.model.external.AuditType
+import tanvd.audit.model.internal.AuditRecord
 import java.util.*
 
-object ClickhouseRecordSerializer {
+internal object ClickhouseRecordSerializer {
 
     private val logger = LoggerFactory.getLogger(ClickhouseRecordSerializer::class.java)
 

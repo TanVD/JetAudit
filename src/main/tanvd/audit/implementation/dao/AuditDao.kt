@@ -1,21 +1,22 @@
 package tanvd.audit.implementation.dao
 
 import tanvd.audit.exceptions.UninitializedException
-import tanvd.audit.model.AuditRecord
-import tanvd.audit.model.AuditType
-import tanvd.audit.model.QueryParameters
+import tanvd.audit.model.external.AuditType
+import tanvd.audit.model.external.QueryExpression
+import tanvd.audit.model.external.QueryParameters
+import tanvd.audit.model.internal.AuditRecord
 import javax.sql.DataSource
 
-interface AuditDao {
+internal interface AuditDao {
     fun saveRecord(auditRecord: AuditRecord)
 
     fun saveRecords(auditRecords: List<AuditRecord>)
 
     fun <T> addTypeInDbModel(type: AuditType<T>)
 
-    fun <T> loadRecords(type: AuditType<T>, id: String, parameters: QueryParameters): List<AuditRecord>
+    fun loadRecords(expression: QueryExpression, parameters: QueryParameters): List<AuditRecord>
 
-    fun <T> countRecords(type: AuditType<T>, id: String): Int
+    fun countRecords(expression: QueryExpression): Int
 
     companion object AuditDaoFactory {
         private var connectionUrl: String? = null
