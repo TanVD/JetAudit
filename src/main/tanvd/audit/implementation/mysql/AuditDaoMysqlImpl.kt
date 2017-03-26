@@ -4,6 +4,7 @@ import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.implementation.mysql.model.*
 import tanvd.audit.model.AuditRecord
 import tanvd.audit.model.AuditType
+import tanvd.audit.model.QueryParameters
 import tanvd.audit.utils.PropertyLoader
 import javax.sql.DataSource
 
@@ -12,6 +13,7 @@ import javax.sql.DataSource
  * Please, remember not to use dots in names or parameters
  */
 internal class AuditDaoMysqlImpl(dataSource: DataSource) : AuditDao {
+
 
     /**
      * Predefined scheme for MySQL base.
@@ -99,10 +101,20 @@ internal class AuditDaoMysqlImpl(dataSource: DataSource) : AuditDao {
     /**
      * Loads all auditRecords with specified object
      */
-    override fun <T> loadRecords(type: AuditType<T>, id: String): List<AuditRecord> {
-        val resultList = mysqlConnection.loadRows(type.code, id)
+    override fun <T> loadRecords(type: AuditType<T>, id: String, parameters: QueryParameters): List<AuditRecord> {
+        if (parameters.orderBy.isOrderedByTimeStamp) {
+            parameters.orderBy.codes.add(0, Pair(unixTimeStampColumn, parameters.orderBy.timeStampOrder))
+        }
+
+        val resultList = mysqlConnection.loadRows(type.code, id, parameters)
         val auditRecordList = resultList.map { MysqlRecordSerializer.deserialize(it) }
+
         return auditRecordList
+    }
+
+    override fun <T> countRecords(type: AuditType<T>, id: String): Int {
+        val resultNumber = mysqlConnection.countRows(auditTable, type.code, id)
+        return resultNumber
     }
 
     fun dropTable(tableName: String) {

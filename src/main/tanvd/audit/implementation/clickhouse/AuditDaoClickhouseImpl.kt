@@ -6,6 +6,7 @@ import tanvd.audit.implementation.clickhouse.model.DbTableHeader
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.AuditRecord
 import tanvd.audit.model.AuditType
+import tanvd.audit.model.QueryParameters
 import tanvd.audit.utils.PropertyLoader
 import javax.sql.DataSource
 
@@ -83,13 +84,22 @@ class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
     /**
      * Loads all auditRecords with specified object
      */
-    override fun <T> loadRecords(type: AuditType<T>, id: String): List<AuditRecord> {
+    override fun <T> loadRecords(type: AuditType<T>, id: String, parameters: QueryParameters): List<AuditRecord> {
         val selectColumns = arrayListOf(*mandatoryColumns)
         AuditType.getTypes().mapTo(selectColumns) { DbColumnHeader(it.code, DbColumnType.DbArrayString) }
 
-        val resultList = clickhouseConnection.loadRows(auditTable, type.code, id, DbTableHeader(selectColumns))
+        if (parameters.orderBy.isOrderedByTimeStamp) {
+            parameters.orderBy.codes.add(0, Pair(unixTimeStampColumn, parameters.orderBy.timeStampOrder))
+        }
+
+        val resultList = clickhouseConnection.loadRows(auditTable, type.code, id, DbTableHeader(selectColumns), parameters)
         val auditRecordList = resultList.map { ClickhouseRecordSerializer.deserialize(it) }
         return auditRecordList
+    }
+
+    override fun <T> countRecords(type: AuditType<T>, id: String): Int {
+        val resultNumber = clickhouseConnection.countRows(auditTable, type.code, id)
+        return resultNumber
     }
 
     /**

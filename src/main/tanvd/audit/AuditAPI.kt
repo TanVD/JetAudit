@@ -6,6 +6,7 @@ import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.implementation.dao.DbType
 import tanvd.audit.model.AuditRecord
 import tanvd.audit.model.AuditType
+import tanvd.audit.model.QueryParameters
 import tanvd.audit.serializers.IntSerializer
 import tanvd.audit.serializers.LongSerializer
 import tanvd.audit.serializers.StringSerializer
@@ -112,7 +113,33 @@ class AuditAPI {
     //TODO add search by string
     @Throws(UnknownAuditTypeException::class)
     fun loadAudit(klass: KClass<*>, idToLoad: String): MutableList<MutableList<Any>> {
-        val auditRecords = auditDao.loadRecords(AuditType.resolveType(klass), idToLoad)
+        val auditRecords = auditDao.loadRecords(AuditType.resolveType(klass), idToLoad, QueryParameters())
+        val resultList = ArrayList<MutableList<Any>>()
+
+        for (auditRecord in auditRecords) {
+            val currentRec = ArrayList<Any>()
+            for (o in auditRecord.objects) {
+                val (type, id) = o
+                val objectRes = type.deserialize(id)
+                currentRec.add(objectRes)
+            }
+            resultList.add(currentRec)
+        }
+        return resultList
+    }
+
+    /**
+     * Load audits containing specified object. Supports paging and ordering
+     *
+     * In case of mysql ordering supported only be columns you are seeking
+     *
+     * @throws UnknownAuditTypeException
+     */
+    //TODO add search by string
+    @Throws(UnknownAuditTypeException::class)
+    fun loadAudit(klass: KClass<*>, idToLoad: String, parameters: QueryParameters): MutableList<MutableList<Any>> {
+
+        val auditRecords = auditDao.loadRecords(AuditType.resolveType(klass), idToLoad, parameters)
         val resultList = ArrayList<MutableList<Any>>()
 
         for (auditRecord in auditRecords) {
@@ -130,7 +157,7 @@ class AuditAPI {
     /**
      * Stop audit saving
      */
-    fun stopAudit(timeToWait : Long) : Boolean {
+    fun stopAudit(timeToWait: Long): Boolean {
         return executor.stopWorkers(timeToWait)
     }
 

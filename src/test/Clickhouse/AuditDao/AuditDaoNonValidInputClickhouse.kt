@@ -8,6 +8,7 @@ import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.dao.DbType
 import tanvd.audit.model.AuditRecord
 import tanvd.audit.model.AuditType
+import tanvd.audit.model.QueryParameters
 import tanvd.audit.serializers.IntSerializer
 import tanvd.audit.serializers.StringSerializer
 
@@ -15,7 +16,7 @@ internal class AuditDaoNonValidInputClickhouse {
 
 
     companion object {
-        var auditDao : AuditDaoClickhouseImpl? = null
+        var auditDao: AuditDaoClickhouseImpl? = null
     }
 
     @BeforeMethod
@@ -46,7 +47,7 @@ internal class AuditDaoNonValidInputClickhouse {
                 Pair(AuditType.resolveType(String::class), stringInjection))
         val auditRecordOriginal = AuditRecord(arrayObjects, 127)
         auditDao!!.saveRecord(auditRecordOriginal)
-        val elements = auditDao!!.loadRecords(AuditType.resolveType(String::class), stringInjection)
+        val elements = auditDao!!.loadRecords(AuditType.resolveType(String::class), stringInjection, QueryParameters())
         Assert.assertEquals(elements.size, 1)
         Assert.assertEquals(elements[0].objects[0].second, stringInjection)
     }
@@ -59,7 +60,7 @@ internal class AuditDaoNonValidInputClickhouse {
                 Pair(AuditType.resolveType(String::class), stringInjection))
         val auditRecordOriginal = AuditRecord(arrayObjects, 127)
         auditDao!!.saveRecord(auditRecordOriginal)
-        val elements = auditDao!!.loadRecords(AuditType.resolveType(String::class), stringInjection)
+        val elements = auditDao!!.loadRecords(AuditType.resolveType(String::class), stringInjection, QueryParameters())
         Assert.assertEquals(elements.size, 1)
         Assert.assertEquals(elements[0].objects[0].second, stringInjection)
     }
@@ -72,7 +73,7 @@ internal class AuditDaoNonValidInputClickhouse {
                 Pair(AuditType.resolveType(String::class), stringInjection))
         val auditRecordOriginal = AuditRecord(arrayObjects, 127)
         auditDao!!.saveRecord(auditRecordOriginal)
-        val elements = auditDao!!.loadRecords(AuditType.resolveType(String::class), stringInjection)
+        val elements = auditDao!!.loadRecords(AuditType.resolveType(String::class), stringInjection, QueryParameters())
         Assert.assertEquals(elements.size, 1)
         Assert.assertEquals(elements[0].objects[0].second, stringInjection)
     }

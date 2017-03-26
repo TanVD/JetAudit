@@ -1,6 +1,5 @@
 package Clickhouse.benchmark
 
-import org.testng.annotations.Test
 import tanvd.audit.AuditAPI
 import tanvd.audit.implementation.dao.DbType
 import java.math.BigInteger
@@ -33,7 +32,7 @@ internal class AuditApiBenchmarkClickhouse() {
                             record.add(random.nextInt(500))
                         }
                         2 -> {
-                            record.add(random.nextLong() )
+                            record.add(random.nextLong())
                         }
                     }
                 }

@@ -1,11 +1,11 @@
 package Clickhouse.benchmark
 
 import org.testng.annotations.BeforeClass
-import org.testng.annotations.Test
 import ru.yandex.clickhouse.ClickHouseDataSource
 import ru.yandex.clickhouse.settings.ClickHouseProperties
 import tanvd.audit.implementation.clickhouse.JdbcClickhouseConnection
 import tanvd.audit.implementation.clickhouse.model.*
+import tanvd.audit.model.QueryParameters
 import java.math.BigInteger
 import java.security.SecureRandom
 import java.util.*
@@ -15,7 +15,7 @@ internal class JdbcBenchmarkClickhouse() {
 
     companion object {
         val random = SecureRandom()
-        var connection : JdbcClickhouseConnection? = null
+        var connection: JdbcClickhouseConnection? = null
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -37,7 +37,6 @@ internal class JdbcBenchmarkClickhouse() {
         connection!!.insertRow("STRINGS",
                 DbRow(listOf(DbColumn("arrays", listOf("]); select * from benchmark.STRINGS;"), DbColumnType.DbArrayString))));
     }
-
 
 
     //@Test
@@ -66,7 +65,7 @@ internal class JdbcBenchmarkClickhouse() {
         val time = System.currentTimeMillis()
         connection!!.loadRows("STRINGS", "arrays", "''''\n\t\b''", DbTableHeader(listOf(
                 DbColumnHeader("date_time", DbColumnType.DbDate),
-                DbColumnHeader("arrays", DbColumnType.DbArrayString))))
+                DbColumnHeader("arrays", DbColumnType.DbArrayString))), QueryParameters())
         println("Time: " + (System.currentTimeMillis() - time))
     }
 

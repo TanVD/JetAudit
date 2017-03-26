@@ -113,8 +113,8 @@ internal class AuditRecordSerializationClickhouse {
                 DbColumn("Int", arrayListOf("123"), DbColumnType.DbArrayString)
         )))
         Assert.assertEquals(auditRecord.objects, ArrayList(listOf(
-                        Pair(AuditType.resolveType(String::class), "1234"),
-                        Pair(AuditType.resolveType(Int::class), "123"))))
+                Pair(AuditType.resolveType(String::class), "1234"),
+                Pair(AuditType.resolveType(Int::class), "123"))))
         Assert.assertEquals(auditRecord.unixTimeStamp, 127)
     }
 
@@ -141,9 +141,9 @@ internal class AuditRecordSerializationClickhouse {
                 DbColumn("TestClassSecond", arrayListOf("123"), DbColumnType.DbArrayString)
         )))
 
-        Assert.assertEquals(auditRecord.objects,ArrayList(listOf(
-                        Pair(AuditType.resolveType(TestClassFirst::class), "1234"),
-                        Pair(AuditType.resolveType(TestClassSecond::class), "123"))))
+        Assert.assertEquals(auditRecord.objects, ArrayList(listOf(
+                Pair(AuditType.resolveType(TestClassFirst::class), "1234"),
+                Pair(AuditType.resolveType(TestClassSecond::class), "123"))))
         Assert.assertEquals(auditRecord.unixTimeStamp, 127)
     }
 

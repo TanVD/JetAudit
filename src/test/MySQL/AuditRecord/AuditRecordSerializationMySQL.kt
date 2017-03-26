@@ -18,7 +18,7 @@ import java.util.*
 
 internal class AuditRecordSerializationMySQL {
 
-    class TestClassFirst(){
+    class TestClassFirst() {
         companion object serializer : AuditSerializer<TestClassFirst> {
             override fun deserialize(serializedString: String): TestClassFirst {
                 throw UnsupportedOperationException("not implemented")

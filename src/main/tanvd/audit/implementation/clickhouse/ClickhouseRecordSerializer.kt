@@ -26,7 +26,8 @@ object ClickhouseRecordSerializer {
         val description = auditRecord.objects.map { it.first.code }
 
         val groupedObjects = auditRecord.objects.groupBy { it.first }.mapValues {
-            entry -> entry.value.map { it.second }
+            entry ->
+            entry.value.map { it.second }
         }
 
         val elements = groupedObjects.map { DbColumn(it.key.code, it.value, DbColumnType.DbArrayString) }.toMutableList()

@@ -8,6 +8,7 @@ import tanvd.audit.implementation.dao.DbType
 import tanvd.audit.implementation.mysql.AuditDaoMysqlImpl
 import tanvd.audit.model.AuditRecord
 import tanvd.audit.model.AuditType
+import tanvd.audit.model.QueryParameters
 import tanvd.audit.serializers.IntSerializer
 import tanvd.audit.serializers.StringSerializer
 
@@ -15,7 +16,7 @@ import tanvd.audit.serializers.StringSerializer
 internal class AuditDaoNonValidInputMySQL {
 
     companion object {
-        var auditDao : AuditDaoMysqlImpl? = null
+        var auditDao: AuditDaoMysqlImpl? = null
     }
 
     @BeforeMethod
@@ -50,7 +51,7 @@ internal class AuditDaoNonValidInputMySQL {
                 Pair(AuditType.resolveType(String::class), stringInjection))
         val auditRecordOriginal = AuditRecord(arrayObjects, 127)
         auditDao!!.saveRecord(auditRecordOriginal)
-        val elements = auditDao!!.loadRecords(AuditType.resolveType(String::class), stringInjection)
+        val elements = auditDao!!.loadRecords(AuditType.resolveType(String::class), stringInjection, QueryParameters())
         Assert.assertEquals(elements.size, 1)
         Assert.assertEquals(elements[0].objects[0].second, stringInjection)
     }
@@ -63,7 +64,7 @@ internal class AuditDaoNonValidInputMySQL {
                 Pair(AuditType.resolveType(String::class), stringInjection))
         val auditRecordOriginal = AuditRecord(arrayObjects, 127)
         auditDao!!.saveRecord(auditRecordOriginal)
-        val elements = auditDao!!.loadRecords(AuditType.resolveType(String::class), stringInjection)
+        val elements = auditDao!!.loadRecords(AuditType.resolveType(String::class), stringInjection, QueryParameters())
         Assert.assertEquals(elements.size, 1)
         Assert.assertEquals(elements[0].objects[0].second, stringInjection)
     }
@@ -76,7 +77,7 @@ internal class AuditDaoNonValidInputMySQL {
                 Pair(AuditType.resolveType(String::class), stringInjection))
         val auditRecordOriginal = AuditRecord(arrayObjects, 127)
         auditDao!!.saveRecord(auditRecordOriginal)
-        val elements = auditDao!!.loadRecords(AuditType.resolveType(String::class), stringInjection)
+        val elements = auditDao!!.loadRecords(AuditType.resolveType(String::class), stringInjection, QueryParameters())
         Assert.assertEquals(elements.size, 1)
         Assert.assertEquals(elements[0].objects[0].second, stringInjection)
     }

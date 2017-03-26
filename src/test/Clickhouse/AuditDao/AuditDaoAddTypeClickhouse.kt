@@ -5,13 +5,13 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.implementation.dao.DbType
 import tanvd.audit.model.AuditRecord
 import tanvd.audit.model.AuditSerializer
 import tanvd.audit.model.AuditType
 import tanvd.audit.model.AuditType.TypesResolution.addType
 import tanvd.audit.model.AuditType.TypesResolution.resolveType
+import tanvd.audit.model.QueryParameters
 import tanvd.audit.serializers.IntSerializer
 import tanvd.audit.serializers.StringSerializer
 
@@ -19,7 +19,7 @@ internal class AuditDaoAddTypeClickhouse {
 
 
     companion object {
-        var auditDao : AuditDaoClickhouseImpl? = null
+        var auditDao: AuditDaoClickhouseImpl? = null
     }
 
     class TestClassFirst {
@@ -69,7 +69,7 @@ internal class AuditDaoAddTypeClickhouse {
         AuditType.addType(typeTestClassFirst)
         auditDao!!.addTypeInDbModel(typeTestClassFirst)
 
-        val recordsLoaded = auditDao!!.loadRecords(AuditType.resolveType(Int::class), "27")
+        val recordsLoaded = auditDao!!.loadRecords(AuditType.resolveType(Int::class), "27", QueryParameters())
         Assert.assertEquals(recordsLoaded.size, 1)
         Assert.assertEquals(recordsLoaded[0].objects, auditRecordOriginal.objects)
         Assert.assertEquals(recordsLoaded[0].unixTimeStamp, auditRecordOriginal.unixTimeStamp)
@@ -97,7 +97,7 @@ internal class AuditDaoAddTypeClickhouse {
         val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond, 127)
         auditDao!!.saveRecord(auditRecordSecondOriginal)
 
-        val recordsLoaded = auditDao!!.loadRecords(AuditType.resolveType(String::class), "Who is ")
+        val recordsLoaded = auditDao!!.loadRecords(AuditType.resolveType(String::class), "Who is ", QueryParameters())
         Assert.assertEquals(recordsLoaded.size, 1)
         Assert.assertEquals(recordsLoaded[0].objects, auditRecordFirstOriginal.objects)
         Assert.assertEquals(recordsLoaded[0].unixTimeStamp, auditRecordFirstOriginal.unixTimeStamp)
@@ -125,7 +125,7 @@ internal class AuditDaoAddTypeClickhouse {
         val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond, 127)
         auditDao!!.saveRecord(auditRecordSecondOriginal)
 
-        val recordsLoaded = auditDao!!.loadRecords(AuditType.resolveType(TestClassFirst::class), "TestClassFirstId")
+        val recordsLoaded = auditDao!!.loadRecords(AuditType.resolveType(TestClassFirst::class), "TestClassFirstId", QueryParameters())
         Assert.assertEquals(recordsLoaded.size, 1)
         Assert.assertEquals(recordsLoaded[0].objects, auditRecordSecondOriginal.objects)
         Assert.assertEquals(recordsLoaded[0].unixTimeStamp, auditRecordSecondOriginal.unixTimeStamp)
@@ -153,9 +153,9 @@ internal class AuditDaoAddTypeClickhouse {
         val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond, 127)
         auditDao!!.saveRecord(auditRecordSecondOriginal)
 
-        val recordsLoaded = auditDao!!.loadRecords(AuditType.resolveType(Int::class), "27")
+        val recordsLoaded = auditDao!!.loadRecords(AuditType.resolveType(Int::class), "27", QueryParameters())
         Assert.assertEquals(recordsLoaded.size, 2)
-        Assert.assertTrue(recordsLoaded.map{it.objects}.containsAll(listOf(arrayObjectsFirst, arrayObjectsSecond)))
-        Assert.assertTrue(recordsLoaded.map{it.unixTimeStamp}.containsAll(arrayListOf(123, 127)))
+        Assert.assertTrue(recordsLoaded.map { it.objects }.containsAll(listOf(arrayObjectsFirst, arrayObjectsSecond)))
+        Assert.assertTrue(recordsLoaded.map { it.unixTimeStamp }.containsAll(arrayListOf(123, 127)))
     }
 }

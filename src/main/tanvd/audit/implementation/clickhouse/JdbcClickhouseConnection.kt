@@ -2,7 +2,8 @@ package tanvd.audit.implementation.clickhouse
 
 import org.slf4j.LoggerFactory
 import tanvd.audit.implementation.clickhouse.model.*
-import tanvd.audit.model.AuditType
+import tanvd.audit.model.QueryParameters
+import tanvd.audit.model.QueryParameters.OrderByParameters.Order
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
@@ -127,8 +128,16 @@ class JdbcClickhouseConnection(val dataSource: DataSource) {
      * Loads rows with all specified columns from specified table where column typeName has element id
      * Id will be sanitized by Clickhouse JDBC driver
      */
-    fun loadRows(tableName: String, typeName: String, id: String, columnsToSelect: DbTableHeader): List<DbRow> {
-        val sqlSelect = "SELECT ${columnsToSelect.toDefString()} FROM $tableName WHERE has($typeName, ?);"
+    fun loadRows(tableName: String, typeName: String, id: String, columnsToSelect: DbTableHeader,
+                 parameters: QueryParameters): List<DbRow> {
+        val sqlSelect = StringBuilder()
+        sqlSelect.append("SELECT ${columnsToSelect.toDefString()} FROM $tableName WHERE has($typeName, ?) ")
+
+        addOrderBy(parameters.orderBy, sqlSelect)
+
+        addLimitPlaceholders(parameters.limits, sqlSelect)
+
+        sqlSelect.append(";")
 
         val rows = ArrayList<DbRow>()
 
@@ -136,9 +145,14 @@ class JdbcClickhouseConnection(val dataSource: DataSource) {
         var preparedStatement: PreparedStatement? = null
         var resultSet: ResultSet? = null
         try {
+            var dbIndex = 1
             connection = dataSource.connection
-            preparedStatement = connection.prepareStatement(sqlSelect)
-            preparedStatement.setString(1, id)
+            preparedStatement = connection.prepareStatement(sqlSelect.toString())
+
+            preparedStatement.setString(dbIndex, id)
+            dbIndex++
+
+            dbIndex = setLimits(parameters.limits, preparedStatement, dbIndex)
 
             resultSet = preparedStatement.executeQuery()
 
@@ -161,6 +175,69 @@ class JdbcClickhouseConnection(val dataSource: DataSource) {
         return rows
     }
 
+
+    /**
+     * Every append required to end by space to construct right expression with this function
+     */
+    private fun addLimitPlaceholders(limits: QueryParameters.LimitParameters, sqlSelect: StringBuilder) {
+        if (limits.isLimited) {
+            sqlSelect.append("LIMIT ?, ? ")
+        }
+    }
+
+    private fun setLimits(limits: QueryParameters.LimitParameters, preparedStatement: PreparedStatement?, dbIndex: Int): Int {
+        if (limits.isLimited && preparedStatement != null) {
+            preparedStatement.setInt(dbIndex, limits.limitStart)
+            preparedStatement.setInt(dbIndex + 1, limits.limitLength)
+            return dbIndex + 2
+        }
+        return dbIndex
+    }
+
+    /**
+     * Every append required to end by space to construct right expression with this function
+     */
+    private fun addOrderBy(orderBy: QueryParameters.OrderByParameters, sqlExpression: StringBuilder) {
+        if (orderBy.isOrdered) {
+            sqlExpression.append("ORDER BY ${orderBy.codes.joinToString { "${it.first} ${it.second.toStringSQL()}" }} ")
+
+        }
+    }
+
+
+    fun countRows(tableName: String, typeName: String, id: String): Int {
+        var count = 0
+
+        val sqlSelect = "SELECT COUNT(*) FROM $tableName WHERE has($typeName, ?);"
+
+        var connection: Connection? = null
+        var preparedStatement: PreparedStatement? = null
+        var resultSet: ResultSet? = null
+        try {
+            val dbIndex = 1
+            connection = dataSource.connection
+            preparedStatement = connection.prepareStatement(sqlSelect)
+
+            preparedStatement.setString(dbIndex, id)
+
+            resultSet = preparedStatement.executeQuery()
+
+            if (resultSet.next()) {
+                count = resultSet.getInt(1)
+            }
+        } catch (e: Throwable) {
+            logger.error("Error inside Clickhouse occurred: ", e)
+        } finally {
+            resultSet?.close()
+            preparedStatement?.close()
+            connection?.close()
+        }
+
+
+        return count
+    }
+
+
     fun dropTable(tableName: String, ifExists: Boolean) {
         val sqlDrop = "DROP TABLE ${if (ifExists) "IF EXISTS" else ""} $tableName;"
 
@@ -178,7 +255,7 @@ class JdbcClickhouseConnection(val dataSource: DataSource) {
         }
     }
 
-    private fun PreparedStatement.setColumn(column : DbColumn, dbIndex: Int) {
+    private fun PreparedStatement.setColumn(column: DbColumn, dbIndex: Int) {
         when (column.type) {
             DbColumnType.DbString -> {
                 this.setString(dbIndex, column.elements[0])
@@ -196,7 +273,7 @@ class JdbcClickhouseConnection(val dataSource: DataSource) {
         }
     }
 
-    private fun ResultSet.getColumn(column : DbColumnHeader) : DbColumn {
+    private fun ResultSet.getColumn(column: DbColumnHeader): DbColumn {
         when (column.type) {
             DbColumnType.DbDate -> {
                 logger.error("Default field got in load. Scheme violation.")
@@ -217,4 +294,16 @@ class JdbcClickhouseConnection(val dataSource: DataSource) {
             }
         }
     }
+
+    private fun Order.toStringSQL(): String {
+        return when (this) {
+            Order.ASC -> {
+                "ASC "
+            }
+            Order.DESC -> {
+                "DESC "
+            }
+        }
+    }
+
 }
