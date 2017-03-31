@@ -55,7 +55,7 @@ infix fun KClass<*>.equal(obj: Any): QueryTypeLeaf {
 }
 
 @Throws(UnknownAuditTypeException::class)
-infix fun KClass<*>.like(obj: Any): QueryTypeLeaf {
+infix fun KClass<*>.like(obj: String): QueryTypeLeaf {
     return QueryTypeLeaf(QueryTypeCondition.like, AuditType.TypesResolution.resolveType(this).serialize(obj), this)
 }
 
