@@ -7,7 +7,7 @@ import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.AuditType
 import tanvd.audit.model.external.QueryExpression
 import tanvd.audit.model.external.QueryParameters
-import tanvd.audit.model.internal.AuditRecord
+import tanvd.audit.model.internal.AuditRecordInternal
 import tanvd.audit.utils.PropertyLoader
 import javax.sql.DataSource
 
@@ -58,19 +58,19 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
     /**
      * Saves audit record and all its objects
      */
-    override fun saveRecord(auditRecord: AuditRecord) {
-        val row = ClickhouseRecordSerializer.serialize(auditRecord)
+    override fun saveRecord(auditRecordInternal: AuditRecordInternal) {
+        val row = ClickhouseRecordSerializer.serialize(auditRecordInternal)
         clickhouseConnection.insertRow(auditTable, row)
     }
 
     /**
      * Saves audit records. Makes it faster, than for loop with saveRecord
      */
-    override fun saveRecords(auditRecords: List<AuditRecord>) {
+    override fun saveRecords(auditRecordInternals: List<AuditRecordInternal>) {
         val columnsHeader = arrayListOf(*mandatoryColumns)
         AuditType.getTypes().mapTo(columnsHeader) { DbColumnHeader(it.code, DbColumnType.DbArrayString) }
 
-        val rows = auditRecords.map { ClickhouseRecordSerializer.serialize(it) }
+        val rows = auditRecordInternals.map { ClickhouseRecordSerializer.serialize(it) }
 
         clickhouseConnection.insertRows(auditTable, DbTableHeader(columnsHeader), rows)
     }
@@ -85,7 +85,7 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
     /**
      * Loads all auditRecords with specified object
      */
-    override fun loadRecords(expression: QueryExpression, parameters: QueryParameters): List<AuditRecord> {
+    override fun loadRecords(expression: QueryExpression, parameters: QueryParameters): List<AuditRecordInternal> {
         val selectColumns = arrayListOf(*mandatoryColumns)
         AuditType.getTypes().mapTo(selectColumns) { DbColumnHeader(it.code, DbColumnType.DbArrayString) }
 

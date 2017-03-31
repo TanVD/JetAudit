@@ -9,7 +9,7 @@ import tanvd.audit.implementation.dao.DbType
 import tanvd.audit.model.external.AuditType
 import tanvd.audit.model.external.QueryParameters
 import tanvd.audit.model.external.equal
-import tanvd.audit.model.internal.AuditRecord
+import tanvd.audit.model.internal.AuditRecordInternal
 import tanvd.audit.serializers.IntSerializer
 import tanvd.audit.serializers.StringSerializer
 
@@ -45,7 +45,7 @@ internal class AuditDaoNonValidInputClickhouse {
         val stringInjection = "'; Select * from example.Audit; --"
 
         val arrayObjects = arrayListOf(Pair(AuditType.resolveType(String::class), stringInjection))
-        val auditRecordOriginal = AuditRecord(arrayObjects, 127)
+        val auditRecordOriginal = AuditRecordInternal(arrayObjects, 127)
 
         auditDao!!.saveRecord(auditRecordOriginal)
 
@@ -58,7 +58,7 @@ internal class AuditDaoNonValidInputClickhouse {
         val stringInjection = "`; Select * from example.Audit; --"
 
         val arrayObjects = arrayListOf(Pair(AuditType.resolveType(String::class), stringInjection))
-        val auditRecordOriginal = AuditRecord(arrayObjects, 127)
+        val auditRecordOriginal = AuditRecordInternal(arrayObjects, 127)
 
         auditDao!!.saveRecord(auditRecordOriginal)
 
@@ -71,7 +71,7 @@ internal class AuditDaoNonValidInputClickhouse {
         val stringInjection = "'`\n\b\t\\--"
 
         val arrayObjects = arrayListOf(Pair(AuditType.resolveType(String::class), stringInjection))
-        val auditRecordOriginal = AuditRecord(arrayObjects, 127)
+        val auditRecordOriginal = AuditRecordInternal(arrayObjects, 127)
 
         auditDao!!.saveRecord(auditRecordOriginal)
 

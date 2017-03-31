@@ -1,5 +1,6 @@
 package Clickhouse.benchmark
 
+import org.testng.annotations.Test
 import tanvd.audit.AuditAPI
 import tanvd.audit.implementation.dao.DbType
 import tanvd.audit.model.external.QueryParameters
@@ -14,16 +15,16 @@ internal class AuditApiBenchmarkClickhouse() {
 
     companion object {
         val random = SecureRandom()
-        val auditApi: AuditAPI = AuditAPI(250000, DbType.Clickhouse, "jdbc:clickhouse://localhost:8123/benchmark",
+        val auditApi: AuditAPI = AuditAPI(DbType.Clickhouse, "jdbc:clickhouse://intdevsrv3.labs.intellij.net:8123/benchmark",
                 "default", "")
     }
 
-    //@Test
+    @Test
     fun saveRows() {
-        val times = 5
+        val times = 1
         for (k in 1..times) {
             val records = ArrayList<ArrayList<Any>>()
-            for (i in 1..20000) {
+            for (i in 1..30000) {
                 val record = ArrayList<Any>()
                 for (j in 1..30) {
                     val choice = random.nextInt(3)

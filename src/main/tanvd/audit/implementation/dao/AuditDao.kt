@@ -4,17 +4,17 @@ import tanvd.audit.exceptions.UninitializedException
 import tanvd.audit.model.external.AuditType
 import tanvd.audit.model.external.QueryExpression
 import tanvd.audit.model.external.QueryParameters
-import tanvd.audit.model.internal.AuditRecord
+import tanvd.audit.model.internal.AuditRecordInternal
 import javax.sql.DataSource
 
 internal interface AuditDao {
-    fun saveRecord(auditRecord: AuditRecord)
+    fun saveRecord(auditRecordInternal: AuditRecordInternal)
 
-    fun saveRecords(auditRecords: List<AuditRecord>)
+    fun saveRecords(auditRecordInternals: List<AuditRecordInternal>)
 
     fun <T> addTypeInDbModel(type: AuditType<T>)
 
-    fun loadRecords(expression: QueryExpression, parameters: QueryParameters): List<AuditRecord>
+    fun loadRecords(expression: QueryExpression, parameters: QueryParameters): List<AuditRecordInternal>
 
     fun countRecords(expression: QueryExpression): Int
 

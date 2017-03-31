@@ -50,13 +50,13 @@ enum class QueryTimeStampCondition {
 /** Infix functions to construct readable expressions. **/
 
 @Throws(UnknownAuditTypeException::class)
-infix fun KClass<*>.equal(obj: Any): QueryTypeLeaf {
+infix fun <T : Any> KClass<T>.equal(obj: T): QueryTypeLeaf {
     return QueryTypeLeaf(QueryTypeCondition.equal, AuditType.TypesResolution.resolveType(this).serialize(obj), this)
 }
 
 @Throws(UnknownAuditTypeException::class)
-infix fun KClass<*>.like(obj: String): QueryTypeLeaf {
-    return QueryTypeLeaf(QueryTypeCondition.like, AuditType.TypesResolution.resolveType(this).serialize(obj), this)
+infix fun <T : Any> KClass<T>.like(regExp: String): QueryTypeLeaf {
+    return QueryTypeLeaf(QueryTypeCondition.like, AuditType.TypesResolution.resolveType(this).serialize(regExp), this)
 }
 
 

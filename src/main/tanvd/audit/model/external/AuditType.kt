@@ -2,22 +2,26 @@ package tanvd.audit.model.external
 
 import tanvd.audit.exceptions.UnknownAuditTypeException
 import java.util.*
+import kotlin.collections.HashMap
 import kotlin.reflect.KClass
 
-data class AuditType<T>(val klass: KClass<*>, val code: String, val serializer: AuditSerializer<T>) {
-
-    interface AuditSerializer<T> {
-        fun deserialize(serializedString: String): T
-        fun serialize(value: T): String
+interface AuditSerializer<T> {
+    fun deserializeBatch(serializedStrings: List<String>): Map<String, T> {
+        val deserializedMap: MutableMap<String, T> = HashMap()
+        for (string in serializedStrings) {
+            deserializedMap.put(string, deserialize(string))
+        }
+        return deserializedMap
     }
 
-    fun serialize(toSerialize: T): String {
-        return serializer.serialize(toSerialize)
-    }
+    fun deserialize(serializedString: String): T
+    fun serialize(value: T): String
 
-    fun deserialize(serialized: String): T {
-        return serializer.deserialize(serialized)
-    }
+    fun display(value: T): String
+}
+
+data class AuditType<T>(val klass: KClass<*>, val code: String, val serializer: AuditSerializer<T>) :
+        AuditSerializer<T> by serializer {
 
     internal companion object TypesResolution {
         private val auditTypes: MutableList<AuditType<Any>> = ArrayList()

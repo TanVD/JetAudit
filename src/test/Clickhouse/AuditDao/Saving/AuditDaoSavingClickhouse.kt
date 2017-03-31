@@ -6,13 +6,13 @@ import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.dao.DbType
+import tanvd.audit.model.external.AuditSerializer
 import tanvd.audit.model.external.AuditType
-import tanvd.audit.model.external.AuditType.AuditSerializer
 import tanvd.audit.model.external.AuditType.TypesResolution.addType
 import tanvd.audit.model.external.AuditType.TypesResolution.resolveType
 import tanvd.audit.model.external.QueryParameters
 import tanvd.audit.model.external.equal
-import tanvd.audit.model.internal.AuditRecord
+import tanvd.audit.model.internal.AuditRecordInternal
 import tanvd.audit.serializers.IntSerializer
 import tanvd.audit.serializers.StringSerializer
 
@@ -24,6 +24,10 @@ internal class AuditDaoSavingClickhouse() {
 
     class TestClassFirst {
         companion object serializer : AuditSerializer<TestClassFirst> {
+            override fun display(value: TestClassFirst): String {
+                return "TestClassFirstDisplay"
+            }
+
             override fun deserialize(serializedString: String): TestClassFirst {
                 throw UnsupportedOperationException("not implemented")
             }
@@ -37,6 +41,10 @@ internal class AuditDaoSavingClickhouse() {
 
     class TestClassSecond {
         companion object serializer : AuditSerializer<TestClassSecond> {
+            override fun display(value: TestClassSecond): String {
+                return "TestClassSecondDisplay"
+            }
+
             override fun deserialize(serializedString: String): TestClassSecond {
                 throw UnsupportedOperationException("not implemented")
             }
@@ -80,7 +88,7 @@ internal class AuditDaoSavingClickhouse() {
     @Test
     fun saveRow_PrimitiveTypes_loadedNormally() {
         val arrayObjects = arrayListOf(Pair(resolveType(String::class), "string"), Pair(resolveType(Int::class), "123"))
-        val auditRecordOriginal = AuditRecord(arrayObjects, 127)
+        val auditRecordOriginal = AuditRecordInternal(arrayObjects, 127)
 
         auditDao!!.saveRecord(auditRecordOriginal)
 
@@ -93,11 +101,11 @@ internal class AuditDaoSavingClickhouse() {
         val arrayObjectsFirst = arrayListOf(
                 Pair(resolveType(String::class), "string"),
                 Pair(resolveType(Int::class), "123"))
-        val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 127)
+        val auditRecordFirstOriginal = AuditRecordInternal(arrayObjectsFirst, 127)
         val arrayObjectsSecond = arrayListOf(
                 Pair(resolveType(String::class), "string2"),
                 Pair(resolveType(Int::class), "123"))
-        val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond, 254)
+        val auditRecordSecondOriginal = AuditRecordInternal(arrayObjectsSecond, 254)
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
@@ -111,7 +119,7 @@ internal class AuditDaoSavingClickhouse() {
         val arrayObjects = arrayListOf(
                 Pair(resolveType(TestClassFirst::class), "TestClassFirstId"),
                 Pair(resolveType(TestClassSecond::class), "TestClassSecondId"))
-        val auditRecordOriginal = AuditRecord(arrayObjects, 127)
+        val auditRecordOriginal = AuditRecordInternal(arrayObjects, 127)
 
         auditDao!!.saveRecord(auditRecordOriginal)
 
@@ -124,11 +132,11 @@ internal class AuditDaoSavingClickhouse() {
         val arrayObjectsFirst = arrayListOf(
                 Pair(resolveType(TestClassFirst::class), "TestClassFirstId"),
                 Pair(resolveType(TestClassSecond::class), "TestClassSecondId"))
-        val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 127)
+        val auditRecordFirstOriginal = AuditRecordInternal(arrayObjectsFirst, 127)
         val arrayObjectsSecond = arrayListOf(
                 Pair(resolveType(TestClassSecond::class), "TestClassSecondId"),
                 Pair(resolveType(String::class), "string"))
-        val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond, 254)
+        val auditRecordSecondOriginal = AuditRecordInternal(arrayObjectsSecond, 254)
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 

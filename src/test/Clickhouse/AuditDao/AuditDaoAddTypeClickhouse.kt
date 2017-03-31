@@ -6,13 +6,13 @@ import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.dao.DbType
+import tanvd.audit.model.external.AuditSerializer
 import tanvd.audit.model.external.AuditType
-import tanvd.audit.model.external.AuditType.AuditSerializer
 import tanvd.audit.model.external.AuditType.TypesResolution.addType
 import tanvd.audit.model.external.AuditType.TypesResolution.resolveType
 import tanvd.audit.model.external.QueryParameters
 import tanvd.audit.model.external.equal
-import tanvd.audit.model.internal.AuditRecord
+import tanvd.audit.model.internal.AuditRecordInternal
 import tanvd.audit.serializers.IntSerializer
 import tanvd.audit.serializers.StringSerializer
 
@@ -25,12 +25,33 @@ internal class AuditDaoAddTypeClickhouse {
 
     class TestClassFirst {
         companion object serializer : AuditSerializer<TestClassFirst> {
+            override fun display(value: TestClassFirst): String {
+                return "TestClassFirstDisplay"
+            }
+
             override fun deserialize(serializedString: String): TestClassFirst {
                 throw UnsupportedOperationException("not implemented")
             }
 
             override fun serialize(value: TestClassFirst): String {
                 return "TestClassFirstId"
+            }
+
+        }
+    }
+
+    class TestClassSecond {
+        companion object serializer : AuditSerializer<TestClassSecond> {
+            override fun display(value: TestClassSecond): String {
+                return "TestClassSecondDisplay"
+            }
+
+            override fun deserialize(serializedString: String): TestClassSecond {
+                throw UnsupportedOperationException("not implemented")
+            }
+
+            override fun serialize(value: TestClassSecond): String {
+                return "TestClassSecondId"
             }
 
         }
@@ -59,7 +80,7 @@ internal class AuditDaoAddTypeClickhouse {
     @Test
     fun saveRowBefore_addType_loadedNormally() {
         val arrayObjects = arrayListOf(Pair(resolveType(String::class), "string"))
-        val auditRecordOriginal = AuditRecord(arrayObjects, 127)
+        val auditRecordOriginal = AuditRecordInternal(arrayObjects, 127)
         auditDao!!.saveRecord(auditRecordOriginal)
 
         @Suppress("UNCHECKED_CAST")
@@ -74,7 +95,7 @@ internal class AuditDaoAddTypeClickhouse {
     @Test
     fun saveRowBefore_addTypeAndSaveWithNewType_loadedNormallyNotNew() {
         val arrayObjectsFirst = arrayListOf(Pair(resolveType(String::class), "string"))
-        val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 127)
+        val auditRecordFirstOriginal = AuditRecordInternal(arrayObjectsFirst, 127)
         auditDao!!.saveRecord(auditRecordFirstOriginal)
 
         @Suppress("UNCHECKED_CAST")
@@ -83,7 +104,7 @@ internal class AuditDaoAddTypeClickhouse {
         auditDao!!.addTypeInDbModel(typeTestClassFirst)
 
         val arrayObjectsSecond = arrayListOf(Pair(resolveType(TestClassFirst::class), "TestClassFirstId"))
-        val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond, 127)
+        val auditRecordSecondOriginal = AuditRecordInternal(arrayObjectsSecond, 127)
         auditDao!!.saveRecord(auditRecordSecondOriginal)
 
         val recordsLoaded = auditDao!!.loadRecords(String::class equal "string", QueryParameters())
@@ -94,7 +115,7 @@ internal class AuditDaoAddTypeClickhouse {
     @Test
     fun saveRowBefore_addTypeAndSaveWithNewType_loadedNormallyNew() {
         val arrayObjectsFirst = arrayListOf(Pair(resolveType(String::class), "string"))
-        val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 127)
+        val auditRecordFirstOriginal = AuditRecordInternal(arrayObjectsFirst, 127)
         auditDao!!.saveRecord(auditRecordFirstOriginal)
 
         @Suppress("UNCHECKED_CAST")
@@ -103,7 +124,7 @@ internal class AuditDaoAddTypeClickhouse {
         auditDao!!.addTypeInDbModel(typeTestClassFirst)
 
         val arrayObjectsSecond = arrayListOf(Pair(resolveType(TestClassFirst::class), "TestClassFirstId"))
-        val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond, 127)
+        val auditRecordSecondOriginal = AuditRecordInternal(arrayObjectsSecond, 127)
         auditDao!!.saveRecord(auditRecordSecondOriginal)
 
 
@@ -114,7 +135,7 @@ internal class AuditDaoAddTypeClickhouse {
     @Test
     fun saveRowBefore_addTypeAndSaveWithNewType_loadedNormallyBoth() {
         val arrayObjectsFirst = arrayListOf(Pair(resolveType(String::class), "string"))
-        val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 127)
+        val auditRecordFirstOriginal = AuditRecordInternal(arrayObjectsFirst, 127)
         auditDao!!.saveRecord(auditRecordFirstOriginal)
 
         @Suppress("UNCHECKED_CAST")
@@ -125,7 +146,7 @@ internal class AuditDaoAddTypeClickhouse {
         val arrayObjectsSecond = arrayListOf(
                 Pair(resolveType(String::class), "string"),
                 Pair(resolveType(TestClassFirst::class), "TestClassFirstId"))
-        val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond, 127)
+        val auditRecordSecondOriginal = AuditRecordInternal(arrayObjectsSecond, 127)
         auditDao!!.saveRecord(auditRecordSecondOriginal)
 
 

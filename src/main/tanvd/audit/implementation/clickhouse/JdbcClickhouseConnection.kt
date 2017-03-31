@@ -370,7 +370,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             }
         //TODO Here we can use like, but it will work only for expression like %something%
             QueryTypeCondition.like -> {
-                "arrayExists((x) -> match(x, ?), ${type.code})"
+                "arrayExists((x) -> like(x, ?), ${type.code})"
             }
         }
     }

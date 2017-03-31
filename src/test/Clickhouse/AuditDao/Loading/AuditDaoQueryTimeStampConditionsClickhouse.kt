@@ -7,7 +7,7 @@ import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.dao.DbType
 import tanvd.audit.model.external.*
-import tanvd.audit.model.internal.AuditRecord
+import tanvd.audit.model.internal.AuditRecordInternal
 import tanvd.audit.serializers.IntSerializer
 import tanvd.audit.serializers.StringSerializer
 
@@ -42,7 +42,7 @@ internal class AuditDaoQueryTimeStampConditionsClickhouse {
     fun loadRow_LoadByLess_loadedOne() {
         val arrayObjectsFirst = arrayListOf(
                 Pair(AuditType.resolveType(String::class), "string"))
-        val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 127)
+        val auditRecordFirstOriginal = AuditRecordInternal(arrayObjectsFirst, 127)
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
@@ -54,7 +54,7 @@ internal class AuditDaoQueryTimeStampConditionsClickhouse {
     fun loadRow_LoadByLess_loadedNone() {
         val arrayObjectsFirst = arrayListOf(
                 Pair(AuditType.resolveType(String::class), "string"))
-        val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 127)
+        val auditRecordFirstOriginal = AuditRecordInternal(arrayObjectsFirst, 127)
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
@@ -66,7 +66,7 @@ internal class AuditDaoQueryTimeStampConditionsClickhouse {
     fun loadRow_LoadByMore_loadedOne() {
         val arrayObjectsFirst = arrayListOf(
                 Pair(AuditType.resolveType(String::class), "string"))
-        val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 127)
+        val auditRecordFirstOriginal = AuditRecordInternal(arrayObjectsFirst, 127)
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
@@ -78,7 +78,7 @@ internal class AuditDaoQueryTimeStampConditionsClickhouse {
     fun loadRow_LoadByMore_loadedNone() {
         val arrayObjectsFirst = arrayListOf(
                 Pair(AuditType.resolveType(String::class), "string"))
-        val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 127)
+        val auditRecordFirstOriginal = AuditRecordInternal(arrayObjectsFirst, 127)
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
@@ -90,7 +90,7 @@ internal class AuditDaoQueryTimeStampConditionsClickhouse {
     fun loadRow_LoadByEqual_loadedOne() {
         val arrayObjectsFirst = arrayListOf(
                 Pair(AuditType.resolveType(String::class), "string"))
-        val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 127)
+        val auditRecordFirstOriginal = AuditRecordInternal(arrayObjectsFirst, 127)
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
@@ -102,7 +102,7 @@ internal class AuditDaoQueryTimeStampConditionsClickhouse {
     fun loadRow_LoadByEqual_loadedNone() {
         val arrayObjectsFirst = arrayListOf(
                 Pair(AuditType.resolveType(String::class), "string"))
-        val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 127)
+        val auditRecordFirstOriginal = AuditRecordInternal(arrayObjectsFirst, 127)
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
@@ -114,10 +114,10 @@ internal class AuditDaoQueryTimeStampConditionsClickhouse {
     fun loadRow_LoadByMoreAndLess_loadedTwo() {
         val arrayObjectsFirst = arrayListOf(
                 Pair(AuditType.resolveType(String::class), "string1"))
-        val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 127)
+        val auditRecordFirstOriginal = AuditRecordInternal(arrayObjectsFirst, 127)
         val arrayObjectsSecond = arrayListOf(
                 Pair(AuditType.resolveType(String::class), "string2"))
-        val auditRecordSecondOriginal = AuditRecord(arrayObjectsSecond, 254)
+        val auditRecordSecondOriginal = AuditRecordInternal(arrayObjectsSecond, 254)
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 

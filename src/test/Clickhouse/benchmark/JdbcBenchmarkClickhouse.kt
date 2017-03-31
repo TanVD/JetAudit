@@ -1,6 +1,7 @@
 package Clickhouse.benchmark
 
 import org.testng.annotations.BeforeClass
+import org.testng.annotations.Test
 import ru.yandex.clickhouse.ClickHouseDataSource
 import ru.yandex.clickhouse.settings.ClickHouseProperties
 import tanvd.audit.implementation.clickhouse.JdbcClickhouseConnection
@@ -23,7 +24,7 @@ internal class JdbcBenchmarkClickhouse {
         val properties = ClickHouseProperties()
         properties.user = "default"
         properties.password = ""
-        val dataSource = ClickHouseDataSource("jdbc:clickhouse://localhost:8123/benchmark", properties)
+        val dataSource = ClickHouseDataSource("jdbc:clickhouse://intdevsrv3.labs.intellij.net:8123/benchmark", properties)
         connection = JdbcClickhouseConnection(dataSource)
         connection!!.createTable("STRINGS", DbTableHeader(arrayListOf(
                 DbColumnHeader("date_time", DbColumnType.DbDate),
@@ -31,19 +32,20 @@ internal class JdbcBenchmarkClickhouse {
                 "date_time", "date_time")
     }
 
-    //@Test
+    @Test
     fun checkForInjection() {
         connection!!.insertRow("STRINGS",
-                DbRow(listOf(DbColumn("arrays", listOf("]); select * from benchmark.STRINGS;"), DbColumnType.DbArrayString))));
+                DbRow(listOf(DbColumn("arrays", listOf("]); select * from benchmark.STRINGS;"), DbColumnType.DbArrayString))))
     }
 
 
-    //@Test
+    @Test
     fun saveRows() {
-        for (counter in 1..40) {
+        val times = 1;
+        for (counter in 1..times) {
             val stringsAll = ArrayList<DbRow>()
-            for (i in 1..30000) {
-                val numberOfStrings = random.nextInt(10)
+            for (i in 1..10000) {
+                val numberOfStrings = 10
                 val arrayOfString = ArrayList<String>()
                 for (j in 1..numberOfStrings) {
                     arrayOfString.add(BigInteger(130, random).toString(32))

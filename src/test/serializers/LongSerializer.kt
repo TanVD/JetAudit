@@ -46,4 +46,12 @@ internal class LongSerializer {
         val numberDeserialized: Long = LongSerializer.deserialize(serializedString)
         Assert.assertEquals(numberDeserialized, Long.MIN_VALUE)
     }
+
+
+    @Test
+    fun displayLong_fiveLong_displayedAsExpected() {
+        val number = 5L
+        val displayed = LongSerializer.display(number)
+        Assert.assertEquals(displayed, "5")
+    }
 }

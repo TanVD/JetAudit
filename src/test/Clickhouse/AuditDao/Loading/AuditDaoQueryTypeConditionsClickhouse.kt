@@ -10,7 +10,7 @@ import tanvd.audit.model.external.AuditType
 import tanvd.audit.model.external.QueryParameters
 import tanvd.audit.model.external.equal
 import tanvd.audit.model.external.like
-import tanvd.audit.model.internal.AuditRecord
+import tanvd.audit.model.internal.AuditRecordInternal
 import tanvd.audit.serializers.IntSerializer
 import tanvd.audit.serializers.StringSerializer
 
@@ -46,7 +46,7 @@ internal class AuditDaoQueryTypeConditionsClickhouse {
         val arrayObjectsFirst = arrayListOf(
                 Pair(AuditType.resolveType(String::class), "string"),
                 Pair(AuditType.resolveType(String::class), "BigString"))
-        val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 127)
+        val auditRecordFirstOriginal = AuditRecordInternal(arrayObjectsFirst, 127)
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
@@ -59,7 +59,7 @@ internal class AuditDaoQueryTypeConditionsClickhouse {
         val arrayObjectsFirst = arrayListOf(
                 Pair(AuditType.resolveType(String::class), "string"),
                 Pair(AuditType.resolveType(String::class), "BigString"))
-        val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 127)
+        val auditRecordFirstOriginal = AuditRecordInternal(arrayObjectsFirst, 127)
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
@@ -72,11 +72,11 @@ internal class AuditDaoQueryTypeConditionsClickhouse {
         val arrayObjectsFirst = arrayListOf(
                 Pair(AuditType.resolveType(String::class), "string"),
                 Pair(AuditType.resolveType(String::class), "BigString"))
-        val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 127)
+        val auditRecordFirstOriginal = AuditRecordInternal(arrayObjectsFirst, 127)
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(String::class like ".*[stri].*", QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(String::class like "%stri%", QueryParameters())
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
@@ -85,11 +85,11 @@ internal class AuditDaoQueryTypeConditionsClickhouse {
         val arrayObjectsFirst = arrayListOf(
                 Pair(AuditType.resolveType(String::class), "string"),
                 Pair(AuditType.resolveType(String::class), "BigString"))
-        val auditRecordFirstOriginal = AuditRecord(arrayObjectsFirst, 127)
+        val auditRecordFirstOriginal = AuditRecordInternal(arrayObjectsFirst, 127)
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(String::class equal ".", QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(String::class equal "_", QueryParameters())
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 }

@@ -46,7 +46,7 @@ internal enum class DbColumnType {
                 return "String"
             }
             DbInt -> {
-                return "UInt32"
+                return "UInt64"
             }
         }
     }

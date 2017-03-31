@@ -1,7 +1,8 @@
 package tanvd.audit.implementation
 
 import tanvd.audit.implementation.dao.AuditDao
-import tanvd.audit.model.internal.AuditRecord
+import tanvd.audit.model.internal.AuditRecordInternal
+import tanvd.audit.utils.PropertyLoader
 import java.util.*
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.ExecutorService
@@ -11,20 +12,28 @@ import java.util.concurrent.TimeUnit
 /**
  * Starts audit saving workers
  */
-internal class AuditExecutor(val auditQueue: BlockingQueue<AuditRecord>, numberOfExecutors: Int = 5) {
+internal class AuditExecutor(val auditQueueInternal: BlockingQueue<AuditRecordInternal>) {
 
-    val workers: MutableList<AuditWorker> = ArrayList()
+    companion object Config {
+        val numberOfWorkers = PropertyLoader.load("auditApiConfig.properties", "NumberOfWorkers").toInt()
+        val capacityOfWorkerBuffer = PropertyLoader.load("auditApiConfig.properties", "CapacityOfWorkerBuffer").toInt()
+        val waitingQueueTime = PropertyLoader.load("auditApiConfig.properties", "WaitingQueueTime").toLong()
+    }
 
-    val executorService: ExecutorService = Executors.newFixedThreadPool(numberOfExecutors)
+    val workers: List<AuditWorker>
+
+    val executorService: ExecutorService = Executors.newFixedThreadPool(numberOfWorkers)
 
     init {
-        for (i in 1..numberOfExecutors) {
+        val workersList = ArrayList<AuditWorker>()
+        for (i in 1..numberOfWorkers) {
             executorService.execute {
-                val auditWorker = AuditWorker(auditQueue)
-                workers.add(auditWorker)
+                val auditWorker = AuditWorker(auditQueueInternal, capacityOfWorkerBuffer, waitingQueueTime)
+                workersList.add(auditWorker)
                 auditWorker.start()
             }
         }
+        workers = workersList
     }
 
     fun isStillWorking(): Boolean {
@@ -48,10 +57,10 @@ internal class AuditExecutor(val auditQueue: BlockingQueue<AuditRecord>, numberO
     /**
      * Saves audits in DB
      */
-    class AuditWorker(val auditQueue: BlockingQueue<AuditRecord>, val maxBuffer: Int = 5000,
-                      val timeToWait: Long = 10) {
+    class AuditWorker(val auditQueueInternal: BlockingQueue<AuditRecordInternal>, val maxBuffer: Int,
+                      val timeToWait: Long) {
 
-        val buffer: MutableList<AuditRecord> = ArrayList()
+        val buffer: MutableList<AuditRecordInternal> = ArrayList()
 
         val auditDao: AuditDao = AuditDao.getDao()
 
@@ -63,7 +72,7 @@ internal class AuditExecutor(val auditQueue: BlockingQueue<AuditRecord>, numberO
         fun start() {
             while (true) {
                 synchronized(isWorking) {
-                    val record = auditQueue.poll(timeToWait, TimeUnit.MILLISECONDS)
+                    val record = auditQueueInternal.poll(timeToWait, TimeUnit.MILLISECONDS)
                     isWorking = record != null || buffer.isNotEmpty()
                     if (record == null && buffer.isNotEmpty()) {
                         auditDao.saveRecords(buffer.take(buffer.size))
@@ -74,7 +83,7 @@ internal class AuditExecutor(val auditQueue: BlockingQueue<AuditRecord>, numberO
                             auditDao.saveRecords(buffer.take(buffer.size))
                             buffer.clear()
                         }
-                        buffer.add(record as AuditRecord)
+                        buffer.add(record as AuditRecordInternal)
                     }
 
                 }

@@ -9,37 +9,45 @@ import tanvd.audit.implementation.clickhouse.ClickhouseRecordSerializer
 import tanvd.audit.implementation.clickhouse.model.DbColumn
 import tanvd.audit.implementation.clickhouse.model.DbColumnType
 import tanvd.audit.implementation.clickhouse.model.DbRow
+import tanvd.audit.model.external.AuditSerializer
 import tanvd.audit.model.external.AuditType
-import tanvd.audit.model.external.AuditType.AuditSerializer
 import tanvd.audit.model.external.AuditType.TypesResolution.addType
-import tanvd.audit.model.internal.AuditRecord
+import tanvd.audit.model.internal.AuditRecordInternal
 import tanvd.audit.serializers.IntSerializer
 import tanvd.audit.serializers.StringSerializer
 import java.util.*
 
-internal class AuditRecordSerializationClickhouse {
+internal class AuditRecordInternalSerializationClickhouse {
 
     class TestClassFirst {
         companion object serializer : AuditSerializer<TestClassFirst> {
+            override fun display(value: TestClassFirst): String {
+                return "TestClassFirstDisplay"
+            }
+
             override fun deserialize(serializedString: String): TestClassFirst {
                 throw UnsupportedOperationException("not implemented")
             }
 
             override fun serialize(value: TestClassFirst): String {
-                throw UnsupportedOperationException("not implemented")
+                return "TestClassFirstId"
             }
 
         }
     }
 
     class TestClassSecond {
-        companion object serializer : AuditSerializer<TestClassFirst> {
-            override fun deserialize(serializedString: String): TestClassFirst {
+        companion object serializer : AuditSerializer<TestClassSecond> {
+            override fun display(value: TestClassSecond): String {
+                return "TestClassSecondDisplay"
+            }
+
+            override fun deserialize(serializedString: String): TestClassSecond {
                 throw UnsupportedOperationException("not implemented")
             }
 
-            override fun serialize(value: TestClassFirst): String {
-                throw UnsupportedOperationException("not implemented")
+            override fun serialize(value: TestClassSecond): String {
+                return "TestClassSecondId"
             }
 
         }
@@ -56,7 +64,7 @@ internal class AuditRecordSerializationClickhouse {
 
     @Test
     fun serializeArray_PrimitiveTypesDifferent_serializedAsExpected() {
-        val auditRecord = AuditRecord(ArrayList(listOf(
+        val auditRecord = AuditRecordInternal(ArrayList(listOf(
                 Pair(AuditType.resolveType(String::class), "1234"),
                 Pair(AuditType.resolveType(Int::class), "123"))), 127)
         val row = ClickhouseRecordSerializer.serialize(auditRecord)
@@ -69,7 +77,7 @@ internal class AuditRecordSerializationClickhouse {
 
     @Test
     fun serializeArray_PrimitiveTypesCoincident_serializedAsExpected() {
-        val auditRecord = AuditRecord(ArrayList(listOf(
+        val auditRecord = AuditRecordInternal(ArrayList(listOf(
                 Pair(AuditType.resolveType(String::class), "1234"),
                 Pair(AuditType.resolveType(String::class), "123"))), 127)
         val row = ClickhouseRecordSerializer.serialize(auditRecord)
@@ -81,7 +89,7 @@ internal class AuditRecordSerializationClickhouse {
 
     @Test
     fun serializeArray_NonPrimitiveTypesDifferent_serializedAsExpected() {
-        val auditRecord = AuditRecord(ArrayList(listOf(
+        val auditRecord = AuditRecordInternal(ArrayList(listOf(
                 Pair(AuditType.resolveType(TestClassFirst::class), "1234"),
                 Pair(AuditType.resolveType(TestClassSecond::class), "123"))), 127)
         val row = ClickhouseRecordSerializer.serialize(auditRecord)
@@ -94,7 +102,7 @@ internal class AuditRecordSerializationClickhouse {
 
     @Test
     fun serializeArray_NonPrimitiveTypesCoincident_serializedAsExpected() {
-        val auditRecord = AuditRecord(ArrayList(listOf(
+        val auditRecord = AuditRecordInternal(ArrayList(listOf(
                 Pair(AuditType.resolveType(TestClassFirst::class), "1234"),
                 Pair(AuditType.resolveType(TestClassFirst::class), "123"))), 127)
         val row = ClickhouseRecordSerializer.serialize(auditRecord)
@@ -112,7 +120,7 @@ internal class AuditRecordSerializationClickhouse {
                 DbColumn("String", arrayListOf("1234"), DbColumnType.DbArrayString),
                 DbColumn("Int", arrayListOf("123"), DbColumnType.DbArrayString)
         )))
-        Assert.assertEquals(auditRecord, AuditRecord(listOf(
+        Assert.assertEquals(auditRecord, AuditRecordInternal(listOf(
                 Pair(AuditType.resolveType(String::class), "1234"),
                 Pair(AuditType.resolveType(Int::class), "123")), 127))
     }
@@ -124,7 +132,7 @@ internal class AuditRecordSerializationClickhouse {
                 DbColumn(descriptionColumn, arrayListOf("String", "String"), DbColumnType.DbArrayString),
                 DbColumn("String", arrayListOf("1234", "123"), DbColumnType.DbArrayString)
         )))
-        Assert.assertEquals(auditRecord, AuditRecord(listOf(
+        Assert.assertEquals(auditRecord, AuditRecordInternal(listOf(
                 Pair(AuditType.resolveType(String::class), "1234"),
                 Pair(AuditType.resolveType(String::class), "123")), 127))
     }
@@ -154,9 +162,9 @@ internal class AuditRecordSerializationClickhouse {
                 Pair(AuditType.resolveType(Int::class), "27"),
                 Pair(AuditType.resolveType(TestClassSecond::class), "TestClassSecondId")))
 
-        val row = ClickhouseRecordSerializer.serialize(AuditRecord(arrayObjects, 127))
+        val row = ClickhouseRecordSerializer.serialize(AuditRecordInternal(arrayObjects, 127))
         val deserializedRecord = ClickhouseRecordSerializer.deserialize(row)
 
-        Assert.assertEquals(deserializedRecord, AuditRecord(arrayObjects, 127))
+        Assert.assertEquals(deserializedRecord, AuditRecordInternal(arrayObjects, 127))
     }
 }
