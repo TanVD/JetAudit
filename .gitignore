@@ -3,6 +3,7 @@ out
 **/*.vpp.lck*
 .gradle
 /build/
+*.txt
 
 # Cause we now use gradle
 .idea

@@ -20,10 +20,10 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
      * Predefined scheme for clickhouse base.
      */
     companion object Scheme {
-        val auditTable = PropertyLoader.load("schemeClickhouse.properties", "AuditTable")
-        val dateColumn = PropertyLoader.load("schemeClickhouse.properties", "DateColumn")
-        val descriptionColumn = PropertyLoader.load("schemeClickhouse.properties", "DescriptionColumn")
-        val unixTimeStampColumn = PropertyLoader.load("schemeClickhouse.properties", "UnixTimeStampColumn")
+        val auditTable = PropertyLoader.loadProperty("AuditTable") ?: "Audit"
+        val dateColumn = PropertyLoader.loadProperty("DateColumn") ?: "Audit_Date"
+        val descriptionColumn = PropertyLoader.loadProperty("DescriptionColumn") ?: "Description"
+        val unixTimeStampColumn = PropertyLoader.loadProperty("UnixTimeStampColumn") ?: "Unix_TimeStamp"
 
         /** Default column with date for MergeTree Engine. Should not be inserted or selected.*/
         val defaultColumns = arrayOf(DbColumnHeader(dateColumn, DbColumnType.DbDate))
@@ -48,6 +48,8 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
 
     /**
      * Creates necessary columns for current types
+     *
+     * @throws BasicDbException
      */
     private fun initTables() {
         val columnsHeader = arrayListOf(*defaultColumns, *mandatoryColumns)
@@ -57,6 +59,8 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
 
     /**
      * Saves audit record and all its objects
+     *
+     * @throws BasicDbException
      */
     override fun saveRecord(auditRecordInternal: AuditRecordInternal) {
         val row = ClickhouseRecordSerializer.serialize(auditRecordInternal)
@@ -65,6 +69,8 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
 
     /**
      * Saves audit records. Makes it faster, than for loop with saveRecord
+     *
+     * @throws BasicDbException
      */
     override fun saveRecords(auditRecordInternals: List<AuditRecordInternal>) {
         val columnsHeader = arrayListOf(*mandatoryColumns)
@@ -77,6 +83,8 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
 
     /**
      * Adds new type and creates column for it
+     *
+     * @throws BasicDbException
      */
     override fun <T> addTypeInDbModel(type: AuditType<T>) {
         clickhouseConnection.addColumn(auditTable, DbColumnHeader(type.code, DbColumnType.DbArrayString))
@@ -84,6 +92,8 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
 
     /**
      * Loads all auditRecords with specified object
+     *
+     * @throws BasicDbException
      */
     override fun loadRecords(expression: QueryExpression, parameters: QueryParameters): List<AuditRecordInternal> {
         val selectColumns = arrayListOf(*mandatoryColumns)
@@ -98,6 +108,11 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
         return auditRecordList
     }
 
+    /**
+     * Return total count of records satisfying condition
+     *
+     * @throws BasicDbException
+     */
     override fun countRecords(expression: QueryExpression): Int {
         val resultNumber = clickhouseConnection.countRows(auditTable, expression)
         return resultNumber
@@ -105,6 +120,8 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
 
     /**
      * Drops table with specified name
+     *
+     * @throws BasicDbException
      */
     fun dropTable(tableName: String) {
         clickhouseConnection.dropTable(tableName, true)

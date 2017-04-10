@@ -24,14 +24,15 @@ data class AuditType<T>(val klass: KClass<*>, val code: String, val serializer: 
         AuditSerializer<T> by serializer {
 
     internal companion object TypesResolution {
-        private val auditTypes: MutableList<AuditType<Any>> = ArrayList()
+        private val auditTypes: MutableSet<AuditType<Any>> = HashSet()
         private val auditTypesByClass: MutableMap<KClass<*>, AuditType<Any>> = HashMap()
         private val auditTypesByCode: MutableMap<String, AuditType<Any>> = HashMap()
 
         /**
          * Resolve KClass to AuditType
+         *
+         * @throws UnknownAuditTypeException
          */
-        @Throws(UnknownAuditTypeException::class)
         fun resolveType(klass: KClass<*>): AuditType<Any> {
             val auditType = auditTypesByClass[klass]
             if (auditType == null) {
@@ -44,8 +45,9 @@ data class AuditType<T>(val klass: KClass<*>, val code: String, val serializer: 
 
         /**
          * Resolve code to AuditType
+         *
+         * @throws UnknownAuditTypeException
          */
-        @Throws(UnknownAuditTypeException::class)
         fun resolveType(code: String): AuditType<Any> {
             val auditType = auditTypesByCode[code]
             if (auditType == null) {
@@ -56,18 +58,20 @@ data class AuditType<T>(val klass: KClass<*>, val code: String, val serializer: 
         }
 
         fun addType(type: AuditType<Any>) {
+            if (auditTypes.contains(type)) {
+            }
             auditTypes.add(type)
             auditTypesByClass.put(type.klass, type)
             auditTypesByCode.put(type.code, type)
         }
 
-        fun getTypes(): List<AuditType<Any>> {
+        fun getTypes(): Set<AuditType<Any>> {
             return auditTypes
         }
 
         fun clearTypes() {
             auditTypes.clear()
-            auditTypesByCode.clear()
+            auditTypesByClass.clear()
             auditTypesByCode.clear()
         }
     }

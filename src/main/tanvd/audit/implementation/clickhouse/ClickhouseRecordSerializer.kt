@@ -1,6 +1,7 @@
 package tanvd.audit.implementation.clickhouse
 
 import org.slf4j.LoggerFactory
+import tanvd.audit.exceptions.UnknownAuditTypeException
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl.Scheme.descriptionColumn
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl.Scheme.getPredefinedAuditTableColumn
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl.Scheme.unixTimeStampColumn
@@ -18,8 +19,6 @@ internal object ClickhouseRecordSerializer {
 
     /**
      * Serialize AuditRecordInternal for Clickhouse
-     * Serialize order to string of types
-     * Serialize objects to groups by types respecting order
      */
     fun serialize(auditRecordInternal: AuditRecordInternal): DbRow {
 
@@ -38,8 +37,10 @@ internal object ClickhouseRecordSerializer {
     }
 
     /**
-     * Deserialize MySQL.AuditRecordInternal from string representation
+     * Deserialize AuditRecordInternal from string representation
      * DbString in Map -- name code
+     *
+     * @throws UnknownAuditTypeException
      */
     fun deserialize(row: DbRow): AuditRecordInternal {
         val description = row.columns.find { it.name == descriptionColumn }
@@ -60,7 +61,8 @@ internal object ClickhouseRecordSerializer {
             if (pair != null) {
                 val index = currentNumberOfType[code] ?: 0
                 if (pair.elements[index].isNotEmpty()) {
-                    objects.add(Pair(AuditType.resolveType(code), pair.elements[index]))
+                    val type = AuditType.resolveType(code)
+                    objects.add(Pair(type, pair.elements[index]))
                 }
                 currentNumberOfType.put(code, index + 1)
             }

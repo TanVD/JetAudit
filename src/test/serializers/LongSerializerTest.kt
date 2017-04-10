@@ -4,7 +4,7 @@ import org.testng.Assert
 import org.testng.annotations.Test
 import tanvd.audit.serializers.LongSerializer
 
-internal class LongSerializer {
+internal class LongSerializerTest {
     @Test
     fun serializeLong_fiveLong_serializedAsExpected() {
         val number: Long = 5L

@@ -4,7 +4,7 @@ import org.testng.Assert
 import org.testng.annotations.Test
 import tanvd.audit.serializers.StringSerializer
 
-internal class StringSerializer {
+internal class StringSerializerTest {
 
     @Test
     fun serializeString_serializedAsExpected() {

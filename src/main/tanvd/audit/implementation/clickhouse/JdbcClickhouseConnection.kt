@@ -3,6 +3,7 @@ package tanvd.audit.implementation.clickhouse
 import org.slf4j.LoggerFactory
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl.Scheme.unixTimeStampColumn
 import tanvd.audit.implementation.clickhouse.model.*
+import tanvd.audit.implementation.exceptions.BasicDbException
 import tanvd.audit.model.external.*
 import tanvd.audit.model.external.QueryParameters.OrderByParameters.Order
 import java.sql.Connection
@@ -11,7 +12,6 @@ import java.sql.ResultSet
 import java.util.*
 import javax.sql.DataSource
 
-/** Be aware that all exceptions in Clickhouse will be saved to the log as errors and than ignored. **/
 internal class JdbcClickhouseConnection(val dataSource: DataSource) {
 
     private val logger = LoggerFactory.getLogger(JdbcClickhouseConnection::class.java)
@@ -20,6 +20,8 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
     /**
      * Creates table with specified header (uses ifNotExists modifier by default)
      * You must specify date field cause we use MergeTree Engine
+     *
+     * @throws BasicDbException
      */
     fun createTable(tableName: String, tableHeader: DbTableHeader, primaryKey: String, dateKey: String,
                     setDefaultDate: Boolean = true, ifNotExists: Boolean = true) {
@@ -41,6 +43,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             preparedStatement.executeUpdate()
         } catch (e: Throwable) {
             logger.error("Error inside Clickhouse occurred: ", e)
+            throw BasicDbException("Error inside Clickhouse occurred", e)
         } finally {
             preparedStatement?.close()
             connection?.close()
@@ -48,7 +51,9 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
     }
 
     /**
-     * Adds column in a table with specified name and name
+     * Adds column in a table with specified name
+     *
+     * @throws BasicDbException
      */
     fun addColumn(tableName: String, columnHeader: DbColumnHeader) {
         val sqlAlter = "ALTER TABLE $tableName ADD COLUMN ${columnHeader.name} ${columnHeader.type} ;"
@@ -61,6 +66,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             preparedStatement.executeUpdate()
         } catch (e: Throwable) {
             logger.error("Error inside Clickhouse occurred: ", e)
+            throw BasicDbException("Error inside Clickhouse occurred", e)
         } finally {
             preparedStatement?.close()
             connection?.close()
@@ -69,7 +75,9 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
 
     /**
      * Insert only in columns which row contains
-     * Inserted values will sanitized by Clickhouse JDBC driver
+     * Inserted values will be sanitized by Clickhouse JDBC driver
+     *
+     * @throws BasicDbException
      */
     fun insertRow(tableName: String, row: DbRow) {
         val sqlInsert = "INSERT INTO $tableName (${row.toStringHeader()}) VALUES (${row.toPlaceholders()});"
@@ -85,6 +93,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             preparedStatement.executeUpdate()
         } catch (e: Throwable) {
             logger.error("Error inside Clickhouse occurred: ", e)
+            throw BasicDbException("Error inside Clickhouse occurred", e)
         } finally {
             preparedStatement?.close()
             connection?.close()
@@ -92,8 +101,10 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
     }
 
     /**
-     * Insert in all columns (Some maybe not stated).
-     * Use batches. Inserted values will be sanitized by Clickhouse JDBC driver
+     * Inserts in all columns (Some maybe not stated).
+     * Uses batches. Inserted values will be sanitized by Clickhouse JDBC driver
+     *
+     * @throws BasicDbException
      */
     fun insertRows(tableName: String, tableHeader: DbTableHeader, rows: List<DbRow>) {
         var connection: Connection? = null
@@ -119,6 +130,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             preparedStatement?.executeBatch()
         } catch (e: Throwable) {
             logger.error("Error inside Clickhouse occurred: ", e)
+            throw BasicDbException("Error inside Clickhouse occurred", e)
         } finally {
             preparedStatement?.close()
             connection?.close()
@@ -126,8 +138,10 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
     }
 
     /**
-     * Loads rows with all specified columns from specified table where column typeName has element id
-     * Id will be sanitized by Clickhouse JDBC driver
+     * Loads rows satisfying expression with all specified columns from specified table.
+     * Parameters will be applied to query (like limit, or order by)
+     *
+     * @throws BasicDbException
      */
     fun loadRows(tableName: String, columnsToSelect: DbTableHeader, expression: QueryExpression,
                  parameters: QueryParameters): List<DbRow> {
@@ -167,6 +181,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             }
         } catch (e: Throwable) {
             logger.error("Error inside Clickhouse occurred: ", e)
+            throw BasicDbException("Error inside Clickhouse occurred", e)
         } finally {
             resultSet?.close()
             preparedStatement?.close()
@@ -175,6 +190,29 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
 
 
         return rows
+    }
+
+    /**
+     * Drops specified table
+     *
+     * @throws BasicDbException
+     */
+    fun dropTable(tableName: String, ifExists: Boolean) {
+        val sqlDrop = "DROP TABLE ${if (ifExists) "IF EXISTS" else ""} $tableName;"
+
+        var connection: Connection? = null
+        var preparedStatement: PreparedStatement? = null
+        try {
+            connection = dataSource.connection
+            preparedStatement = connection.prepareStatement(sqlDrop)
+            preparedStatement.executeUpdate()
+        } catch (e: Throwable) {
+            logger.error("Error inside Clickhouse occurred: ", e)
+            throw BasicDbException("Error inside Clickhouse occurred", e)
+        } finally {
+            preparedStatement?.close()
+            connection?.close()
+        }
     }
 
     private fun addExpression(expression: QueryExpression, sqlSelect: StringBuilder) {
@@ -281,6 +319,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             }
         } catch (e: Throwable) {
             logger.error("Error inside Clickhouse occurred: ", e)
+            throw BasicDbException("Error inside Clickhouse occurred", e)
         } finally {
             resultSet?.close()
             preparedStatement?.close()
@@ -291,23 +330,6 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
         return count
     }
 
-
-    fun dropTable(tableName: String, ifExists: Boolean) {
-        val sqlDrop = "DROP TABLE ${if (ifExists) "IF EXISTS" else ""} $tableName;"
-
-        var connection: Connection? = null
-        var preparedStatement: PreparedStatement? = null
-        try {
-            connection = dataSource.connection
-            preparedStatement = connection.prepareStatement(sqlDrop)
-            preparedStatement.executeUpdate()
-        } catch (e: Throwable) {
-            logger.error("Error inside Clickhouse occurred: ", e)
-        } finally {
-            preparedStatement?.close()
-            connection?.close()
-        }
-    }
 
     private fun PreparedStatement.setColumn(column: DbColumn, dbIndex: Int) {
         when (column.type) {
@@ -330,7 +352,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
     private fun ResultSet.getColumn(column: DbColumnHeader): DbColumn {
         when (column.type) {
             DbColumnType.DbDate -> {
-                logger.error("Default field got in load. Scheme violation.")
+                logger.error("Default field got in loadPropertiesFromFile. Scheme violation.")
                 return DbColumn("", emptyList(), DbColumnType.DbArrayString)
             }
             DbColumnType.DbArrayString -> {
@@ -368,7 +390,6 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             QueryTypeCondition.equal -> {
                 "has(${type.code}, ?)"
             }
-        //TODO Here we can use like, but it will work only for expression like %something%
             QueryTypeCondition.like -> {
                 "arrayExists((x) -> like(x, ?), ${type.code})"
             }

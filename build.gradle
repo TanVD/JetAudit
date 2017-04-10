@@ -35,6 +35,7 @@ sourceSets {
 }
 
 test {
+    systemProperty "audit.config", "src/main/resources/config.properties"
     useTestNG()
 }
 
@@ -46,7 +47,12 @@ dependencies {
     compile "org.slf4j:slf4j-api:1.7.25"
     compile "ch.qos.logback:logback-classic:1.2.2"
     testCompile "org.testng:testng:6.11"
+    testCompile "org.mockito:mockito-all:1.10.19"
+    //need it for kotlin object mocking purposes (mocking static members)
+    testCompile group: 'org.powermock', name: 'powermock-mockito-release-full', version: '1.6.4'
+
 }
+
 
 configurations.all {
     exclude group: "org.slf4j", module: "slf4j-log4j12"

@@ -5,6 +5,9 @@ import tanvd.audit.model.external.QueryParameters.OrderByParameters.Order
 import tanvd.audit.model.external.QueryParameters.OrderByParameters.Order.DESC
 import kotlin.reflect.KClass
 
+/**
+ * Query parameters for JetAudit
+ */
 class QueryParameters {
     val limits = LimitParameters()
 
