@@ -118,6 +118,43 @@ internal class AuditApiLoadAudit : PowerMockTestCase() {
     }
 
     @Test
+    fun loadAuditWithExceptions_recordLoaded_AppropriateAuditRecordReturned() {
+        val testSet = arrayOf("123", 456, TestClassFirst())
+        val testStamp = 789L
+        addPrimitiveTypesAndTestClassFirst()
+        val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp)
+        val expression = createExpressionString()
+        val parameters = createSimpleParam()
+        returnRecordOnExpressionAndParam(auditRecord, expression, parameters)
+
+        val result = auditApi!!.loadAuditWithExceptions(expression, parameters)
+
+        Assert.assertEquals(result, listOf(fullAuditRecord(*testSet, unixTimeStamp = testStamp)))
+    }
+
+    @Test
+    fun loadAuditWithExceptions_recordsLoaded_AppropriateAuditRecordsReturned() {
+        val testSetFirst = arrayOf("123", 456, TestClassFirst())
+        val testStampFirst = 1L
+        val testSetSecond = arrayOf("123", 789)
+        val testStampSecond = 2L
+        addPrimitiveTypesAndTestClassFirst()
+        val auditRecords = listOf(
+                createAuditRecordInternal(*testSetFirst, unixTimeStamp = testStampFirst),
+                createAuditRecordInternal(*testSetSecond, unixTimeStamp = testStampSecond)
+        )
+        val expression = createExpressionString()
+        val parameters = createSimpleParam()
+        returnRecordsOnExpressionAndParam(auditRecords, expression, parameters)
+
+        val result = auditApi!!.loadAuditWithExceptions(expression, parameters)
+
+        Assert.assertEquals(result.toSet(), setOf(
+                fullAuditRecord(*testSetFirst, unixTimeStamp = testStampFirst),
+                fullAuditRecord(*testSetSecond, unixTimeStamp = testStampSecond)))
+    }
+
+    @Test
     fun loadAuditWithExceptions_UnknownAuditType_ExceptionThrown() {
         addPrimitiveTypes()
         val expression = createExpressionString()

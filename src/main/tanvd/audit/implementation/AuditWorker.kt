@@ -5,11 +5,8 @@ import tanvd.audit.implementation.exceptions.BasicDbException
 import tanvd.audit.implementation.writer.AuditReserveWriter
 import tanvd.audit.model.internal.AuditRecordInternal
 import tanvd.audit.utils.PropertyLoader
-import java.lang.Math.max
-import java.util.*
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.TimeUnit
-import kotlin.collections.ArrayList
 
 /**
  * Saves audits in DB.
@@ -65,7 +62,7 @@ internal class AuditWorker {
             synchronized(isWorking) {
                 //get new record if sure that can save it (reserve buffer not full)
                 if (reserveBuffer.size != capacityOfWorkerBuffer) {
-                    processBuffer()
+                    processNewRecord()
                 }
 
                 if (!reserveBuffer.isEmpty()) {
@@ -81,9 +78,9 @@ internal class AuditWorker {
         }
     }
 
-    fun processBuffer() {
+    fun processNewRecord() {
         //get batch size that surely can be saved to reserveBuffer
-        val batchSize = capacityOfWorkerBuffer - max(reserveBuffer.size, buffer.size)
+        val batchSize = capacityOfWorkerBuffer - reserveBuffer.size
 
         val record = auditQueueInternal.poll(waitingQueueTime, TimeUnit.MILLISECONDS)
         isWorking = record != null || buffer.isNotEmpty()
@@ -92,7 +89,6 @@ internal class AuditWorker {
         } else {
             if (buffer.size == capacityOfWorkerBuffer) {
                 saveBuffer(batchSize)
-                buffer.add(record)
             }
             buffer.add(record)
         }
@@ -111,6 +107,9 @@ internal class AuditWorker {
             reserveBuffer.addAll(records)
         }
         for (i in 1..batchSize) {
+            if (buffer.isEmpty()) {
+                break;
+            }
             buffer.removeAt(0)
         }
     }

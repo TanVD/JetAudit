@@ -1,6 +1,6 @@
 package tanvd.audit.implementation.exceptions
 
-internal class BasicDbException: Throwable {
+internal class BasicDbException : Throwable {
 
     constructor(msg: String = "") : super(msg)
 

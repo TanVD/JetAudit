@@ -1,33 +1,35 @@
 package tanvd.audit.implementation.writer
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.clickhouse.ClickhouseRecordSerializer
 import tanvd.audit.implementation.clickhouse.model.DbRow
 import tanvd.audit.model.internal.AuditRecordInternal
-import java.io.PrintWriter
 
-internal class ClickhouseSqlFileWriter : AuditReserveWriter {
+internal class ClickhouseSqlLogWriter : AuditReserveWriter {
 
-    val writer: PrintWriter
+    private val writer: Logger
 
-    constructor(filePath: String) {
-        writer = PrintWriter(filePath)
+    constructor(loggerName: String) {
+        writer = LoggerFactory.getLogger(loggerName)
     }
 
-    constructor(writer: PrintWriter) {
+    constructor(writer: Logger) {
         this.writer = writer
+    }
+
+    override fun flush() {
+        //nothing to do here
     }
 
     override fun write(record: AuditRecordInternal) {
         val row = ClickhouseRecordSerializer.serialize(record)
         val sqlInsert = "INSERT INTO ${AuditDaoClickhouseImpl.auditTable} (${row.toStringHeader()})" +
                 " VALUES (${row.toValues()});"
-        writer.println(sqlInsert)
+        writer.error(sqlInsert)
     }
 
-    override fun flush() {
-        writer.flush()
-    }
 
     private fun DbRow.toValues(): String {
         return columns.map { (_, elements) ->
