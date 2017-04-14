@@ -72,7 +72,7 @@ internal class AuditRecordInternalSerializationClickhouse {
                 DbColumn("String", listOf("1234"), DbColumnType.DbArrayString),
                 DbColumn("Int", listOf("123"), DbColumnType.DbArrayString),
                 DbColumn(descriptionColumn, listOf("String", "Int"), DbColumnType.DbArrayString),
-                DbColumn(unixTimeStampColumn, listOf("127"), DbColumnType.DbInt))))
+                DbColumn(unixTimeStampColumn, listOf("127"), DbColumnType.DbLong))))
     }
 
     @Test
@@ -84,7 +84,7 @@ internal class AuditRecordInternalSerializationClickhouse {
         Assert.assertEquals(row, DbRow(arrayListOf(
                 DbColumn("String", listOf("1234", "123"), DbColumnType.DbArrayString),
                 DbColumn(descriptionColumn, listOf("String", "String"), DbColumnType.DbArrayString),
-                DbColumn(unixTimeStampColumn, listOf("127"), DbColumnType.DbInt))))
+                DbColumn(unixTimeStampColumn, listOf("127"), DbColumnType.DbLong))))
     }
 
     @Test
@@ -97,7 +97,7 @@ internal class AuditRecordInternalSerializationClickhouse {
                 DbColumn("TestClassFirst", listOf("1234"), DbColumnType.DbArrayString),
                 DbColumn("TestClassSecond", listOf("123"), DbColumnType.DbArrayString),
                 DbColumn(descriptionColumn, listOf("TestClassFirst", "TestClassSecond"), DbColumnType.DbArrayString),
-                DbColumn(unixTimeStampColumn, listOf("127"), DbColumnType.DbInt))))
+                DbColumn(unixTimeStampColumn, listOf("127"), DbColumnType.DbLong))))
     }
 
     @Test
@@ -109,13 +109,13 @@ internal class AuditRecordInternalSerializationClickhouse {
         Assert.assertEquals(row, DbRow(listOf(
                 DbColumn("TestClassFirst", listOf("1234", "123"), DbColumnType.DbArrayString),
                 DbColumn(descriptionColumn, listOf("TestClassFirst", "TestClassFirst"), DbColumnType.DbArrayString),
-                DbColumn(unixTimeStampColumn, listOf("127"), DbColumnType.DbInt))))
+                DbColumn(unixTimeStampColumn, listOf("127"), DbColumnType.DbLong))))
     }
 
     @Test
     fun deserializeArray_PrimitiveTypesDifferent_deserializedAsExpected() {
         val auditRecord = ClickhouseRecordSerializer.deserialize(DbRow(arrayListOf(
-                DbColumn(unixTimeStampColumn, listOf("127"), DbColumnType.DbInt),
+                DbColumn(unixTimeStampColumn, listOf("127"), DbColumnType.DbLong),
                 DbColumn(descriptionColumn, arrayListOf("String", "Int"), DbColumnType.DbArrayString),
                 DbColumn("String", arrayListOf("1234"), DbColumnType.DbArrayString),
                 DbColumn("Int", arrayListOf("123"), DbColumnType.DbArrayString)
@@ -128,7 +128,7 @@ internal class AuditRecordInternalSerializationClickhouse {
     @Test
     fun deserializeArray_PrimitiveTypesCoincident_deserializedAsExpected() {
         val auditRecord = ClickhouseRecordSerializer.deserialize(DbRow(arrayListOf(
-                DbColumn(unixTimeStampColumn, listOf("127"), DbColumnType.DbInt),
+                DbColumn(unixTimeStampColumn, listOf("127"), DbColumnType.DbLong),
                 DbColumn(descriptionColumn, arrayListOf("String", "String"), DbColumnType.DbArrayString),
                 DbColumn("String", arrayListOf("1234", "123"), DbColumnType.DbArrayString)
         )))
@@ -140,7 +140,7 @@ internal class AuditRecordInternalSerializationClickhouse {
     @Test
     fun deserializeArray_NonPrimitiveTypesDifferent_deserializedAsExpected() {
         val auditRecord = ClickhouseRecordSerializer.deserialize(DbRow(arrayListOf(
-                DbColumn(unixTimeStampColumn, listOf("127"), DbColumnType.DbInt),
+                DbColumn(unixTimeStampColumn, listOf("127"), DbColumnType.DbLong),
                 DbColumn(descriptionColumn, arrayListOf("TestClassFirst", "TestClassSecond"),
                         DbColumnType.DbArrayString),
                 DbColumn("TestClassFirst", arrayListOf("1234"), DbColumnType.DbArrayString),

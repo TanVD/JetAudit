@@ -46,6 +46,6 @@ internal class ClickhouseSqlLogWriterTest : PowerMockTestCase() {
                 "${typeInt.code}, ${typeLong.code}, ${AuditDaoClickhouseImpl.descriptionColumn}," +
                 " ${AuditDaoClickhouseImpl.unixTimeStampColumn}) VALUES " +
                 "(['${typeInt.serialize(123)}'], ['${typeLong.serialize(456)}'], ['${typeInt.code}', '${typeLong.code}']," +
-                " ['1']);")
+                " 1);")
     }
 }

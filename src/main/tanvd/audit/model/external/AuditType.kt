@@ -58,8 +58,6 @@ data class AuditType<T>(val klass: KClass<*>, val code: String, val serializer: 
         }
 
         fun addType(type: AuditType<Any>) {
-            if (auditTypes.contains(type)) {
-            }
             auditTypes.add(type)
             auditTypesByClass.put(type.klass, type)
             auditTypesByCode.put(type.code, type)

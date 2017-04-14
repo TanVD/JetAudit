@@ -1,6 +1,7 @@
 package tanvd.audit.implementation.clickhouse
 
 import org.slf4j.LoggerFactory
+import ru.yandex.clickhouse.except.ClickHouseUnknownException
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl.Scheme.unixTimeStampColumn
 import tanvd.audit.implementation.clickhouse.model.*
 import tanvd.audit.implementation.exceptions.BasicDbException
@@ -16,6 +17,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
 
     private val logger = LoggerFactory.getLogger(JdbcClickhouseConnection::class.java)
 
+    private val columnAlreadyCreatedExceptionCode = 44
 
     /**
      * Creates table with specified header (uses ifNotExists modifier by default)
@@ -57,7 +59,6 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
      */
     fun addColumn(tableName: String, columnHeader: DbColumnHeader) {
         val sqlAlter = "ALTER TABLE $tableName ADD COLUMN ${columnHeader.name} ${columnHeader.type} ;"
-
         var connection: Connection? = null
         var preparedStatement: PreparedStatement? = null
         try {
@@ -65,8 +66,12 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             preparedStatement = connection.prepareStatement(sqlAlter)
             preparedStatement.executeUpdate()
         } catch (e: Throwable) {
-            logger.error("Error inside Clickhouse occurred: ", e)
-            throw BasicDbException("Error inside Clickhouse occurred", e)
+            if (e is ClickHouseUnknownException && e.errorCode == 1002) {
+                logger.trace("Trying to create existing column. It will be ignored.", e)
+            } else {
+                logger.error("Error inside Clickhouse occurred: ", e)
+                throw BasicDbException("Error inside Clickhouse occurred", e)
+            }
         } finally {
             preparedStatement?.close()
             connection?.close()
@@ -333,9 +338,6 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
 
     private fun PreparedStatement.setColumn(column: DbColumn, dbIndex: Int) {
         when (column.type) {
-            DbColumnType.DbString -> {
-                this.setString(dbIndex, column.elements[0])
-            }
             DbColumnType.DbArrayString -> {
                 this.setArray(dbIndex,
                         connection.createArrayOf("String", column.elements.toTypedArray()))
@@ -343,8 +345,8 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             DbColumnType.DbDate -> {
                 logger.error("Default field got in insert. Scheme violation.")
             }
-            DbColumnType.DbInt -> {
-                this.setInt(dbIndex, column.elements[0].toInt())
+            DbColumnType.DbLong -> {
+                this.setLong(dbIndex, column.elements[0].toLong())
             }
         }
     }
@@ -360,13 +362,9 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
                 val resultArray = this.getArray(column.name).array as Array<String>
                 return DbColumn(column.name, resultArray.toList(), DbColumnType.DbArrayString)
             }
-            DbColumnType.DbString -> {
-                val result = this.getString(column.name)
-                return DbColumn(column.name, listOf(result), DbColumnType.DbString)
-            }
-            DbColumnType.DbInt -> {
-                val result = this.getInt(column.name)
-                return DbColumn(column.name, listOf(result.toString()), DbColumnType.DbInt)
+            DbColumnType.DbLong -> {
+                val result = this.getLong(column.name)
+                return DbColumn(column.name, listOf(result.toString()), DbColumnType.DbLong)
             }
         }
     }

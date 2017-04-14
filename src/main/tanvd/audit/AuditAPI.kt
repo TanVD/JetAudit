@@ -119,9 +119,9 @@ class AuditAPI {
      * Initializing type system with primitive types
      */
     internal fun addPrimitiveTypes() {
-        addTypeForAudit(AuditType(String::class, "Type_String", StringSerializer))
-        addTypeForAudit(AuditType(Int::class, "Type_Int", IntSerializer))
-        addTypeForAudit(AuditType(Long::class, "Type_Long", LongSerializer))
+        addTypeForAudit(AuditType(String::class, "String", StringSerializer))
+        addTypeForAudit(AuditType(Int::class, "Int", IntSerializer))
+        addTypeForAudit(AuditType(Long::class, "Long", LongSerializer))
     }
 
     /**

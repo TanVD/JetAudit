@@ -14,6 +14,22 @@ internal data class DbRow(val columns: List<DbColumn> = ArrayList()) {
         return columns.map { "?" }.joinToString()
     }
 
+    fun toValues(): String {
+        return columns.map { (_, elements, type) ->
+            when (type) {
+                DbColumnType.DbLong -> {
+                    elements[0]
+                }
+                DbColumnType.DbArrayString -> {
+                    elements.map { "\'" + it + "\'" }.joinToString(prefix = "[", postfix = "]")
+                }
+                else -> {
+                    elements[0]
+                }
+            }
+        }.joinToString()
+    }
+
 }
 
 /**
@@ -31,8 +47,7 @@ internal data class DbColumn(val name: String, val elements: List<String>, val t
 internal enum class DbColumnType {
     DbDate,
     DbArrayString,
-    DbString,
-    DbInt;
+    DbLong;
 
     override fun toString(): String {
         when (this) {
@@ -42,10 +57,7 @@ internal enum class DbColumnType {
             DbArrayString -> {
                 return "Array(String)"
             }
-            DbString -> {
-                return "String"
-            }
-            DbInt -> {
+            DbLong -> {
                 return "UInt64"
             }
         }

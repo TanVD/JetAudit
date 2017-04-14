@@ -5,6 +5,10 @@ out
 /build/
 *.txt
 
+# Cause we follow NDA
+**/jetprofile/**/*
+**/Kara/**/*
+
 # Cause we now use gradle
 .idea
 *.iml

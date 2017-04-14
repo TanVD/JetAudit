@@ -4,7 +4,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.clickhouse.ClickhouseRecordSerializer
-import tanvd.audit.implementation.clickhouse.model.DbRow
 import tanvd.audit.model.internal.AuditRecordInternal
 
 internal class ClickhouseSqlLogWriter : AuditReserveWriter {
@@ -30,12 +29,9 @@ internal class ClickhouseSqlLogWriter : AuditReserveWriter {
         writer.error(sqlInsert)
     }
 
-
-    private fun DbRow.toValues(): String {
-        return columns.map { (_, elements) ->
-            elements.map { "\'" + it + "\'" }.
-                    joinToString(prefix = "[", postfix = "]")
-        }.joinToString()
+    override fun close() {
+        //nothing to do here
     }
+
 
 }

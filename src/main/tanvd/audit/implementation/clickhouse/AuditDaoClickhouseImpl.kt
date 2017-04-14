@@ -33,7 +33,7 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
          * normal types.
          */
         val mandatoryColumns = arrayOf(DbColumnHeader(descriptionColumn, DbColumnType.DbArrayString),
-                DbColumnHeader(unixTimeStampColumn, DbColumnType.DbInt))
+                DbColumnHeader(unixTimeStampColumn, DbColumnType.DbLong))
 
         fun getPredefinedAuditTableColumn(name: String): DbColumnHeader {
             return arrayOf(*defaultColumns, *mandatoryColumns).find { it.name == name }!!

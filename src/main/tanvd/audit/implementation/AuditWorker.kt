@@ -73,6 +73,7 @@ internal class AuditWorker {
 
             //stop if asked
             if (!isEnabled) {
+                auditReserveWriter.close()
                 break
             }
         }

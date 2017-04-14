@@ -15,6 +15,8 @@ internal interface AuditReserveWriter {
 
     fun flush()
 
+    fun close()
+
     companion object AuditReserveWriterFactory {
 
         private val logger = LoggerFactory.getLogger(AuditReserveWriterFactory::class.java)

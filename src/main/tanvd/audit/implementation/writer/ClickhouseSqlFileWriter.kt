@@ -2,7 +2,6 @@ package tanvd.audit.implementation.writer
 
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.clickhouse.ClickhouseRecordSerializer
-import tanvd.audit.implementation.clickhouse.model.DbRow
 import tanvd.audit.model.internal.AuditRecordInternal
 import java.io.PrintWriter
 
@@ -29,11 +28,7 @@ internal class ClickhouseSqlFileWriter : AuditReserveWriter {
         writer.flush()
     }
 
-    private fun DbRow.toValues(): String {
-        return columns.map { (_, elements) ->
-            elements.map { "\'" + it + "\'" }.
-                    joinToString(prefix = "[", postfix = "]")
-        }.joinToString()
+    override fun close() {
+        writer.close()
     }
-
 }
