@@ -53,18 +53,23 @@ internal class AuditApiSaveAudit : PowerMockTestCase() {
 
     private var auditQueueInternal: BlockingQueue<AuditRecordInternal>? = null
 
+    private var auditRecordsNotCommitted:  HashMap<Long, MutableList<AuditRecordInternal>>? = null
+
     private var auditApi: AuditAPI? = null
 
     @BeforeClass
     fun setMocks() {
         auditDao = mock(AuditDao::class.java)
         auditExecutor = mock(AuditExecutor::class.java)
+        @Suppress("UNCHECKED_CAST")
         auditQueueInternal = mock(BlockingQueue::class.java) as BlockingQueue<AuditRecordInternal>
-        auditApi = AuditAPI(auditDao!!, auditExecutor!!, auditQueueInternal!!)
+        auditRecordsNotCommitted =  HashMap()
+        auditApi = AuditAPI(auditDao!!, auditExecutor!!, auditQueueInternal!!, auditRecordsNotCommitted!!)
     }
 
     @AfterMethod
     fun resetMocks() {
+        auditRecordsNotCommitted!!.clear()
         reset(auditDao)
         reset(auditExecutor)
         reset(auditQueueInternal)
@@ -77,9 +82,10 @@ internal class AuditApiSaveAudit : PowerMockTestCase() {
         val auditRecord = fullAuditRecord()
         isQueueFullOnRecord(auditRecord, false)
 
-        auditApi!!.saveAudit("123", 456, TestClassFirst(), unixTimeStamp = 789L)
+        auditApi!!.saveAudit("123", 456, TestClassFirst(), unixTimeStamp = 789L, threadId = 1L)
 
-        verify(auditQueueInternal)!!.offer(auditRecord)
+        Assert.assertEquals(auditRecordsNotCommitted!!.size, 1)
+        Assert.assertEquals(auditRecordsNotCommitted!![1L], listOf(auditRecord))
     }
 
     @Test
@@ -88,9 +94,10 @@ internal class AuditApiSaveAudit : PowerMockTestCase() {
         val auditRecord = fullAuditRecord()
         isQueueFullOnRecord(auditRecord, false)
 
-        auditApi!!.saveAuditWithExceptions("123", 456, TestClassFirst(), unixTimeStamp = 789L)
+        auditApi!!.saveAuditWithExceptions("123", 456, TestClassFirst(), unixTimeStamp = 789L, threadId = 1L)
 
-        verify(auditQueueInternal)!!.offer(auditRecord)
+        Assert.assertEquals(auditRecordsNotCommitted!!.size, 1)
+        Assert.assertEquals(auditRecordsNotCommitted!![1L], listOf(auditRecord))
     }
 
     @Test
@@ -99,9 +106,10 @@ internal class AuditApiSaveAudit : PowerMockTestCase() {
         val auditRecord = auditRecordWithoutTestClassFirst()
         isQueueFullOnRecord(auditRecord, false)
 
-        auditApi!!.saveAudit("123", 456, TestClassFirst(), unixTimeStamp = 789L)
+        auditApi!!.saveAudit("123", 456, TestClassFirst(), unixTimeStamp = 789L, threadId = 1L)
 
-        verify(auditQueueInternal)!!.offer(auditRecord)
+        Assert.assertEquals(auditRecordsNotCommitted!!.size, 1)
+        Assert.assertEquals(auditRecordsNotCommitted!![1L], listOf(auditRecord))
     }
 
     @Test
@@ -109,31 +117,8 @@ internal class AuditApiSaveAudit : PowerMockTestCase() {
         auditApi!!.addPrimitiveTypes()
 
         try {
-            auditApi?.saveAuditWithExceptions("123", 456, TestClassFirst(), unixTimeStamp = 789L)
+            auditApi?.saveAuditWithExceptions("123", 456, TestClassFirst(), unixTimeStamp = 789L, threadId = 1L)
         } catch (e: UnknownAuditTypeException) {
-            return
-        }
-        Assert.fail()
-    }
-
-    @Test
-    fun saveObjects_queueFull_recordIgnoredNoExceptions() {
-        addPrimitiveTypesAndTestClassFirst()
-        val auditRecord = fullAuditRecord()
-        isQueueFullOnRecord(auditRecord, true)
-
-        auditApi!!.saveAudit("123", 456, TestClassFirst(), unixTimeStamp = 789L)
-    }
-
-    @Test
-    fun saveObjectsWithExceptions_queueFull_ExceptionThrown() {
-        addPrimitiveTypesAndTestClassFirst()
-        val auditRecord = fullAuditRecord()
-        isQueueFullOnRecord(auditRecord, true)
-
-        try {
-            auditApi!!.saveAuditWithExceptions("123", 456, TestClassFirst(), unixTimeStamp = 789L)
-        } catch (e: AuditQueueFullException) {
             return
         }
         Assert.fail()

@@ -50,6 +50,8 @@ internal class AuditApiLoadAudit : PowerMockTestCase() {
 
     private var auditQueueInternal: BlockingQueue<AuditRecordInternal>? = null
 
+    private var auditRecordsNotCommitted:  HashMap<Long, MutableList<AuditRecordInternal>>? = null
+
     private var auditApi: AuditAPI? = null
 
     @BeforeClass
@@ -57,11 +59,13 @@ internal class AuditApiLoadAudit : PowerMockTestCase() {
         auditDao = PowerMockito.mock(AuditDao::class.java)
         auditExecutor = PowerMockito.mock(AuditExecutor::class.java)
         auditQueueInternal = PowerMockito.mock(BlockingQueue::class.java) as BlockingQueue<AuditRecordInternal>
-        auditApi = AuditAPI(auditDao!!, auditExecutor!!, auditQueueInternal!!)
+        auditRecordsNotCommitted = HashMap()
+        auditApi = AuditAPI(auditDao!!, auditExecutor!!, auditQueueInternal!!, auditRecordsNotCommitted!!)
     }
 
     @AfterMethod
     fun resetMocks() {
+        auditRecordsNotCommitted!!.clear()
         Mockito.reset(auditDao)
         Mockito.reset(auditExecutor)
         Mockito.reset(auditQueueInternal)

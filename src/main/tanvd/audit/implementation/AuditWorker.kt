@@ -101,6 +101,9 @@ internal class AuditWorker {
      * Add records to reserve queue if exceptional situation occurred
      */
     fun saveBuffer(batchSize: Int) {
+        if (buffer.isEmpty()) {
+            return
+        }
         val records = buffer.take(batchSize)
         try {
             auditDao.saveRecords(records)

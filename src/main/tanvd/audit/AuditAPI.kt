@@ -22,7 +22,7 @@ import javax.sql.DataSource
  *
  *
  * Saves ID's of entities in arrays, it's order and also directly saves all primitive types in array. Also saves
- * unixtimestamp. If timestamp not set AuditApi will generate it using System.currentTimeMillis()
+ * unixtimestamp (in ms). If timestamp not set AuditApi will generate it using System.currentTimeMillis()
  *
  * Primitive types: String, Long, Int
  *
@@ -35,7 +35,6 @@ import javax.sql.DataSource
  *      CapacityOfQueue        (default 20000),
  *      NumberOfWorkers        (default 5),
  *      CapacityOfWorkerBuffer (default 5000),
- *      CapacityOfQueue        (default 20000),
  *      WaitingQueueTime       (default 10)
  *
  *      #Reserving config
@@ -68,10 +67,9 @@ class AuditAPI {
 
     internal val executor: AuditExecutor
 
-    /**
-     * If queue will be overfilled all new audit records will be lost
-     */
     internal val auditQueueInternal: BlockingQueue<AuditRecordInternal>
+
+    internal val auditRecordsNotCommitted: HashMap<Long, MutableList<AuditRecordInternal>>
 
     internal companion object Config {
         val capacityOfQueue = PropertyLoader.loadProperty("CapacityOfQueue")?.toInt() ?: 20000
@@ -82,6 +80,7 @@ class AuditAPI {
      */
     constructor(dbType: DbType, connectionUrl: String, user: String, password: String) {
         auditQueueInternal = ArrayBlockingQueue(capacityOfQueue)
+        auditRecordsNotCommitted = HashMap<Long, MutableList<AuditRecordInternal>>()
 
         AuditDao.setConfig(dbType, connectionUrl, user, password)
         auditDao = AuditDao.getDao()
@@ -96,6 +95,8 @@ class AuditAPI {
      */
     constructor(dbType: DbType, dataSource: DataSource) {
         auditQueueInternal = ArrayBlockingQueue(capacityOfQueue)
+        auditRecordsNotCommitted = HashMap<Long, MutableList<AuditRecordInternal>>()
+
 
         AuditDao.setConfig(dbType, dataSource)
         auditDao = AuditDao.getDao()
@@ -109,8 +110,11 @@ class AuditAPI {
     /**
      * Constructor for test needs
      */
-    internal constructor(auditDao: AuditDao, executor: AuditExecutor, auditQueueInternal: BlockingQueue<AuditRecordInternal>) {
-        this.auditQueueInternal = auditQueueInternal;
+    internal constructor(auditDao: AuditDao, executor: AuditExecutor,
+                         auditQueueInternal: BlockingQueue<AuditRecordInternal>,
+                         auditRecordsNotCommitted: HashMap<Long, MutableList<AuditRecordInternal>>) {
+        this.auditRecordsNotCommitted = auditRecordsNotCommitted
+        this.auditQueueInternal = auditQueueInternal
         this.auditDao = auditDao
         this.executor = executor
     }
@@ -125,7 +129,7 @@ class AuditAPI {
     }
 
     /**
-     * Add types of audit entities to JetAudit type system
+     * Add type of audit entity to JetAudit type system
      *
      * In case of AuditType duplicate
      * @throws AddExistingAuditTypeException
@@ -142,12 +146,12 @@ class AuditAPI {
     }
 
     /**
-     * Save audit entry resolving dependencies.
+     * Add audit entry (resolving dependencies) to group of audit records associated with Thread.
      *
      * This method not throwing any exceptions.
      * Unknown types will be ignored and reported with log error.
      */
-    fun saveAudit(vararg objects: Any, unixTimeStamp: Long = System.currentTimeMillis()) {
+    fun saveAudit(vararg objects: Any, threadId: Long, unixTimeStamp: Long = System.currentTimeMillis()) {
         val recordObjects = ArrayList<Pair<AuditType<Any>, String>>()
         for (o in objects) {
             try {
@@ -157,28 +161,70 @@ class AuditAPI {
                 logger.error("AuditAPI met unknown AuditType. Object will be ignored")
             }
         }
-
-        val isFull = !auditQueueInternal.offer(AuditRecordInternal(recordObjects, unixTimeStamp))
-        if (isFull) {
-            logger.error("AuditQueue is full in AuditAPI. Some audit records may be lost.")
+        if (auditRecordsNotCommitted[threadId] == null) {
+            auditRecordsNotCommitted[threadId] = ArrayList<AuditRecordInternal>()
         }
+
+        auditRecordsNotCommitted[threadId]!!.add(AuditRecordInternal(recordObjects, unixTimeStamp))
     }
 
     /**
-     * Save audit entry resolving dependencies.
+     * Add audit entry (resolving dependencies) to group of audit records associated with Thread.
      *
      * This method throws exceptions related to AuditApi. Exceptions of Db are ignored anyway.
      *
      * @throws UnknownAuditTypeException
+     */
+    fun saveAuditWithExceptions(vararg objects: Any, threadId: Long, unixTimeStamp: Long = System.currentTimeMillis()) {
+        val recordObjects = objects.map {o -> AuditType.resolveType(o::class).let { it to it.serialize(o) }}
+        if (auditRecordsNotCommitted[threadId] == null) {
+            auditRecordsNotCommitted[threadId] = ArrayList<AuditRecordInternal>()
+        }
+
+        auditRecordsNotCommitted[threadId]!!.add(AuditRecordInternal(recordObjects, unixTimeStamp))
+    }
+
+    /**
+     * Commit all audit records associated with Thread.
+     *
+     * This method not throwing any exceptions.
+     */
+    fun commitAudit(threadId: Long) {
+        val listRecords = auditRecordsNotCommitted[threadId]
+        if (listRecords != null) {
+            if (listRecords.size > (capacityOfQueue - auditQueueInternal.size)) {
+                logger.error("Audit queue full. Records was not committed.")
+            } else {
+                auditQueueInternal += listRecords
+                auditRecordsNotCommitted.remove(threadId)
+            }
+        }
+    }
+
+    /**
+     * Commit all audit records associated with Thread.
+     *
+     * This method throws exceptions related to AuditApi. Exceptions of Db are ignored anyway.
+     *
      * @throws AuditQueueFullException
      */
-    fun saveAuditWithExceptions(vararg objects: Any, unixTimeStamp: Long = System.currentTimeMillis()) {
-        val recordObjects = objects.map { o -> AuditType.resolveType(o::class).let { it to it.serialize(o) } }
-
-        val isFull = !auditQueueInternal.offer(AuditRecordInternal(recordObjects, unixTimeStamp))
-        if (isFull) {
-            throw AuditQueueFullException("Audit queue full. Audit record was ignored.")
+    fun commitAuditWithExceptions(threadId: Long) {
+        val listRecords = auditRecordsNotCommitted[threadId]
+        if (listRecords != null) {
+            if (listRecords.size > (capacityOfQueue - auditQueueInternal.size)) {
+                throw AuditQueueFullException("Audit queue full. Records was not committed.")
+            } else {
+                auditQueueInternal += listRecords
+                auditRecordsNotCommitted.remove(threadId)
+            }
         }
+    }
+
+    /**
+     * Deletes group of audits associated with Thread.
+     */
+    fun rollbackAudit(threadId: Long) {
+        auditRecordsNotCommitted.remove(threadId)
     }
 
     /**
@@ -216,6 +262,13 @@ class AuditAPI {
     }
 
     /**
+     * Stop audit saving
+     */
+    fun stopAudit(timeToWait: Long): Boolean {
+        return executor.stopWorkers(timeToWait)
+    }
+
+    /**
      * Deserialize AuditRecordsInternal to AuditRecords using batching deserialization.
      */
     private fun deserializeAuditRecords(auditRecords: List<AuditRecordInternal>): List<AuditRecord> {
@@ -233,12 +286,4 @@ class AuditAPI {
 
         return resultList
     }
-
-    /**
-     * Stop audit saving
-     */
-    fun stopAudit(timeToWait: Long): Boolean {
-        return executor.stopWorkers(timeToWait)
-    }
-
 }

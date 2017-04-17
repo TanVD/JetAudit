@@ -23,7 +23,7 @@ interface AuditSerializer<T> {
 data class AuditType<T>(val klass: KClass<*>, val code: String, val serializer: AuditSerializer<T>) :
         AuditSerializer<T> by serializer {
 
-    internal companion object TypesResolution {
+    companion object TypesResolution {
         private val auditTypes: MutableSet<AuditType<Any>> = HashSet()
         private val auditTypesByClass: MutableMap<KClass<*>, AuditType<Any>> = HashMap()
         private val auditTypesByCode: MutableMap<String, AuditType<Any>> = HashMap()
@@ -57,17 +57,17 @@ data class AuditType<T>(val klass: KClass<*>, val code: String, val serializer: 
             }
         }
 
-        fun addType(type: AuditType<Any>) {
+        internal fun addType(type: AuditType<Any>) {
             auditTypes.add(type)
             auditTypesByClass.put(type.klass, type)
             auditTypesByCode.put(type.code, type)
         }
 
-        fun getTypes(): Set<AuditType<Any>> {
+        internal fun getTypes(): Set<AuditType<Any>> {
             return auditTypes
         }
 
-        fun clearTypes() {
+        internal fun clearTypes() {
             auditTypes.clear()
             auditTypesByClass.clear()
             auditTypesByCode.clear()
