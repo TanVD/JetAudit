@@ -55,7 +55,6 @@ internal class AuditWorker {
 
     var isEnabled = true
 
-    //TODO Check if reconnection too slow
     fun start() {
         while (true) {
             //while performing cycle worker can not report it's state to executor
@@ -112,7 +111,7 @@ internal class AuditWorker {
         }
         for (i in 1..batchSize) {
             if (buffer.isEmpty()) {
-                break;
+                break
             }
             buffer.removeAt(0)
         }

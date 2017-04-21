@@ -17,7 +17,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
 
     private val logger = LoggerFactory.getLogger(JdbcClickhouseConnection::class.java)
 
-    private val columnAlreadyCreatedExceptionCode = 44
+    private val columnAlreadyCreatedExceptionCode = 1002
 
     /**
      * Creates table with specified header (uses ifNotExists modifier by default)
@@ -66,7 +66,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             preparedStatement = connection.prepareStatement(sqlAlter)
             preparedStatement.executeUpdate()
         } catch (e: Throwable) {
-            if (e is ClickHouseUnknownException && e.errorCode == 1002) {
+            if (e is ClickHouseUnknownException && e.errorCode == columnAlreadyCreatedExceptionCode) {
                 logger.trace("Trying to create existing column. It will be ignored.", e)
             } else {
                 logger.error("Error inside Clickhouse occurred: ", e)

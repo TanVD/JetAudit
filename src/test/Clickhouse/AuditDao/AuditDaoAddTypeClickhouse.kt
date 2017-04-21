@@ -15,6 +15,7 @@ import tanvd.audit.model.external.equal
 import tanvd.audit.model.internal.AuditRecordInternal
 import tanvd.audit.serializers.IntSerializer
 import tanvd.audit.serializers.StringSerializer
+import utils.TypeUtils
 
 internal class AuditDaoAddTypeClickhouse {
 
@@ -40,23 +41,6 @@ internal class AuditDaoAddTypeClickhouse {
         }
     }
 
-    class TestClassSecond {
-        companion object serializer : AuditSerializer<TestClassSecond> {
-            override fun display(value: TestClassSecond): String {
-                return "TestClassSecondDisplay"
-            }
-
-            override fun deserialize(serializedString: String): TestClassSecond {
-                throw UnsupportedOperationException("not implemented")
-            }
-
-            override fun serialize(value: TestClassSecond): String {
-                return "TestClassSecondId"
-            }
-
-        }
-    }
-
     @BeforeMethod
     @Suppress("UNCHECKED_CAST")
     fun createAll() {
@@ -74,7 +58,7 @@ internal class AuditDaoAddTypeClickhouse {
     @AfterMethod
     fun clearAll() {
         auditDao!!.dropTable(AuditDaoClickhouseImpl.auditTable)
-        AuditType.clearTypes()
+        TypeUtils.clearTypes()
     }
 
     @Test

@@ -24,6 +24,7 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
         val dateColumn = PropertyLoader.loadProperty("DateColumn") ?: "Audit_Date"
         val descriptionColumn = PropertyLoader.loadProperty("DescriptionColumn") ?: "Description"
         val unixTimeStampColumn = PropertyLoader.loadProperty("UnixTimeStampColumn") ?: "Unix_TimeStamp"
+        val auditTypes = ArrayList<AuditType<Any>>()
 
         /** Default column with date for MergeTree Engine. Should not be inserted or selected.*/
         val defaultColumns = arrayOf(DbColumnHeader(dateColumn, DbColumnType.DbDate))
@@ -37,6 +38,10 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
 
         fun getPredefinedAuditTableColumn(name: String): DbColumnHeader {
             return arrayOf(*defaultColumns, *mandatoryColumns).find { it.name == name }!!
+        }
+
+        fun clearTypes() {
+            auditTypes.clear()
         }
     }
 
@@ -53,7 +58,7 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
      */
     private fun initTables() {
         val columnsHeader = arrayListOf(*defaultColumns, *mandatoryColumns)
-        AuditType.getTypes().mapTo(columnsHeader) { DbColumnHeader(it.code, DbColumnType.DbArrayString) }
+        auditTypes.mapTo(columnsHeader) { DbColumnHeader(it.code, DbColumnType.DbArrayString) }
         clickhouseConnection.createTable(auditTable, DbTableHeader(columnsHeader), dateColumn, dateColumn)
     }
 
@@ -74,7 +79,7 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
      */
     override fun saveRecords(auditRecordInternals: List<AuditRecordInternal>) {
         val columnsHeader = arrayListOf(*mandatoryColumns)
-        AuditType.getTypes().mapTo(columnsHeader) { DbColumnHeader(it.code, DbColumnType.DbArrayString) }
+        auditTypes.mapTo(columnsHeader) { DbColumnHeader(it.code, DbColumnType.DbArrayString) }
 
         val rows = auditRecordInternals.map { ClickhouseRecordSerializer.serialize(it) }
 
@@ -87,6 +92,8 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
      * @throws BasicDbException
      */
     override fun <T> addTypeInDbModel(type: AuditType<T>) {
+        @Suppress("UNCHECKED_CAST")
+        auditTypes.add(type as AuditType<Any>)
         clickhouseConnection.addColumn(auditTable, DbColumnHeader(type.code, DbColumnType.DbArrayString))
     }
 
@@ -97,7 +104,7 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
      */
     override fun loadRecords(expression: QueryExpression, parameters: QueryParameters): List<AuditRecordInternal> {
         val selectColumns = arrayListOf(*mandatoryColumns)
-        AuditType.getTypes().mapTo(selectColumns) { DbColumnHeader(it.code, DbColumnType.DbArrayString) }
+        auditTypes.mapTo(selectColumns) { DbColumnHeader(it.code, DbColumnType.DbArrayString) }
 
         if (parameters.orderBy.isOrderedByTimeStamp) {
             parameters.orderBy.codes.add(0, Pair(unixTimeStampColumn, parameters.orderBy.timeStampOrder))

@@ -15,6 +15,7 @@ import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.*
 import tanvd.audit.model.internal.AuditRecordInternal
+import utils.TypeUtils
 import java.util.concurrent.BlockingQueue
 
 @PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*")
@@ -50,7 +51,7 @@ internal class AuditApiLoadAudit : PowerMockTestCase() {
 
     private var auditQueueInternal: BlockingQueue<AuditRecordInternal>? = null
 
-    private var auditRecordsNotCommitted:  HashMap<Long, MutableList<AuditRecordInternal>>? = null
+    private var auditRecordsNotCommitted:  ThreadLocal<ArrayList<AuditRecordInternal>>? = null
 
     private var auditApi: AuditAPI? = null
 
@@ -59,17 +60,21 @@ internal class AuditApiLoadAudit : PowerMockTestCase() {
         auditDao = PowerMockito.mock(AuditDao::class.java)
         auditExecutor = PowerMockito.mock(AuditExecutor::class.java)
         auditQueueInternal = PowerMockito.mock(BlockingQueue::class.java) as BlockingQueue<AuditRecordInternal>
-        auditRecordsNotCommitted = HashMap()
+        auditRecordsNotCommitted = object : ThreadLocal<ArrayList<AuditRecordInternal>>(){
+            override fun initialValue(): ArrayList<AuditRecordInternal>? {
+                return ArrayList()
+            }
+        }
         auditApi = AuditAPI(auditDao!!, auditExecutor!!, auditQueueInternal!!, auditRecordsNotCommitted!!)
     }
 
     @AfterMethod
     fun resetMocks() {
-        auditRecordsNotCommitted!!.clear()
+        auditRecordsNotCommitted!!.remove()
         Mockito.reset(auditDao)
         Mockito.reset(auditExecutor)
         Mockito.reset(auditQueueInternal)
-        AuditType.clearTypes()
+        TypeUtils.clearTypes()
     }
 
     @Test

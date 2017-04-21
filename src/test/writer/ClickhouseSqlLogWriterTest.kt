@@ -15,6 +15,7 @@ import tanvd.audit.model.internal.AuditRecordInternal
 import tanvd.audit.serializers.IntSerializer
 import tanvd.audit.serializers.LongSerializer
 import tanvd.audit.serializers.StringSerializer
+import utils.TypeUtils
 
 @PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*")
 internal class ClickhouseSqlLogWriterTest : PowerMockTestCase() {
@@ -28,7 +29,7 @@ internal class ClickhouseSqlLogWriterTest : PowerMockTestCase() {
 
     @AfterMethod
     fun clean() {
-        AuditType.clearTypes()
+        TypeUtils.clearTypes()
     }
 
     @Test

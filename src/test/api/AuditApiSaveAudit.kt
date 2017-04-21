@@ -19,6 +19,7 @@ import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.AuditSerializer
 import tanvd.audit.model.external.AuditType
 import tanvd.audit.model.internal.AuditRecordInternal
+import utils.TypeUtils
 import java.util.concurrent.BlockingQueue
 
 
@@ -53,7 +54,7 @@ internal class AuditApiSaveAudit : PowerMockTestCase() {
 
     private var auditQueueInternal: BlockingQueue<AuditRecordInternal>? = null
 
-    private var auditRecordsNotCommitted:  HashMap<Long, MutableList<AuditRecordInternal>>? = null
+    private var auditRecordsNotCommitted:  ThreadLocal<ArrayList<AuditRecordInternal>>? = null
 
     private var auditApi: AuditAPI? = null
 
@@ -63,17 +64,21 @@ internal class AuditApiSaveAudit : PowerMockTestCase() {
         auditExecutor = mock(AuditExecutor::class.java)
         @Suppress("UNCHECKED_CAST")
         auditQueueInternal = mock(BlockingQueue::class.java) as BlockingQueue<AuditRecordInternal>
-        auditRecordsNotCommitted =  HashMap()
+        auditRecordsNotCommitted = object : ThreadLocal<ArrayList<AuditRecordInternal>>(){
+            override fun initialValue(): ArrayList<AuditRecordInternal>? {
+                return ArrayList()
+            }
+        }
         auditApi = AuditAPI(auditDao!!, auditExecutor!!, auditQueueInternal!!, auditRecordsNotCommitted!!)
     }
 
     @AfterMethod
     fun resetMocks() {
-        auditRecordsNotCommitted!!.clear()
+        auditRecordsNotCommitted!!.remove()
         reset(auditDao)
         reset(auditExecutor)
         reset(auditQueueInternal)
-        AuditType.clearTypes()
+        TypeUtils.clearTypes()
     }
 
     @Test
@@ -82,10 +87,10 @@ internal class AuditApiSaveAudit : PowerMockTestCase() {
         val auditRecord = fullAuditRecord()
         isQueueFullOnRecord(auditRecord, false)
 
-        auditApi!!.saveAudit("123", 456, TestClassFirst(), unixTimeStamp = 789L, threadId = 1L)
+        auditApi!!.saveAudit("123", 456, TestClassFirst(), unixTimeStamp = 789L)
 
-        Assert.assertEquals(auditRecordsNotCommitted!!.size, 1)
-        Assert.assertEquals(auditRecordsNotCommitted!![1L], listOf(auditRecord))
+        Assert.assertEquals(auditRecordsNotCommitted?.get()?.size, 1)
+        Assert.assertEquals(auditRecordsNotCommitted?.get(), listOf(auditRecord))
     }
 
     @Test
@@ -94,10 +99,10 @@ internal class AuditApiSaveAudit : PowerMockTestCase() {
         val auditRecord = fullAuditRecord()
         isQueueFullOnRecord(auditRecord, false)
 
-        auditApi!!.saveAuditWithExceptions("123", 456, TestClassFirst(), unixTimeStamp = 789L, threadId = 1L)
+        auditApi!!.saveAuditWithExceptions("123", 456, TestClassFirst(), unixTimeStamp = 789L)
 
-        Assert.assertEquals(auditRecordsNotCommitted!!.size, 1)
-        Assert.assertEquals(auditRecordsNotCommitted!![1L], listOf(auditRecord))
+        Assert.assertEquals(auditRecordsNotCommitted?.get()?.size, 1)
+        Assert.assertEquals(auditRecordsNotCommitted?.get(), listOf(auditRecord))
     }
 
     @Test
@@ -106,10 +111,10 @@ internal class AuditApiSaveAudit : PowerMockTestCase() {
         val auditRecord = auditRecordWithoutTestClassFirst()
         isQueueFullOnRecord(auditRecord, false)
 
-        auditApi!!.saveAudit("123", 456, TestClassFirst(), unixTimeStamp = 789L, threadId = 1L)
+        auditApi!!.saveAudit("123", 456, TestClassFirst(), unixTimeStamp = 789L)
 
-        Assert.assertEquals(auditRecordsNotCommitted!!.size, 1)
-        Assert.assertEquals(auditRecordsNotCommitted!![1L], listOf(auditRecord))
+        Assert.assertEquals(auditRecordsNotCommitted?.get()?.size, 1)
+        Assert.assertEquals(auditRecordsNotCommitted?.get(), listOf(auditRecord))
     }
 
     @Test
@@ -117,7 +122,7 @@ internal class AuditApiSaveAudit : PowerMockTestCase() {
         auditApi!!.addPrimitiveTypes()
 
         try {
-            auditApi?.saveAuditWithExceptions("123", 456, TestClassFirst(), unixTimeStamp = 789L, threadId = 1L)
+            auditApi?.saveAuditWithExceptions("123", 456, TestClassFirst(), unixTimeStamp = 789L)
         } catch (e: UnknownAuditTypeException) {
             return
         }

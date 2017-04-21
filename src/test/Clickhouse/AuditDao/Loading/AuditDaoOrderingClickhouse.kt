@@ -14,6 +14,7 @@ import tanvd.audit.model.external.equal
 import tanvd.audit.model.internal.AuditRecordInternal
 import tanvd.audit.serializers.IntSerializer
 import tanvd.audit.serializers.StringSerializer
+import utils.TypeUtils
 
 internal class AuditDaoOrderingClickhouse {
 
@@ -39,7 +40,7 @@ internal class AuditDaoOrderingClickhouse {
     @AfterMethod
     fun clearAll() {
         auditDao!!.dropTable(AuditDaoClickhouseImpl.auditTable)
-        AuditType.clearTypes()
+        TypeUtils.clearTypes()
     }
 
     @Test

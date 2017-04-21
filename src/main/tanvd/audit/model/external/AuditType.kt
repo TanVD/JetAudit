@@ -6,15 +6,21 @@ import kotlin.collections.HashMap
 import kotlin.reflect.KClass
 
 interface AuditSerializer<T> {
-    fun deserializeBatch(serializedStrings: List<String>): Map<String, T> {
-        val deserializedMap: MutableMap<String, T> = HashMap()
+    /**
+     * If it can not find entity null instead will be returned
+     */
+    fun deserializeBatch(serializedStrings: List<String>): Map<String, T?> {
+        val deserializedMap: MutableMap<String, T?> = HashMap()
         for (string in serializedStrings) {
             deserializedMap.put(string, deserialize(string))
         }
         return deserializedMap
     }
 
-    fun deserialize(serializedString: String): T
+    /**
+     * If it can not find entity null instead will be returned
+     */
+    fun deserialize(serializedString: String): T?
     fun serialize(value: T): String
 
     fun display(value: T): String

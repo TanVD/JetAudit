@@ -18,6 +18,7 @@ import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.AuditSerializer
 import tanvd.audit.model.external.AuditType
 import tanvd.audit.model.internal.AuditRecordInternal
+import utils.TypeUtils
 import java.util.concurrent.BlockingQueue
 
 
@@ -49,7 +50,7 @@ internal class AuditApiAddType : PowerMockTestCase() {
 
     private var auditQueueInternal: BlockingQueue<AuditRecordInternal>? = null
 
-    private var auditRecordsNotCommitted:  HashMap<Long, MutableList<AuditRecordInternal>>? = null
+    private var auditRecordsNotCommitted:  ThreadLocal<ArrayList<AuditRecordInternal>>? = null
 
     private var auditApi: AuditAPI? = null
 
@@ -58,17 +59,21 @@ internal class AuditApiAddType : PowerMockTestCase() {
         auditDao = mock(AuditDao::class.java)
         auditExecutor = mock(AuditExecutor::class.java)
         auditQueueInternal = mock(BlockingQueue::class.java) as BlockingQueue<AuditRecordInternal>
-        auditRecordsNotCommitted = HashMap()
+        auditRecordsNotCommitted = object : ThreadLocal<ArrayList<AuditRecordInternal>>(){
+            override fun initialValue(): ArrayList<AuditRecordInternal>? {
+                return ArrayList()
+            }
+        }
         auditApi = AuditAPI(auditDao!!, auditExecutor!!, auditQueueInternal!!, auditRecordsNotCommitted!!)
     }
 
     @AfterMethod
     fun resetMocks() {
-        auditRecordsNotCommitted!!.clear()
+        auditRecordsNotCommitted!!.remove()
         reset(auditDao)
         reset(auditExecutor)
         reset(auditQueueInternal)
-        AuditType.clearTypes()
+        TypeUtils.clearTypes()
     }
 
 
