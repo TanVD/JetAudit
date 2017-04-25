@@ -2,7 +2,7 @@ package serializers
 
 import org.testng.Assert
 import org.testng.annotations.Test
-import tanvd.audit.serializers.StringSerializer
+import tanvd.audit.model.external.serializers.StringSerializer
 
 internal class StringSerializerTest {
 

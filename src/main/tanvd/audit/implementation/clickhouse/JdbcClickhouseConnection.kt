@@ -2,11 +2,13 @@ package tanvd.audit.implementation.clickhouse
 
 import org.slf4j.LoggerFactory
 import ru.yandex.clickhouse.except.ClickHouseUnknownException
-import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl.Scheme.unixTimeStampColumn
 import tanvd.audit.implementation.clickhouse.model.*
 import tanvd.audit.implementation.exceptions.BasicDbException
-import tanvd.audit.model.external.*
-import tanvd.audit.model.external.QueryParameters.OrderByParameters.Order
+import tanvd.audit.model.external.presenters.IdPresenter
+import tanvd.audit.model.external.presenters.VersionPresenter
+import tanvd.audit.model.external.queries.*
+import tanvd.audit.model.external.queries.QueryParameters.OrderByParameters.Order
+import tanvd.audit.model.external.types.InformationType
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
@@ -25,17 +27,19 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
      *
      * @throws BasicDbException
      */
-    fun createTable(tableName: String, tableHeader: DbTableHeader, primaryKey: String, dateKey: String,
+    fun createTable(tableName: String, tableHeader: DbTableHeader,
+                    primaryKey: List<String>, dateKey: String, versionKey: String,
                     setDefaultDate: Boolean = true, ifNotExists: Boolean = true) {
         val sqlCreate = StringBuilder()
         sqlCreate.append("CREATE TABLE ${if (ifNotExists) "IF NOT EXISTS " else ""} ")
         sqlCreate.append(tableHeader.columnsHeader.joinToString(prefix = "$tableName (", postfix = ") ") {
-            if (it.name == dateKey && setDefaultDate)
+            if (it.name == dateKey && setDefaultDate) {
                 "${it.name} ${it.type} DEFAULT today()"
-            else
+            } else {
                 "${it.name} ${it.type}"
+            }
         })
-        sqlCreate.append("ENGINE = MergeTree($dateKey, ($primaryKey), 8192);")
+        sqlCreate.append("ENGINE = ReplacingMergeTree($dateKey, (${primaryKey.joinToString()}), 8192, $versionKey);")
 
         var connection: Connection? = null
         var preparedStatement: PreparedStatement? = null
@@ -193,8 +197,20 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             connection?.close()
         }
 
+        val distinctRows = rows.groupBy { (columns) ->
+            columns.find { (name) ->
+                name == InformationType.resolveType(IdPresenter).code
+            }!!.elements[0].toLong()
+        }.
+                mapValues {
+                    it.value.sortedByDescending { (columns) ->
+                        columns.find { (name) -> name == InformationType.resolveType(VersionPresenter).code }!!.
+                                elements[0].toLong()
+                    }.first()
+                }.values.toList()
 
-        return rows
+
+        return distinctRows
     }
 
     /**
@@ -242,10 +258,17 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             is QueryTypeLeaf -> {
                 expression.toStringSQL()
             }
-            is QueryTimeStampLeaf -> {
+            is QueryInformationStringLeaf -> {
+                expression.toStringSQL()
+            }
+            is QueryInformationLongLeaf -> {
+                expression.toStringSQL()
+            }
+            is QueryInformationBooleanLeaf -> {
                 expression.toStringSQL()
             }
             else -> {
+                logger.error("Unknown Query leaf.")
                 ""
             }
         }
@@ -260,6 +283,10 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             }
             is QueryTypeLeaf -> {
                 preparedStatement?.setString(dbIndexVar, expression.id)
+                dbIndexVar++
+            }
+            is QueryInformationStringLeaf -> {
+                preparedStatement?.setString(dbIndexVar, expression.value)
                 dbIndexVar++
             }
         }
@@ -291,7 +318,6 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
     private fun addOrderBy(orderBy: QueryParameters.OrderByParameters, sqlExpression: StringBuilder) {
         if (orderBy.isOrdered) {
             sqlExpression.append("ORDER BY ${orderBy.codes.joinToString { "${it.first} ${it.second.toStringSQL()}" }} ")
-
         }
     }
 
@@ -348,6 +374,15 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             DbColumnType.DbLong -> {
                 this.setLong(dbIndex, column.elements[0].toLong())
             }
+            DbColumnType.DbULong -> {
+                this.setLong(dbIndex, column.elements[0].toLong())
+            }
+            DbColumnType.DbBoolean -> {
+                this.setInt(dbIndex, if (column.elements[0].toBoolean()) 1 else 0)
+            }
+            DbColumnType.DbString -> {
+                this.setString(dbIndex, column.elements[0])
+            }
         }
     }
 
@@ -366,19 +401,56 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
                 val result = this.getLong(column.name)
                 return DbColumn(column.name, listOf(result.toString()), DbColumnType.DbLong)
             }
+            DbColumnType.DbULong -> {
+                val result = this.getLong(column.name)
+                return DbColumn(column.name, listOf(result.toString()), DbColumnType.DbLong)
+            }
+            DbColumnType.DbBoolean -> {
+                val result = this.getInt(column.name)
+                return DbColumn(column.name, listOf(if (result == 1) true.toString() else false.toString()), DbColumnType.DbBoolean)
+            }
+            DbColumnType.DbString -> {
+                val result = this.getString(column.name)
+                return DbColumn(column.name, listOf(result), DbColumnType.DbString)
+            }
         }
     }
 
-    private fun QueryTimeStampLeaf.toStringSQL(): String {
+    private fun QueryInformationLongLeaf.toStringSQL(): String {
         return when (condition) {
-            QueryTimeStampCondition.less -> {
-                "$unixTimeStampColumn < $timeStamp"
+            QueryLongCondition.less -> {
+                "${this.type.code} < $value"
             }
-            QueryTimeStampCondition.more -> {
-                "$unixTimeStampColumn > $timeStamp"
+            QueryLongCondition.more -> {
+                "${this.type.code} > $value"
             }
-            QueryTimeStampCondition.equal -> {
-                "$unixTimeStampColumn = $timeStamp"
+            QueryLongCondition.equal -> {
+                "${this.type.code} = $value"
+            }
+        }
+    }
+
+    private fun QueryInformationBooleanLeaf.toStringSQL(): String {
+        return when (condition) {
+            QueryBooleanCondition.`is` -> {
+                "${this.type.code} == ${if (this.value) "1" else "0"}"
+            }
+            QueryBooleanCondition.isNot -> {
+                "${this.type.code} != ${if (this.value) "1" else "0"}"
+            }
+        }
+    }
+
+    private fun QueryInformationStringLeaf.toStringSQL(): String {
+        return when (condition) {
+            QueryStringCondition.equal -> {
+                "${type.code} == ?"
+            }
+            QueryStringCondition.like -> {
+                "like(${type.code}, ?)"
+            }
+            QueryStringCondition.regexp -> {
+                "match(${type.code}, ?)"
             }
         }
     }

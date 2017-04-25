@@ -2,7 +2,7 @@ package serializers
 
 import org.testng.Assert
 import org.testng.annotations.Test
-import tanvd.audit.serializers.LongSerializer
+import tanvd.audit.model.external.serializers.LongSerializer
 
 internal class LongSerializerTest {
     @Test

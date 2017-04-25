@@ -1,14 +1,18 @@
 package tanvd.audit.implementation.dao
 
 import tanvd.audit.exceptions.UninitializedException
+import tanvd.audit.exceptions.UnknownAuditTypeException
 import tanvd.audit.implementation.exceptions.BasicDbException
-import tanvd.audit.model.external.AuditType
-import tanvd.audit.model.external.QueryExpression
-import tanvd.audit.model.external.QueryParameters
+import tanvd.audit.model.external.queries.QueryExpression
+import tanvd.audit.model.external.queries.QueryParameters
+import tanvd.audit.model.external.types.AuditType
+import tanvd.audit.model.external.types.InformationType
 import tanvd.audit.model.internal.AuditRecordInternal
 import javax.sql.DataSource
 
+
 internal interface AuditDao {
+
     /**
      * Saves specified record in Db or throws exception.
      *
@@ -29,9 +33,11 @@ internal interface AuditDao {
     /**
      * Performs operations on Db scheme needed to support new type.
      *
-     * @throws BasicDbTypeException
+     * @throws BasicDbException
      */
     fun <T> addTypeInDbModel(type: AuditType<T>)
+
+    fun addInformationInDbModel(information: InformationType<Any>)
 
     /**
      * Load records satisfying expression limited by specified parameters.

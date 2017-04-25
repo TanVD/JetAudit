@@ -9,11 +9,14 @@ import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.writer.ClickhouseSqlFileWriter
-import tanvd.audit.model.external.AuditType
+import tanvd.audit.model.external.presenters.IdPresenter
+import tanvd.audit.model.external.presenters.TimeStampPresenter
+import tanvd.audit.model.external.presenters.VersionPresenter
+import tanvd.audit.model.external.records.InformationObject
+import tanvd.audit.model.external.types.AuditType
+import tanvd.audit.model.external.types.InformationType
 import tanvd.audit.model.internal.AuditRecordInternal
-import tanvd.audit.serializers.IntSerializer
-import tanvd.audit.serializers.LongSerializer
-import tanvd.audit.serializers.StringSerializer
+import utils.InformationUtils
 import utils.TypeUtils
 import java.io.PrintWriter
 
@@ -22,9 +25,8 @@ internal class ClickhouseSqlFileWriterTest : PowerMockTestCase() {
 
     @BeforeMethod
     fun init() {
-        AuditType.addType(AuditType(String::class, "Type_String", StringSerializer) as AuditType<Any>)
-        AuditType.addType(AuditType(Int::class, "Type_Int", IntSerializer) as AuditType<Any>)
-        AuditType.addType(AuditType(Long::class, "Type_Long", LongSerializer) as AuditType<Any>)
+        TypeUtils.addAuditTypesPrimitive()
+        TypeUtils.addInformationTypesPrimitive()
     }
 
     @AfterMethod
@@ -34,7 +36,10 @@ internal class ClickhouseSqlFileWriterTest : PowerMockTestCase() {
 
     @Test
     fun write_gotAuditRecordInternal_AppropriateSqlInsertWritten() {
-        val auditRecord = AuditRecordInternal(123, 456L, unixTimeStamp = 1)
+        val id = 0L
+        val version = 1L
+        val timeStamp = 2L
+        val auditRecord = AuditRecordInternal(123, 456L, information = getSampleInformation(id, timeStamp, version))
         val fileWriter = PowerMockito.mock(PrintWriter::class.java)
         val reserveWriter = ClickhouseSqlFileWriter(fileWriter)
 
@@ -45,9 +50,10 @@ internal class ClickhouseSqlFileWriterTest : PowerMockTestCase() {
 
         Mockito.verify(fileWriter).println("INSERT INTO ${AuditDaoClickhouseImpl.auditTable} (" +
                 "${typeInt.code}, ${typeLong.code}, ${AuditDaoClickhouseImpl.descriptionColumn}," +
-                " ${AuditDaoClickhouseImpl.unixTimeStampColumn}) VALUES " +
+                " ${InformationType.resolveType(IdPresenter).code}, ${InformationType.resolveType(TimeStampPresenter).code}," +
+                " ${InformationType.resolveType(VersionPresenter).code}) VALUES " +
                 "(['${typeInt.serialize(123)}'], ['${typeLong.serialize(456)}'], ['${typeInt.code}', '${typeLong.code}']," +
-                " 1);")
+                " $id, $timeStamp, $version);")
     }
 
     @Test
@@ -58,5 +64,9 @@ internal class ClickhouseSqlFileWriterTest : PowerMockTestCase() {
         reserveWriter.flush()
 
         Mockito.verify(fileWriter).flush()
+    }
+
+    private fun getSampleInformation(id: Long, timeStamp: Long, version: Long): Set<InformationObject> {
+        return InformationUtils.getPrimitiveInformation(id, timeStamp, version)
     }
 }

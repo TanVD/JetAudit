@@ -3,6 +3,7 @@ package tanvd.converter
 import ru.yandex.clickhouse.ClickHouseUtil
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.clickhouse.model.DbRow
+import tanvd.audit.model.external.presenters.TimeStampPresenter
 import java.io.PrintWriter
 
 internal class ClickhouseSqlRowWriter {
@@ -18,7 +19,7 @@ internal class ClickhouseSqlRowWriter {
 
     fun writeHeader() {
         val sqlInsert = "INSERT INTO example.${AuditDaoClickhouseImpl.auditTable} (${AuditDaoClickhouseImpl.descriptionColumn}," +
-                " ${AuditDaoClickhouseImpl.unixTimeStampColumn}, ${types.joinToString()}) VALUES"
+                " ${TimeStampPresenter.code}, ${types.joinToString()}) VALUES"
         writer.println(sqlInsert)
 
     }
@@ -36,7 +37,7 @@ internal class ClickhouseSqlRowWriter {
     fun close() {
         System.out.println("create table example.Audit (DateColumn Date default today()) ENGINE = MergeTree(DateColumn, (DateColumn), 8192);")
         System.out.println("ALTER TABLE example.${AuditDaoClickhouseImpl.auditTable} ADD COLUMN ${AuditDaoClickhouseImpl.descriptionColumn} Array(String);")
-        System.out.println("ALTER TABLE example.${AuditDaoClickhouseImpl.auditTable} ADD COLUMN ${AuditDaoClickhouseImpl.unixTimeStampColumn} UInt64;")
+        System.out.println("ALTER TABLE example.${AuditDaoClickhouseImpl.auditTable} ADD COLUMN ${TimeStampPresenter.code} UInt64;")
         for (type in types) {
             System.out.println("ALTER TABLE example.${AuditDaoClickhouseImpl.auditTable} ADD COLUMN $type Array(String);")
         }
@@ -47,7 +48,7 @@ internal class ClickhouseSqlRowWriter {
         val result = StringBuilder()
         result.append(this.columns.find { it.name == AuditDaoClickhouseImpl.descriptionColumn }!!.elements.joinToString(prefix = "[", postfix = "]") { "\'$it\'" })
         result.append(", ")
-        result.append(this.columns.find { it.name == AuditDaoClickhouseImpl.unixTimeStampColumn }!!.elements[0])
+        result.append(this.columns.find { it.name == TimeStampPresenter.code }!!.elements[0])
         result.append(", ")
 
 

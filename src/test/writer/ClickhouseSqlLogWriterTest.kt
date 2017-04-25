@@ -10,11 +10,14 @@ import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.writer.ClickhouseSqlLogWriter
-import tanvd.audit.model.external.AuditType
+import tanvd.audit.model.external.presenters.IdPresenter
+import tanvd.audit.model.external.presenters.TimeStampPresenter
+import tanvd.audit.model.external.presenters.VersionPresenter
+import tanvd.audit.model.external.records.InformationObject
+import tanvd.audit.model.external.types.AuditType
+import tanvd.audit.model.external.types.InformationType
 import tanvd.audit.model.internal.AuditRecordInternal
-import tanvd.audit.serializers.IntSerializer
-import tanvd.audit.serializers.LongSerializer
-import tanvd.audit.serializers.StringSerializer
+import utils.InformationUtils
 import utils.TypeUtils
 
 @PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*")
@@ -22,9 +25,8 @@ internal class ClickhouseSqlLogWriterTest : PowerMockTestCase() {
 
     @BeforeMethod
     fun init() {
-        AuditType.addType(AuditType(String::class, "Type_String", StringSerializer) as AuditType<Any>)
-        AuditType.addType(AuditType(Int::class, "Type_Int", IntSerializer) as AuditType<Any>)
-        AuditType.addType(AuditType(Long::class, "Type_Long", LongSerializer) as AuditType<Any>)
+        TypeUtils.addAuditTypesPrimitive()
+        TypeUtils.addInformationTypesPrimitive()
     }
 
     @AfterMethod
@@ -34,7 +36,10 @@ internal class ClickhouseSqlLogWriterTest : PowerMockTestCase() {
 
     @Test
     fun write_gotAuditRecordInternal_AppropriateSqlInsertWritten() {
-        val auditRecord = AuditRecordInternal(123, 456L, unixTimeStamp = 1)
+        val id = 0L
+        val version = 1L
+        val timeStamp = 2L
+        val auditRecord = AuditRecordInternal(123, 456L, information = getSampleInformation(id, timeStamp, version))
         val logWriter = PowerMockito.mock(Logger::class.java)
         val reserveWriter = ClickhouseSqlLogWriter(logWriter)
 
@@ -43,10 +48,16 @@ internal class ClickhouseSqlLogWriterTest : PowerMockTestCase() {
         val typeInt = AuditType.resolveType(Int::class)
         val typeLong = AuditType.resolveType(Long::class)
 
+
         Mockito.verify(logWriter).error("INSERT INTO ${AuditDaoClickhouseImpl.auditTable} (" +
                 "${typeInt.code}, ${typeLong.code}, ${AuditDaoClickhouseImpl.descriptionColumn}," +
-                " ${AuditDaoClickhouseImpl.unixTimeStampColumn}) VALUES " +
+                " ${InformationType.resolveType(IdPresenter).code}, ${InformationType.resolveType(TimeStampPresenter).code}," +
+                " ${InformationType.resolveType(VersionPresenter).code}) VALUES " +
                 "(['${typeInt.serialize(123)}'], ['${typeLong.serialize(456)}'], ['${typeInt.code}', '${typeLong.code}']," +
-                " 1);")
+                " $id, $timeStamp, $version);")
+    }
+
+    private fun getSampleInformation(id: Long, timeStamp: Long, version: Long): Set<InformationObject> {
+        return InformationUtils.getPrimitiveInformation(id, timeStamp, version)
     }
 }
