@@ -107,14 +107,14 @@ internal class SaveAudit : PowerMockTestCase() {
         addPrimitiveTypes()
 
         try {
-            auditApi?.saveWithException("123", 456, TestClassFirst(), information = emptySet())
+            auditApi?.saveWithException("123", 456, TestClassFirst(), information = HashSet())
         } catch (e: UnknownAuditTypeException) {
             return
         }
         Assert.fail()
     }
 
-    private fun fullAuditRecord(information: Set<InformationObject>): AuditRecordInternal {
+    private fun fullAuditRecord(information: MutableSet<InformationObject>): AuditRecordInternal {
         return AuditRecordInternal(listOf(
                 Pair(AuditType.resolveType(String::class), "123"),
                 Pair(AuditType.resolveType(Int::class), "456"),
@@ -122,7 +122,7 @@ internal class SaveAudit : PowerMockTestCase() {
         ), information)
     }
 
-    private fun auditRecordWithoutTestClassFirst(information: Set<InformationObject>): AuditRecordInternal {
+    private fun auditRecordWithoutTestClassFirst(information: MutableSet<InformationObject>): AuditRecordInternal {
         return AuditRecordInternal(listOf(
                 Pair(AuditType.resolveType(String::class), "123"),
                 Pair(AuditType.resolveType(Int::class), "456")
@@ -145,7 +145,7 @@ internal class SaveAudit : PowerMockTestCase() {
         `when`(auditQueueInternal!!.offer(record)).thenReturn(!full)
     }
 
-    private fun getSampleInformation(): Set<InformationObject> {
+    private fun getSampleInformation(): MutableSet<InformationObject> {
         return InformationUtils.getPrimitiveInformation(currentId++, 1, 2)
     }
 }

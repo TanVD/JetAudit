@@ -1,8 +1,6 @@
 package tanvd.audit.model.external.types
 
 import tanvd.audit.exceptions.UnknownInformationTypeException
-import java.util.HashSet
-import kotlin.collections.HashMap
 
 
 data class InformationType<T>(val presenter: InformationPresenter<T>, val code: String, val type: InformationInnerType) {
@@ -15,7 +13,7 @@ data class InformationType<T>(val presenter: InformationPresenter<T>, val code: 
     }
 
     companion object TypesResolution {
-        private val informationTypes: MutableSet<InformationType<Any>> = HashSet()
+        private val informationTypes: MutableSet<InformationType<Any>> = LinkedHashSet()
         private val informationTypesByCode: MutableMap<String, InformationType<Any>> = HashMap()
         private val informationTypesByPresenter: MutableMap<InformationPresenter<*>, InformationType<Any>> = HashMap()
 

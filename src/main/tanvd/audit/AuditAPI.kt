@@ -35,8 +35,8 @@ import javax.sql.DataSource
  *
  * Primitive types: String, Long, Int
  *
- * Also it saves information which saved right to Db primitive types. Use presenters to save specified information
- * field. Remember, that every audit record contains all information fields. But some of them can be set to default
+ * Also it saves informations which saved right to Db primitive types. Use presenters to save specified informations
+ * field. Remember, that every audit record contains all informations fields. But some of them can be set to default
  * values according to getDefault() method of appropriate presenter.
  *
  *
@@ -72,7 +72,7 @@ import javax.sql.DataSource
  * Pay attention to used in JetAudit replacing strategy. There is no guarantee that if your query
  * will find only old record and will not find new  old one will not be returned. You can force
  * deleting of old records executing OPTIMIZE FINAL on Clickhouse database directly. In other situations
- * you should change fields only by which records will not be seeked (like service information).
+ * you should change fields only by which records will not be seeked (like service informations).
  *
  *
  * You can either use methods which throw exception (to be confident that audit records was saved),
@@ -151,7 +151,7 @@ class AuditAPI {
     }
 
     /**
-     * Add information types used in table. Perform before initTables() in DAO.
+     * Add informations types used in table. Perform before initTables() in DAO.
      */
     @Suppress("UNCHECKED_CAST")
     internal fun addServiceInformation() {
@@ -193,7 +193,7 @@ class AuditAPI {
     }
 
     /**
-     * Add type of information to JetAudit type system
+     * Add type of informations to JetAudit type system
      *
      * In case of InformationType duplicate
      * @throws AddExistingAuditTypeException
@@ -201,7 +201,7 @@ class AuditAPI {
     fun <T> addInformationType(type: InformationType<T>) {
         @Suppress("UNCHECKED_CAST")
         if (InformationType.getTypes().contains(type as InformationType<Any>)) {
-            throw AddExistingInformationTypeException("Already existing information type requested to add -- ${type.code}")
+            throw AddExistingInformationTypeException("Already existing informations type requested to add -- ${type.code}")
         }
         auditDao.addInformationInDbModel(type)
         synchronized(InformationType) {
@@ -215,7 +215,7 @@ class AuditAPI {
      * This method not throwing any exceptions.
      * Unknown types will be ignored and reported with log error.
      */
-    fun save(vararg objects: Any, information: Set<InformationObject>) {
+    fun save(vararg objects: Any, information: Set<InformationObject> = emptySet()) {
         val recordObjects = ArrayList<Pair<AuditType<Any>, String>>()
         for (o in objects) {
             try {
@@ -237,13 +237,13 @@ class AuditAPI {
      *
      * @throws UnknownAuditTypeException
      */
-    fun saveWithException(vararg objects: Any, information: Set<InformationObject>) {
+    fun saveWithException(vararg objects: Any, information: MutableSet<InformationObject> = HashSet()) {
         val recordObjects = objects.map { o -> AuditType.resolveType(o::class).let { it to it.serialize(o) } }
 
         auditRecordsNotCommitted.get().add(AuditRecordInternal(recordObjects, addDefaults(information)))
     }
 
-    private fun addDefaults(information: Set<InformationObject>): Set<InformationObject> {
+    private fun addDefaults(information: Set<InformationObject>): MutableSet<InformationObject> {
         val informationAll = HashSet<InformationObject>()
         for (type in InformationType.getTypes()) {
             var curInformation = information.find { it.type == type }
@@ -341,7 +341,7 @@ class AuditAPI {
      * Replaces rows with new rows with new version.
      * New version will be assigned automatically
      */
-    fun replaceAudit(auditRecords: List<AuditRecord>) {
+    fun replace(auditRecords: List<AuditRecord>) {
         auditRecordsNotCommitted.get() += auditRecords.map { AuditRecordInternal.createFromRecordWithNewVersion(it) }
     }
 

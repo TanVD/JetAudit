@@ -106,7 +106,7 @@ internal class QueryStringInformationConditionTest {
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
-    private fun getSampleInformation(value: String): Set<InformationObject> {
+    private fun getSampleInformation(value: String): MutableSet<InformationObject> {
         val information = InformationUtils.getPrimitiveInformation(currentId++, 1, 2)
         information.add(InformationObject(value, StringPresenter))
         return information

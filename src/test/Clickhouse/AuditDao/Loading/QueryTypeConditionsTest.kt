@@ -80,7 +80,7 @@ internal class QueryTypeConditionsTest {
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
-    private fun getSampleInformation(): Set<InformationObject> {
+    private fun getSampleInformation(): MutableSet<InformationObject> {
         return InformationUtils.getPrimitiveInformation(currentId++, 1, 2)
     }
 

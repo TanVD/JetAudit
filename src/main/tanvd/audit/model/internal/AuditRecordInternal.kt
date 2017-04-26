@@ -9,7 +9,7 @@ import tanvd.audit.model.external.types.AuditType
  * Internal representation of audit record. Used to transfer objects array to DAO.
  */
 internal data class AuditRecordInternal(val objects: List<Pair<AuditType<Any>, String>>,
-                                        val information: Set<InformationObject>) {
+                                        val information: MutableSet<InformationObject>) {
     var generation = 1
 
     companion object Factory {
@@ -21,16 +21,16 @@ internal data class AuditRecordInternal(val objects: List<Pair<AuditType<Any>, S
                         else
                             null
                     },
-                    auditRecord.information.map {
+                    auditRecord.informations.map {
                         if (it.type.presenter.name == VersionPresenter.name)
                             InformationObject((it.value as Long) + 1, VersionPresenter)
                         else
                             it
-                    }.toSet())
+                    }.toMutableSet())
         }
     }
 
-    constructor(vararg objects: Any, information: Set<InformationObject>) :
+    constructor(vararg objects: Any, information: MutableSet<InformationObject>) :
             this(objects.map { o -> AuditType.resolveType(o::class).let { it to it.serialize(o) } }, information)
 }
 

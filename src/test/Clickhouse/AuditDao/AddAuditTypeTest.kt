@@ -126,7 +126,7 @@ internal class AddAuditTypeTest {
                 Pair(resolveType(utils.TestClassFirst::class), "TestClassFirstId"))
     }
 
-    private fun getSampleInformation(): Set<InformationObject> {
+    private fun getSampleInformation(): MutableSet<InformationObject> {
         return InformationUtils.getPrimitiveInformation(currentId++, 1, 2)
     }
 }

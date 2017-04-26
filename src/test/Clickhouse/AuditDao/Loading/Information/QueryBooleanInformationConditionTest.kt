@@ -85,7 +85,7 @@ internal class QueryBooleanInformationConditionTest {
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
-    private fun getSampleInformation(value: Boolean): Set<InformationObject> {
+    private fun getSampleInformation(value: Boolean): MutableSet<InformationObject> {
         val information = InformationUtils.getPrimitiveInformation(currentId++, 1, 2)
         (information).add(InformationObject(value, BooleanPresenter))
         return information

@@ -422,7 +422,7 @@ internal class WorkerTest : PowerMockTestCase() {
         return AuditRecordInternal(emptyList(), getSampleInformation("string2"))
     }
 
-    private fun getSampleInformation(value: String): Set<InformationObject> {
-        return setOf(InformationObject(value, InformationType(StringPresenter, "StringPresenter", InformationType.InformationInnerType.String) as InformationType<Any>))
+    private fun getSampleInformation(value: String): MutableSet<InformationObject> {
+        return hashSetOf(InformationObject(value, InformationType(StringPresenter, "StringPresenter", InformationType.InformationInnerType.String) as InformationType<Any>))
     }
 }

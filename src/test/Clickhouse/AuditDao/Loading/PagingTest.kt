@@ -126,11 +126,11 @@ internal class PagingTest {
         Assert.assertEquals(count, 2)
     }
 
-    private fun getSampleInformation(): Set<InformationObject> {
+    private fun getSampleInformation(): MutableSet<InformationObject> {
         return InformationUtils.getPrimitiveInformation(currentId++, 1, 2)
     }
 
-    private fun getSampleInformation(timeStamp: Long): Set<InformationObject> {
+    private fun getSampleInformation(timeStamp: Long): MutableSet<InformationObject> {
         return InformationUtils.getPrimitiveInformation(currentId++, timeStamp, 2)
     }
 

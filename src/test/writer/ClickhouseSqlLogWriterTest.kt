@@ -51,13 +51,13 @@ internal class ClickhouseSqlLogWriterTest : PowerMockTestCase() {
 
         Mockito.verify(logWriter).error("INSERT INTO ${AuditDaoClickhouseImpl.auditTable} (" +
                 "${typeInt.code}, ${typeLong.code}, ${AuditDaoClickhouseImpl.descriptionColumn}," +
-                " ${InformationType.resolveType(IdPresenter).code}, ${InformationType.resolveType(TimeStampPresenter).code}," +
-                " ${InformationType.resolveType(VersionPresenter).code}) VALUES " +
+                " ${InformationType.resolveType(IdPresenter).code}, ${InformationType.resolveType(VersionPresenter).code}," +
+                " ${InformationType.resolveType(TimeStampPresenter).code}) VALUES " +
                 "(['${typeInt.serialize(123)}'], ['${typeLong.serialize(456)}'], ['${typeInt.code}', '${typeLong.code}']," +
-                " $id, $timeStamp, $version);")
+                " $id, $version, $timeStamp);")
     }
 
-    private fun getSampleInformation(id: Long, timeStamp: Long, version: Long): Set<InformationObject> {
+    private fun getSampleInformation(id: Long, timeStamp: Long, version: Long): MutableSet<InformationObject> {
         return InformationUtils.getPrimitiveInformation(id, timeStamp, version)
     }
 }

@@ -13,6 +13,7 @@ import tanvd.audit.model.external.types.AuditType
 import tanvd.audit.model.external.types.InformationType
 import tanvd.audit.model.internal.AuditRecordInternal
 import java.util.*
+import kotlin.collections.HashSet
 
 internal object ClickhouseRecordSerializer {
 
@@ -57,7 +58,7 @@ internal object ClickhouseRecordSerializer {
         val description = row.columns.find { it.name == descriptionColumn }
         if (description == null) {
             logger.error("Clickhouse scheme violated. Not found $descriptionColumn column.")
-            return AuditRecordInternal(emptyList(), emptySet())
+            return AuditRecordInternal(emptyList(), HashSet())
         }
 
         val information = HashSet<InformationObject>()

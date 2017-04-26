@@ -202,11 +202,11 @@ internal class SavingTest {
 
     @Test
     fun saveRecords_ReplacingRow_NewRowReturnedById() {
-        val auditRecordFirstOriginal = AuditRecordInternal(getSampleNonPrimitiveArrayObjects(), getSampleInformation(0, 1))
+        val auditRecordFirstOriginal = AuditRecordInternal(getSampleNonPrimitiveArrayObjects(), getSampleInformation(0, 1, 0))
         auditDao!!.saveRecord(auditRecordFirstOriginal)
         val arrayObjectsSecond = getSampleNonPrimitiveArrayObjects()
         arrayObjectsSecond.addAll(getSamplePrimitiveArrayObjects())
-        val auditRecordSecondOriginal = AuditRecordInternal(arrayObjectsSecond, getSampleInformation(0, 1))
+        val auditRecordSecondOriginal = AuditRecordInternal(arrayObjectsSecond, getSampleInformation(0, 1, 1))
 
         auditDao!!.saveRecord(auditRecordSecondOriginal)
 
@@ -227,7 +227,7 @@ internal class SavingTest {
                 Pair(resolveType(TestClassSecond::class), "TestClassSecondId"))
     }
 
-    private fun getSampleInformation(): Set<InformationObject> {
+    private fun getSampleInformation(): MutableSet<InformationObject> {
         return InformationUtils.getPrimitiveInformation(currentId++, 1, 2)
     }
 
@@ -235,8 +235,8 @@ internal class SavingTest {
         return InformationUtils.getPrimitiveInformation(currentId++, timeStamp, 2)
     }
 
-    private fun getSampleInformation(id: Long, timeStamp: Long): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(id, timeStamp, 2)
+    private fun getSampleInformation(id: Long, timeStamp: Long, version: Long = 2): MutableSet<InformationObject> {
+        return InformationUtils.getPrimitiveInformation(id, timeStamp, version)
     }
 
 }
