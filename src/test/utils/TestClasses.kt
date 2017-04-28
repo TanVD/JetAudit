@@ -4,7 +4,7 @@ import tanvd.audit.model.external.types.AuditSerializer
 
 data class TestClassFirst(val hash: Long = 1) {
     companion object serializer : AuditSerializer<TestClassFirst> {
-        override fun display(value: TestClassFirst): String {
+        override fun display(entity: TestClassFirst): String {
             return "TestClassFirstDisplay"
         }
 
@@ -16,7 +16,7 @@ data class TestClassFirst(val hash: Long = 1) {
             }
         }
 
-        override fun serialize(value: TestClassFirst): String {
+        override fun serialize(entity: TestClassFirst): String {
             return "TestClassFirstId"
         }
 
@@ -25,7 +25,7 @@ data class TestClassFirst(val hash: Long = 1) {
 
 data class TestClassSecond(val hash: Long = 2) {
     companion object serializer : AuditSerializer<TestClassSecond> {
-        override fun display(value: TestClassSecond): String {
+        override fun display(entity: TestClassSecond): String {
             return "TestClassSecondDisplay"
         }
 
@@ -37,7 +37,7 @@ data class TestClassSecond(val hash: Long = 2) {
             }
         }
 
-        override fun serialize(value: TestClassSecond): String {
+        override fun serialize(entity: TestClassSecond): String {
             return "TestClassSecondId"
         }
 

@@ -59,9 +59,10 @@ import javax.sql.DataSource
  *      #Clickouse scheme config
  *      AuditTable             (default Audit),
  *      DescriptionColumn      (default Description),
- *      DateColumn             (default Date),
- *      VersionColumn          (default Version),
- *      IdColumn               (default Column),
+ *      DateColumn             (default Audit_Date),
+ *      TimeStampColumn        (default TimeStampColumn),
+ *      VersionColumn          (default VersionColumn),
+ *      IdColumn               (default IdColumn),
  *
  * If properties file or some properties not found default values will be used.
  *
@@ -156,13 +157,13 @@ class AuditAPI {
     @Suppress("UNCHECKED_CAST")
     internal fun addServiceInformation() {
         InformationType.addType(InformationType(IdPresenter,
-                PropertyLoader.loadProperty("IdColumn") ?: "Id",
+                PropertyLoader.loadProperty("IdColumn") ?: "IdColumn",
                 InformationType.InformationInnerType.Long) as InformationType<Any>)
         InformationType.addType(InformationType(VersionPresenter,
-                PropertyLoader.loadProperty("VersionColumn") ?: "Version",
+                PropertyLoader.loadProperty("VersionColumn") ?: "VersionColumn",
                 InformationType.InformationInnerType.ULong) as InformationType<Any>)
         InformationType.addType(InformationType(TimeStampPresenter,
-                PropertyLoader.loadProperty("TimeStampColumn") ?: "TimeStamp",
+                PropertyLoader.loadProperty("TimeStampColumn") ?: "TimeStampColumn",
                 InformationType.InformationInnerType.Long) as InformationType<Any>)
     }
 
@@ -306,7 +307,7 @@ class AuditAPI {
      *
      * This method not throwing any exceptions.
      */
-    fun load(expression: QueryExpression, parameters: QueryParameters): List<AuditRecord?> {
+    fun load(expression: QueryExpression, parameters: QueryParameters): List<AuditRecord> {
         val auditRecords: List<AuditRecordInternal?>
         try {
             auditRecords = auditDao.loadRecords(expression, parameters)

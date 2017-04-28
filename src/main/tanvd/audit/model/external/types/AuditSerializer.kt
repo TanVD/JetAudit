@@ -17,7 +17,7 @@ interface AuditSerializer<T> {
      */
     fun deserialize(serializedString: String): T?
 
-    fun serialize(value: T): String
+    fun serialize(entity: T): String
 
-    fun display(value: T): String
+    fun display(entity: T): String
 }

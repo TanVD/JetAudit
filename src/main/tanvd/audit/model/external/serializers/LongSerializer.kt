@@ -7,11 +7,11 @@ internal object LongSerializer : AuditSerializer<Long> {
         return serializedString.toLong()
     }
 
-    override fun serialize(value: Long): String {
-        return value.toString()
+    override fun serialize(entity: Long): String {
+        return entity.toString()
     }
 
-    override fun display(value: Long): String {
-        return value.toString()
+    override fun display(entity: Long): String {
+        return entity.toString()
     }
 }

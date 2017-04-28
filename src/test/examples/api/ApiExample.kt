@@ -2,7 +2,6 @@ package examples.api
 
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
-import org.testng.annotations.Test
 import tanvd.audit.AuditAPI
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.dao.DbType
@@ -24,16 +23,16 @@ internal class AuditApiExample {
     class Order(val id: String) {
 
         companion object serializer : AuditSerializer<Order> {
-            override fun display(value: Order): String {
-                return "Order: ${value.id}"
+            override fun display(entity: Order): String {
+                return "Order: ${entity.id}"
             }
 
             override fun deserialize(serializedString: String): Order {
                 return Order(serializedString)
             }
 
-            override fun serialize(value: Order): String {
-                return value.id
+            override fun serialize(entity: Order): String {
+                return entity.id
             }
 
         }
@@ -41,16 +40,16 @@ internal class AuditApiExample {
 
     class Account(val id: String) {
         companion object serializer : AuditSerializer<Account> {
-            override fun display(value: Account): String {
-                return "Account: ${value.id}"
+            override fun display(entity: Account): String {
+                return "Account: ${entity.id}"
             }
 
             override fun deserialize(serializedString: String): Account {
                 return Account(serializedString)
             }
 
-            override fun serialize(value: Account): String {
-                return value.id
+            override fun serialize(entity: Account): String {
+                return entity.id
             }
 
         }

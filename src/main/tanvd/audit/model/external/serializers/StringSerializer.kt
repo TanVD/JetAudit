@@ -7,11 +7,11 @@ internal object StringSerializer : AuditSerializer<String> {
         return serializedString
     }
 
-    override fun serialize(value: String): String {
-        return value
+    override fun serialize(entity: String): String {
+        return entity
     }
 
-    override fun display(value: String): String {
-        return value
+    override fun display(entity: String): String {
+        return entity
     }
 }
