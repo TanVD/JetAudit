@@ -305,9 +305,11 @@ class AuditAPI {
      *
      * If some entities was not found null instead will be returned
      *
+     * Beware that due to use of batching you will have only one real object and a lot of links to it for every id
+     *
      * This method not throwing any exceptions.
      */
-    fun load(expression: QueryExpression, parameters: QueryParameters): List<AuditRecord> {
+    fun load(expression: QueryExpression, parameters: QueryParameters, useBatching: Boolean = true): List<AuditRecord> {
         val auditRecords: List<AuditRecordInternal?>
         try {
             auditRecords = auditDao.loadRecords(expression, parameters)
@@ -316,7 +318,12 @@ class AuditAPI {
             return emptyList()
         }
 
-        val resultList = deserializeAuditRecords(auditRecords)
+        val resultList: List<AuditRecord>
+        if (useBatching) {
+            resultList = deserializeAuditRecordsWithBatching(auditRecords)
+        } else {
+            resultList = deserializeAuditRecords(auditRecords)
+        }
 
         return resultList
     }
@@ -330,13 +337,20 @@ class AuditAPI {
      *
      * @throws UnknownAuditTypeException
      */
-    fun loadAuditWithExceptions(expression: QueryExpression, parameters: QueryParameters): List<AuditRecord> {
+    fun loadAuditWithExceptions(expression: QueryExpression, parameters: QueryParameters, useBatching: Boolean = true):
+            List<AuditRecord> {
         val auditRecords: List<AuditRecordInternal> = auditDao.loadRecords(expression, parameters)
 
-        val resultList = deserializeAuditRecords(auditRecords)
+        val resultList: List<AuditRecord>
+        if (useBatching) {
+            resultList = deserializeAuditRecordsWithBatching(auditRecords)
+        } else {
+            resultList = deserializeAuditRecords(auditRecords)
+        }
 
         return resultList
     }
+
 
     /**
      * Replaces rows with new rows with new version.
@@ -356,7 +370,7 @@ class AuditAPI {
     /**
      * Deserialize AuditRecordsInternal to AuditRecords using batching deserialization.
      */
-    private fun deserializeAuditRecords(auditRecords: List<AuditRecordInternal>): List<AuditRecord> {
+    private fun deserializeAuditRecordsWithBatching(auditRecords: List<AuditRecordInternal>): List<AuditRecord> {
         val preparedForBatchDeserialization = auditRecords.flatMap { it.objects }.groupBy { it.first }
                 .mapValues { it.value.map { it.second }.distinct() }
 
@@ -375,4 +389,18 @@ class AuditAPI {
 
         return resultList
     }
+
+    private fun deserializeAuditRecords(auditRecords: List<AuditRecordInternal>): List<AuditRecord> {
+        return auditRecords.map {
+            AuditRecord(it.objects.map {
+                val obj = it.first.deserialize(it.second)
+                if (obj == null) {
+                    null
+                } else {
+                    AuditObject(it.first, obj)
+                }
+            }, it.information)
+        }
+    }
+
 }

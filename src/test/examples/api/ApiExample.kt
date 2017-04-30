@@ -151,7 +151,7 @@ internal class AuditApiExample {
     //@Test
     fun updatingOfInformation() {
 
-        //create inital
+        //create initial
         val typeTitle = InformationType(TitlePresenter, "TitleOfJohns", InformationType.InformationInnerType.Long)
         auditApi!!.addInformationType(typeTitle)
 
@@ -174,7 +174,7 @@ internal class AuditApiExample {
         val records = auditApi!!.load((Account::class equal accountFirst) and
                 ((TitlePresenter less 15000) and (TitlePresenter more 14995)), parameters)
 
-        //print inital
+        //print initial
 
         System.out.println("Found ${records.size} records")
 
