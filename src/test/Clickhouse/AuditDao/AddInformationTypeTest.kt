@@ -53,8 +53,8 @@ internal class AddInformationTypeTest {
 
         val recordsLoaded = auditDao!!.loadRecords(TimeStampPresenter equal 1, QueryParameters())
 
-        (auditRecordOriginal.information as MutableSet<InformationObject>)
-                .add(InformationObject(StringPresenter.getDefault(), InformationType.resolveType(StringPresenter)))
+        auditRecordOriginal.information.add(InformationObject(StringPresenter.getDefault(),
+                InformationType.resolveType(StringPresenter)))
         Assert.assertEquals(recordsLoaded, listOf(auditRecordOriginal))
     }
 
@@ -70,8 +70,8 @@ internal class AddInformationTypeTest {
 
         val recordsLoaded = auditDao!!.loadRecords(IdPresenter equal 0, QueryParameters())
 
-        (auditRecordFirstOriginal.information as MutableSet<InformationObject>)
-                .add(InformationObject(StringPresenter.getDefault(), InformationType.resolveType(StringPresenter)))
+        auditRecordFirstOriginal.information.add(InformationObject(StringPresenter.getDefault(),
+                InformationType.resolveType(StringPresenter)))
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
@@ -102,8 +102,8 @@ internal class AddInformationTypeTest {
 
         val recordsLoaded = auditDao!!.loadRecords(TimeStampPresenter equal 1, QueryParameters())
 
-        (auditRecordFirstOriginal.information as MutableSet<InformationObject>)
-                .add(InformationObject(StringPresenter.getDefault(), InformationType.resolveType(StringPresenter)))
+        auditRecordFirstOriginal.information.add(InformationObject(StringPresenter.getDefault(),
+                InformationType.resolveType(StringPresenter)))
         Assert.assertEquals(recordsLoaded.toSet(), setOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
     }
 

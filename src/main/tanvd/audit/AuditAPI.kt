@@ -368,7 +368,7 @@ class AuditAPI {
                 if (deserializedMaps[type]?.get(id) == null) {
                     null
                 } else {
-                    deserializedMaps[type]!![id]!!.let { AuditObject(type, type.display(it), it) }
+                    deserializedMaps[type]!![id]!!.let { AuditObject(type, it) }
                 }
             }, information)
         }

@@ -6,7 +6,7 @@ import tanvd.audit.model.external.types.InformationPresenter
 /**
  * External representation of loaded audit object with rich type informations.
  */
-data class AuditObject(val type: AuditType<Any>, val string: String, val obj: Any)
+data class AuditObject(val type: AuditType<Any>, val obj: Any)
 
 /**
  * External representation of loaded audit record

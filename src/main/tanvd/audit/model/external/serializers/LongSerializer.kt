@@ -10,8 +10,4 @@ internal object LongSerializer : AuditSerializer<Long> {
     override fun serialize(entity: Long): String {
         return entity.toString()
     }
-
-    override fun display(entity: Long): String {
-        return entity.toString()
-    }
 }

@@ -85,6 +85,7 @@ internal class NonValidInputTest {
     fun tryStringSqlInjectionWithQuoteToInformationType() {
         val stringInjection = "'; Select * from example.Audit; --"
 
+        @Suppress("UNCHECKED_CAST")
         val type = InformationType(StringPresenter, "OneStringField", InformationType.InformationInnerType.String) as InformationType<Any>
         InformationType.addType(type)
         auditDao!!.addInformationInDbModel(type)
@@ -103,6 +104,7 @@ internal class NonValidInputTest {
     fun tryStringSqlInjectionWithBackQuoteToInformationType() {
         val stringInjection = "`; Select * from example.Audit; --"
 
+        @Suppress("UNCHECKED_CAST")
         val type = InformationType(StringPresenter, "OneStringField", InformationType.InformationInnerType.String) as InformationType<Any>
         InformationType.addType(type)
         auditDao!!.addInformationInDbModel(type)
@@ -121,6 +123,7 @@ internal class NonValidInputTest {
     fun tryStringWithEscapesToInformationType() {
         val stringInjection = "'`\n\b\t\\--"
 
+        @Suppress("UNCHECKED_CAST")
         val type = InformationType(StringPresenter, "OneStringField", InformationType.InformationInnerType.String) as InformationType<Any>
         InformationType.addType(type)
         auditDao!!.addInformationInDbModel(type)

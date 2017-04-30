@@ -171,13 +171,12 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
         var preparedStatement: PreparedStatement? = null
         var resultSet: ResultSet? = null
         try {
-            var dbIndex = 1
             connection = dataSource.connection
             preparedStatement = connection.prepareStatement(sqlSelect.toString())
 
+            var dbIndex = 1
             dbIndex = setQueryIds(expression, preparedStatement, dbIndex)
-
-            dbIndex = setLimits(parameters.limits, preparedStatement, dbIndex)
+            setLimits(parameters.limits, preparedStatement, dbIndex)
 
             resultSet = preparedStatement.executeQuery()
 
@@ -337,11 +336,10 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
         var preparedStatement: PreparedStatement? = null
         var resultSet: ResultSet? = null
         try {
-            var dbIndex = 1
             connection = dataSource.connection
             preparedStatement = connection.prepareStatement(sqlSelect.toString())
 
-            dbIndex = setQueryIds(expression, preparedStatement, dbIndex)
+            setQueryIds(expression, preparedStatement, 1)
 
             resultSet = preparedStatement.executeQuery()
 

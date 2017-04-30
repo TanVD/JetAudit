@@ -23,10 +23,6 @@ internal class AuditApiExample {
     class Order(val id: String) {
 
         companion object serializer : AuditSerializer<Order> {
-            override fun display(entity: Order): String {
-                return "Order: ${entity.id}"
-            }
-
             override fun deserialize(serializedString: String): Order {
                 return Order(serializedString)
             }
@@ -34,16 +30,15 @@ internal class AuditApiExample {
             override fun serialize(entity: Order): String {
                 return entity.id
             }
+        }
 
+        override fun toString(): String {
+            return "Order: " + id
         }
     }
 
     class Account(val id: String) {
         companion object serializer : AuditSerializer<Account> {
-            override fun display(entity: Account): String {
-                return "Account: ${entity.id}"
-            }
-
             override fun deserialize(serializedString: String): Account {
                 return Account(serializedString)
             }
@@ -51,7 +46,10 @@ internal class AuditApiExample {
             override fun serialize(entity: Account): String {
                 return entity.id
             }
+        }
 
+        override fun toString(): String {
+            return "Account: " + id
         }
     }
 
@@ -92,9 +90,9 @@ internal class AuditApiExample {
 
         System.out.println("Printing first record: ")
 
-        System.out.println(records[0]!!.objects.joinToString(separator = " ") { it?.string ?: "Unknown entity" })
+        System.out.println(records[0].objects.joinToString(separator = " ") { it?.obj?.toString() ?: "Unknown entity" })
 
-        System.out.println("Time: ${printTime(records[0]!!.getInformationValue(TimeStampPresenter)!!)}")
+        System.out.println("Time: ${printTime(records[0].getInformationValue(TimeStampPresenter)!!)}")
     }
 
     object TitlePresenter : InformationPresenter<Long>() {
@@ -132,10 +130,10 @@ internal class AuditApiExample {
         for (i in 0..(records.size - 1)) {
             System.out.println("Printing $i record: ")
 
-            System.out.println(records[i]!!.objects.joinToString(separator = " ") { it?.string ?: "Unknown entity" } + " " +
-                    "Title: " + records[i]!!.getInformationValue(TitlePresenter))
+            System.out.println(records[i].objects.joinToString(separator = " ") { it?.obj?.toString() ?: "Unknown entity" } + " " +
+                    "Title: " + records[i].getInformationValue(TitlePresenter))
 
-            System.out.println("Time: ${printTime(records[i]!!.getInformationValue(TimeStampPresenter)!!)}")
+            System.out.println("Time: ${printTime(records[i].getInformationValue(TimeStampPresenter)!!)}")
         }
     }
 
@@ -183,18 +181,18 @@ internal class AuditApiExample {
         for (i in 0..(records.size - 1)) {
             System.out.println("Printing $i record: ")
 
-            System.out.println(records[i]!!.objects.joinToString(separator = " ") { it?.string ?: "Unknown entity" } + " " +
-                    "Title: " + records[i]!!.getInformationValue(TitlePresenter) + " " +
-                    "IsExternal: " + records[i]!!.getInformationValue(IsExternalPresenter))
+            System.out.println(records[i].objects.joinToString(separator = " ") { it?.obj?.toString() ?: "Unknown entity" } + " " +
+                    "Title: " + records[i].getInformationValue(TitlePresenter) + " " +
+                    "IsExternal: " + records[i].getInformationValue(IsExternalPresenter))
 
-            System.out.println("Time: ${printTime(records[i]!!.getInformationValue(TimeStampPresenter)!!)}")
+            System.out.println("Time: ${printTime(records[i].getInformationValue(TimeStampPresenter)!!)}")
         }
 
         //change is external to true
 
         val updatedRecords = ArrayList<AuditRecord>()
         for (record in records) {
-            record!!.informations.removeIf { it.type.presenter.name == IsExternalPresenter.name }
+            record.informations.removeIf { it.type.presenter.name == IsExternalPresenter.name }
             record.informations.add(InformationObject(true, IsExternalPresenter))
             updatedRecords.add(record)
         }
@@ -213,11 +211,11 @@ internal class AuditApiExample {
         for (i in 0..(resultingRecords.size - 1)) {
             System.out.println("Printing $i record: ")
 
-            System.out.println(resultingRecords[i]!!.objects.joinToString(separator = " ") { it?.string ?: "Unknown entity" } + " " +
-                    "Title: " + records[i]!!.getInformationValue(TitlePresenter) + " " +
-                    "IsExternal: " + records[i]!!.getInformationValue(IsExternalPresenter))
+            System.out.println(resultingRecords[i].objects.joinToString(separator = " ") { it?.obj?.toString() ?: "Unknown entity" } + " " +
+                    "Title: " + records[i].getInformationValue(TitlePresenter) + " " +
+                    "IsExternal: " + records[i].getInformationValue(IsExternalPresenter))
 
-            System.out.println("Time: ${printTime(resultingRecords[i]!!.getInformationValue(TimeStampPresenter)!!)}")
+            System.out.println("Time: ${printTime(resultingRecords[i].getInformationValue(TimeStampPresenter)!!)}")
         }
     }
 }

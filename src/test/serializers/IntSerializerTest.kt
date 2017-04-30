@@ -47,11 +47,4 @@ internal class IntSerializerTest {
         val numberDeserialized: Int = IntSerializer.deserialize(serializedString)
         Assert.assertEquals(numberDeserialized, Int.MIN_VALUE)
     }
-
-    @Test
-    fun displayInt_fiveInt_displayedAsExpected() {
-        val number = 5
-        val displayed = IntSerializer.display(number)
-        Assert.assertEquals(displayed, "5")
-    }
 }

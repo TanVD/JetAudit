@@ -41,6 +41,7 @@ internal class CommitAudit : PowerMockTestCase() {
     fun setMocks() {
         auditDao = PowerMockito.mock(AuditDao::class.java)
         auditExecutor = PowerMockito.mock(AuditExecutor::class.java)
+        @Suppress("UNCHECKED_CAST")
         auditQueueInternal = PowerMockito.mock(BlockingQueue::class.java) as BlockingQueue<AuditRecordInternal>
         auditRecordsNotCommitted = object : ThreadLocal<ArrayList<AuditRecordInternal>>() {
             override fun initialValue(): ArrayList<AuditRecordInternal>? {

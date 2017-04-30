@@ -10,8 +10,4 @@ internal object IntSerializer : AuditSerializer<Int> {
     override fun serialize(entity: Int): String {
         return entity.toString()
     }
-
-    override fun display(entity: Int): String {
-        return entity.toString()
-    }
 }

@@ -40,6 +40,7 @@ internal class AddInformation : PowerMockTestCase() {
     fun setMocks() {
         auditDao = mock(AuditDao::class.java)
         auditExecutor = mock(AuditExecutor::class.java)
+        @Suppress("UNCHECKED_CAST")
         auditQueueInternal = mock(BlockingQueue::class.java) as BlockingQueue<AuditRecordInternal>
         auditRecordsNotCommitted = object : ThreadLocal<ArrayList<AuditRecordInternal>>() {
             override fun initialValue(): ArrayList<AuditRecordInternal>? {

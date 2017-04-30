@@ -169,7 +169,7 @@ internal class LoadAudit : PowerMockTestCase() {
     }
 
     private fun fullAuditRecord(vararg objects: Any, unixTimeStamp: Long, id: Long): AuditRecord {
-        val auditObjects = objects.map { o -> AuditType.resolveType(o::class).let { AuditObject(it, it.display(o), o) } }
+        val auditObjects = objects.map { o -> AuditType.resolveType(o::class).let { AuditObject(it, o) } }
         return AuditRecord(auditObjects, getSampleInformation(unixTimeStamp, id))
     }
 

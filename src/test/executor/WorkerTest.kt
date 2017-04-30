@@ -423,6 +423,7 @@ internal class WorkerTest : PowerMockTestCase() {
     }
 
     private fun getSampleInformation(value: String): MutableSet<InformationObject> {
+        @Suppress("UNCHECKED_CAST")
         return hashSetOf(InformationObject(value, InformationType(StringPresenter, "StringPresenter", InformationType.InformationInnerType.String) as InformationType<Any>))
     }
 }
