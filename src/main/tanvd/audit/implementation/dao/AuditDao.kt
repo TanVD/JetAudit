@@ -31,13 +31,18 @@ internal interface AuditDao {
     fun saveRecords(auditRecordInternals: List<AuditRecordInternal>)
 
     /**
-     * Performs operations on Db scheme needed to support new type.
+     * Performs operations on Db scheme needed to support new audit type.
      *
      * @throws BasicDbException
      */
     fun <T> addTypeInDbModel(type: AuditType<T>)
 
-    fun addInformationInDbModel(information: InformationType<Any>)
+    /**
+     * Performs operations on Db scheme needed to support new information type.
+     *
+     * @throws BasicDbException
+     */
+    fun <T> addInformationInDbModel(information: InformationType<T>)
 
     /**
      * Load records satisfying expression limited by specified parameters.

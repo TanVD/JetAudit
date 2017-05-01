@@ -106,7 +106,7 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
 
     }
 
-    override fun addInformationInDbModel(information: InformationType<Any>) {
+    override fun <T> addInformationInDbModel(information: InformationType<T>) {
         clickhouseConnection.addColumn(auditTable, information.toDbColumnHeader())
     }
 
