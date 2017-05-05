@@ -4,153 +4,136 @@ import org.testng.Assert
 import org.testng.annotations.BeforeClass
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl.Scheme.descriptionColumn
-import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl.Scheme.unixTimeStampColumn
 import tanvd.audit.implementation.clickhouse.ClickhouseRecordSerializer
 import tanvd.audit.implementation.clickhouse.model.DbColumn
 import tanvd.audit.implementation.clickhouse.model.DbColumnType
 import tanvd.audit.implementation.clickhouse.model.DbRow
-import tanvd.audit.model.external.AuditSerializer
-import tanvd.audit.model.external.AuditType
-import tanvd.audit.model.external.AuditType.TypesResolution.addType
+import tanvd.audit.implementation.clickhouse.model.toDbColumnHeader
+import tanvd.audit.model.external.presenters.IdPresenter
+import tanvd.audit.model.external.presenters.TimeStampPresenter
+import tanvd.audit.model.external.presenters.VersionPresenter
+import tanvd.audit.model.external.records.InformationObject
+import tanvd.audit.model.external.types.AuditType
+import tanvd.audit.model.external.types.InformationType
 import tanvd.audit.model.internal.AuditRecordInternal
-import tanvd.audit.serializers.IntSerializer
-import tanvd.audit.serializers.StringSerializer
+import utils.InformationUtils
+import utils.TestClassFirst
+import utils.TestClassSecond
+import utils.TypeUtils
 import java.util.*
 
 internal class AuditRecordInternalSerializationClickhouse {
 
-    class TestClassFirst {
-        companion object serializer : AuditSerializer<TestClassFirst> {
-            override fun display(value: TestClassFirst): String {
-                return "TestClassFirstDisplay"
-            }
-
-            override fun deserialize(serializedString: String): TestClassFirst {
-                throw UnsupportedOperationException("not implemented")
-            }
-
-            override fun serialize(value: TestClassFirst): String {
-                return "TestClassFirstId"
-            }
-
-        }
-    }
-
-    class TestClassSecond {
-        companion object serializer : AuditSerializer<TestClassSecond> {
-            override fun display(value: TestClassSecond): String {
-                return "TestClassSecondDisplay"
-            }
-
-            override fun deserialize(serializedString: String): TestClassSecond {
-                throw UnsupportedOperationException("not implemented")
-            }
-
-            override fun serialize(value: TestClassSecond): String {
-                return "TestClassSecondId"
-            }
-
-        }
-    }
-
     @Suppress("UNCHECKED_CAST")
     @BeforeClass
     fun initTypeSystem() {
-        addType(AuditType(TestClassFirst::class, "TestClassFirst", TestClassFirst) as AuditType<Any>)
-        addType(AuditType(String::class, "String", StringSerializer) as AuditType<Any>)
-        addType(AuditType(Int::class, "Int", IntSerializer) as AuditType<Any>)
-        addType(AuditType(TestClassSecond::class, "TestClassSecond", TestClassSecond) as AuditType<Any>)
+        TypeUtils.addAuditTypesPrimitive()
+        TypeUtils.addInformationTypesPrimitive()
+        AuditType.addType(AuditType(TestClassFirst::class, "TestClassFirst", TestClassFirst) as AuditType<Any>)
+        AuditType.addType(AuditType(TestClassSecond::class, "TestClassSecond", TestClassSecond) as AuditType<Any>)
     }
 
     @Test
     fun serializeArray_PrimitiveTypesDifferent_serializedAsExpected() {
-        val auditRecord = AuditRecordInternal(ArrayList(listOf(
+        val auditRecord = AuditRecordInternal(arrayListOf(
                 Pair(AuditType.resolveType(String::class), "1234"),
-                Pair(AuditType.resolveType(Int::class), "123"))), 127)
+                Pair(AuditType.resolveType(Int::class), "123")), getSampleInformation())
         val row = ClickhouseRecordSerializer.serialize(auditRecord)
-        Assert.assertEquals(row, DbRow(arrayListOf(
-                DbColumn("String", listOf("1234"), DbColumnType.DbArrayString),
+
+        val expectedSet = setOf(DbColumn("String", listOf("1234"), DbColumnType.DbArrayString),
                 DbColumn("Int", listOf("123"), DbColumnType.DbArrayString),
                 DbColumn(descriptionColumn, listOf("String", "Int"), DbColumnType.DbArrayString),
-                DbColumn(unixTimeStampColumn, listOf("127"), DbColumnType.DbInt))))
+                *getSampleInformationColumns())
+        Assert.assertEquals(row.columns.toSet(), expectedSet)
+        Assert.assertEquals(row.columns.size, expectedSet.size)
     }
 
     @Test
     fun serializeArray_PrimitiveTypesCoincident_serializedAsExpected() {
-        val auditRecord = AuditRecordInternal(ArrayList(listOf(
+        val auditRecord = AuditRecordInternal(arrayListOf(
                 Pair(AuditType.resolveType(String::class), "1234"),
-                Pair(AuditType.resolveType(String::class), "123"))), 127)
+                Pair(AuditType.resolveType(String::class), "123")), getSampleInformation())
         val row = ClickhouseRecordSerializer.serialize(auditRecord)
-        Assert.assertEquals(row, DbRow(arrayListOf(
+
+        val expectedSet = setOf(
                 DbColumn("String", listOf("1234", "123"), DbColumnType.DbArrayString),
                 DbColumn(descriptionColumn, listOf("String", "String"), DbColumnType.DbArrayString),
-                DbColumn(unixTimeStampColumn, listOf("127"), DbColumnType.DbInt))))
+                *getSampleInformationColumns())
+        Assert.assertEquals(row.columns.toSet(), expectedSet)
+        Assert.assertEquals(row.columns.size, expectedSet.size)
     }
 
     @Test
     fun serializeArray_NonPrimitiveTypesDifferent_serializedAsExpected() {
-        val auditRecord = AuditRecordInternal(ArrayList(listOf(
+        val auditRecord = AuditRecordInternal(arrayListOf(
                 Pair(AuditType.resolveType(TestClassFirst::class), "1234"),
-                Pair(AuditType.resolveType(TestClassSecond::class), "123"))), 127)
+                Pair(AuditType.resolveType(TestClassSecond::class), "123")), getSampleInformation())
         val row = ClickhouseRecordSerializer.serialize(auditRecord)
-        Assert.assertEquals(row, DbRow(arrayListOf(
+
+        val expectedSet = setOf(
                 DbColumn("TestClassFirst", listOf("1234"), DbColumnType.DbArrayString),
                 DbColumn("TestClassSecond", listOf("123"), DbColumnType.DbArrayString),
                 DbColumn(descriptionColumn, listOf("TestClassFirst", "TestClassSecond"), DbColumnType.DbArrayString),
-                DbColumn(unixTimeStampColumn, listOf("127"), DbColumnType.DbInt))))
+                *getSampleInformationColumns())
+        Assert.assertEquals(row.columns.toSet(), expectedSet)
+        Assert.assertEquals(row.columns.size, expectedSet.size)
     }
 
     @Test
     fun serializeArray_NonPrimitiveTypesCoincident_serializedAsExpected() {
-        val auditRecord = AuditRecordInternal(ArrayList(listOf(
+        val auditRecord = AuditRecordInternal(arrayListOf(
                 Pair(AuditType.resolveType(TestClassFirst::class), "1234"),
-                Pair(AuditType.resolveType(TestClassFirst::class), "123"))), 127)
+                Pair(AuditType.resolveType(TestClassFirst::class), "123")), getSampleInformation())
         val row = ClickhouseRecordSerializer.serialize(auditRecord)
-        Assert.assertEquals(row, DbRow(listOf(
+
+        val expectedSet = setOf(
                 DbColumn("TestClassFirst", listOf("1234", "123"), DbColumnType.DbArrayString),
                 DbColumn(descriptionColumn, listOf("TestClassFirst", "TestClassFirst"), DbColumnType.DbArrayString),
-                DbColumn(unixTimeStampColumn, listOf("127"), DbColumnType.DbInt))))
+                *getSampleInformationColumns())
+        Assert.assertEquals(row.columns.toSet(), expectedSet)
+        Assert.assertEquals(row.columns.size, expectedSet.size)
     }
 
     @Test
     fun deserializeArray_PrimitiveTypesDifferent_deserializedAsExpected() {
         val auditRecord = ClickhouseRecordSerializer.deserialize(DbRow(arrayListOf(
-                DbColumn(unixTimeStampColumn, listOf("127"), DbColumnType.DbInt),
                 DbColumn(descriptionColumn, arrayListOf("String", "Int"), DbColumnType.DbArrayString),
                 DbColumn("String", arrayListOf("1234"), DbColumnType.DbArrayString),
-                DbColumn("Int", arrayListOf("123"), DbColumnType.DbArrayString)
+                DbColumn("Int", arrayListOf("123"), DbColumnType.DbArrayString),
+                *getSampleInformationColumns()
         )))
+
+
         Assert.assertEquals(auditRecord, AuditRecordInternal(listOf(
                 Pair(AuditType.resolveType(String::class), "1234"),
-                Pair(AuditType.resolveType(Int::class), "123")), 127))
+                Pair(AuditType.resolveType(Int::class), "123")), getSampleInformation()))
     }
 
     @Test
     fun deserializeArray_PrimitiveTypesCoincident_deserializedAsExpected() {
         val auditRecord = ClickhouseRecordSerializer.deserialize(DbRow(arrayListOf(
-                DbColumn(unixTimeStampColumn, listOf("127"), DbColumnType.DbInt),
                 DbColumn(descriptionColumn, arrayListOf("String", "String"), DbColumnType.DbArrayString),
-                DbColumn("String", arrayListOf("1234", "123"), DbColumnType.DbArrayString)
+                DbColumn("String", arrayListOf("1234", "123"), DbColumnType.DbArrayString),
+                *getSampleInformationColumns()
         )))
         Assert.assertEquals(auditRecord, AuditRecordInternal(listOf(
                 Pair(AuditType.resolveType(String::class), "1234"),
-                Pair(AuditType.resolveType(String::class), "123")), 127))
+                Pair(AuditType.resolveType(String::class), "123")), getSampleInformation()))
     }
 
     @Test
     fun deserializeArray_NonPrimitiveTypesDifferent_deserializedAsExpected() {
         val auditRecord = ClickhouseRecordSerializer.deserialize(DbRow(arrayListOf(
-                DbColumn(unixTimeStampColumn, listOf("127"), DbColumnType.DbInt),
                 DbColumn(descriptionColumn, arrayListOf("TestClassFirst", "TestClassSecond"),
                         DbColumnType.DbArrayString),
                 DbColumn("TestClassFirst", arrayListOf("1234"), DbColumnType.DbArrayString),
-                DbColumn("TestClassSecond", arrayListOf("123"), DbColumnType.DbArrayString)
+                DbColumn("TestClassSecond", arrayListOf("123"), DbColumnType.DbArrayString),
+                *getSampleInformationColumns()
         )))
 
-        Assert.assertEquals(auditRecord.objects, ArrayList(listOf(
+        Assert.assertEquals(auditRecord, AuditRecordInternal(listOf(
                 Pair(AuditType.resolveType(TestClassFirst::class), "1234"),
-                Pair(AuditType.resolveType(TestClassSecond::class), "123"))))
-        Assert.assertEquals(auditRecord.unixTimeStamp, 127)
+                Pair(AuditType.resolveType(TestClassSecond::class), "123")), getSampleInformation()))
     }
 
     @Test
@@ -162,9 +145,21 @@ internal class AuditRecordInternalSerializationClickhouse {
                 Pair(AuditType.resolveType(Int::class), "27"),
                 Pair(AuditType.resolveType(TestClassSecond::class), "TestClassSecondId")))
 
-        val row = ClickhouseRecordSerializer.serialize(AuditRecordInternal(arrayObjects, 127))
+        val row = ClickhouseRecordSerializer.serialize(AuditRecordInternal(arrayObjects, getSampleInformation()))
         val deserializedRecord = ClickhouseRecordSerializer.deserialize(row)
 
-        Assert.assertEquals(deserializedRecord, AuditRecordInternal(arrayObjects, 127))
+        Assert.assertEquals(deserializedRecord, AuditRecordInternal(arrayObjects, getSampleInformation()))
+    }
+
+    private fun getSampleInformation(): MutableSet<InformationObject> {
+        return InformationUtils.getPrimitiveInformation(0, 1, 2)
+    }
+
+    private fun getSampleInformationColumns(): Array<DbColumn> {
+        return arrayOf(
+                DbColumn(InformationType.resolveType(VersionPresenter).toDbColumnHeader(), listOf("2")),
+                DbColumn(InformationType.resolveType(TimeStampPresenter).toDbColumnHeader(), listOf("1")),
+                DbColumn(InformationType.resolveType(IdPresenter).toDbColumnHeader(), listOf("0"))
+        )
     }
 }

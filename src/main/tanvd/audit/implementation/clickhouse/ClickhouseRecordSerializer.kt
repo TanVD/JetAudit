@@ -1,25 +1,26 @@
 package tanvd.audit.implementation.clickhouse
 
 import org.slf4j.LoggerFactory
+import tanvd.audit.exceptions.UnknownAuditTypeException
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl.Scheme.descriptionColumn
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl.Scheme.getPredefinedAuditTableColumn
-import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl.Scheme.unixTimeStampColumn
 import tanvd.audit.implementation.clickhouse.model.DbColumn
 import tanvd.audit.implementation.clickhouse.model.DbColumnType
 import tanvd.audit.implementation.clickhouse.model.DbRow
-import tanvd.audit.model.external.AuditType
+import tanvd.audit.implementation.clickhouse.model.toDbColumnHeader
+import tanvd.audit.model.external.records.InformationObject
+import tanvd.audit.model.external.types.AuditType
+import tanvd.audit.model.external.types.InformationType
 import tanvd.audit.model.internal.AuditRecordInternal
 import java.util.*
+import kotlin.collections.HashSet
 
 internal object ClickhouseRecordSerializer {
 
     private val logger = LoggerFactory.getLogger(ClickhouseRecordSerializer::class.java)
 
-
     /**
      * Serialize AuditRecordInternal for Clickhouse
-     * Serialize order to string of types
-     * Serialize objects to groups by types respecting order
      */
     fun serialize(auditRecordInternal: AuditRecordInternal): DbRow {
 
@@ -31,27 +32,58 @@ internal object ClickhouseRecordSerializer {
         }
 
         val elements = groupedObjects.map { DbColumn(it.key.code, it.value, DbColumnType.DbArrayString) }.toMutableList()
+
+        //Add mandatory columns
         elements.add(DbColumn(getPredefinedAuditTableColumn(descriptionColumn), description))
-        elements.add(DbColumn(getPredefinedAuditTableColumn(unixTimeStampColumn), auditRecordInternal.unixTimeStamp.toString()))
+
+        for (type in InformationType.getTypes()) {
+            val curInformation = auditRecordInternal.information.find { it.type == type }
+            if (curInformation != null) {
+                elements.add(DbColumn(type.toDbColumnHeader(), curInformation.value.toString()))
+            }
+        }
 
         return DbRow(elements)
     }
 
+
     /**
-     * Deserialize MySQL.AuditRecordInternal from string representation
+     * Deserialize AuditRecordInternal from string representation
      * DbString in Map -- name code
+     *
+     * @throws UnknownAuditTypeException
      */
     fun deserialize(row: DbRow): AuditRecordInternal {
+        //mandatory columns
         val description = row.columns.find { it.name == descriptionColumn }
         if (description == null) {
             logger.error("Clickhouse scheme violated. Not found $descriptionColumn column.")
-            return AuditRecordInternal(emptyList(), 0)
+            return AuditRecordInternal(emptyList(), HashSet())
         }
-        val unixTimeStamp = row.columns.find { it.name == unixTimeStampColumn }
-        if (unixTimeStamp == null) {
-            logger.error("Clickhouse scheme violated. Not found $unixTimeStampColumn column.")
-            return AuditRecordInternal(emptyList(), 0)
+
+        val information = HashSet<InformationObject>()
+
+        for (type in InformationType.getTypes()) {
+            val curInformation = row.columns.find { it.name == type.code }
+            if (curInformation != null) {
+                when (type.type) {
+                    InformationType.InformationInnerType.Long -> {
+                        information.add(InformationObject(curInformation.elements[0].toLong(), type))
+                    }
+                    InformationType.InformationInnerType.String -> {
+                        information.add(InformationObject(curInformation.elements[0], type))
+                    }
+                    InformationType.InformationInnerType.Boolean -> {
+                        information.add(InformationObject(curInformation.elements[0].toBoolean(), type))
+                    }
+                    InformationType.InformationInnerType.ULong -> {
+                        information.add(InformationObject(curInformation.elements[0].toLong(), type))
+                    }
+                }
+            }
         }
+
+
         val objects = ArrayList<Pair<AuditType<Any>, String>>()
         val currentNumberOfType = HashMap<String, Int>()
 
@@ -60,12 +92,13 @@ internal object ClickhouseRecordSerializer {
             if (pair != null) {
                 val index = currentNumberOfType[code] ?: 0
                 if (pair.elements[index].isNotEmpty()) {
-                    objects.add(Pair(AuditType.resolveType(code), pair.elements[index]))
+                    val type = AuditType.resolveType(code)
+                    objects.add(Pair(type, pair.elements[index]))
                 }
                 currentNumberOfType.put(code, index + 1)
             }
         }
 
-        return AuditRecordInternal(objects, unixTimeStamp.elements[0].toLong())
+        return AuditRecordInternal(objects, information)
     }
 }

@@ -1,21 +1,68 @@
 package tanvd.audit.implementation.dao
 
 import tanvd.audit.exceptions.UninitializedException
-import tanvd.audit.model.external.AuditType
-import tanvd.audit.model.external.QueryExpression
-import tanvd.audit.model.external.QueryParameters
+import tanvd.audit.exceptions.UnknownAuditTypeException
+import tanvd.audit.implementation.exceptions.BasicDbException
+import tanvd.audit.model.external.queries.QueryExpression
+import tanvd.audit.model.external.queries.QueryParameters
+import tanvd.audit.model.external.types.AuditType
+import tanvd.audit.model.external.types.InformationType
 import tanvd.audit.model.internal.AuditRecordInternal
 import javax.sql.DataSource
 
+
 internal interface AuditDao {
+
+    /**
+     * Saves specified record in Db or throws exception.
+     *
+     * @throws BasicDbException
+     */
     fun saveRecord(auditRecordInternal: AuditRecordInternal)
 
+    /**
+     * Saves specified records in Db or throws exception.
+     *
+     * In most cases bath saving works faster than for loop.
+     *
+     * @throws BasicDbException
+     */
+    @Throws(BasicDbException::class)
     fun saveRecords(auditRecordInternals: List<AuditRecordInternal>)
 
+    /**
+     * Performs operations on Db scheme needed to support new audit type.
+     *
+     * @throws BasicDbException
+     */
     fun <T> addTypeInDbModel(type: AuditType<T>)
 
+    /**
+     * Performs operations on Db scheme needed to support new information type.
+     *
+     * @throws BasicDbException
+     */
+    fun <T> addInformationInDbModel(information: InformationType<T>)
+
+    /**
+     * Load records satisfying expression limited by specified parameters.
+     *
+     * Implementations must pass parameters of query to Db (it means, that implementations must not apply parameters
+     * to result set of query returned by Db)
+     *
+     * @throws UnknownAuditTypeException
+     * @throws BasicDbException
+     */
     fun loadRecords(expression: QueryExpression, parameters: QueryParameters): List<AuditRecordInternal>
 
+    /**
+     * Return number of records satisfying expression.
+     *
+     * Implementations must implement it with built in Db functions. (it means, that implementations must not count
+     * number of records in result set of query returned by Db)
+     *
+     * @throws BasicDbException
+     */
     fun countRecords(expression: QueryExpression): Int
 
     companion object AuditDaoFactory {
