@@ -14,15 +14,14 @@ import tanvd.audit.exceptions.AuditQueueFullException
 import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.records.InformationObject
-import tanvd.audit.model.external.types.AuditType
+import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
-import utils.InformationUtils
-import utils.TestClassFirst
-import utils.TypeUtils
+import utils.*
+import utils.SamplesGenerator.getRecordInternal
 import java.util.concurrent.BlockingQueue
 
 @PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*")
-@PrepareForTest(AuditExecutor::class, AuditType::class)
+@PrepareForTest(AuditExecutor::class, ObjectType::class)
 internal class CommitAudit : PowerMockTestCase() {
 
     private var currentId: Long = 0
@@ -62,7 +61,7 @@ internal class CommitAudit : PowerMockTestCase() {
 
     @Test
     fun commitAudit_noExceptions_recordAddedToAuditQueue() {
-        val testSet = arrayOf("123", 456, TestClassFirst())
+        val testSet = arrayOf("123", 456, TestClassString("string"))
         val testStamp = 789L
         addPrimitiveTypesAndTestClassFirst()
         val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp)
@@ -75,7 +74,7 @@ internal class CommitAudit : PowerMockTestCase() {
 
     @Test
     fun commitAudit_noExceptions_threadGroupDeleted() {
-        val testSet = arrayOf("123", 456, TestClassFirst())
+        val testSet = arrayOf("123", 456, TestClassString("string"))
         val testStamp = 789L
         addPrimitiveTypesAndTestClassFirst()
         val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp)
@@ -88,7 +87,7 @@ internal class CommitAudit : PowerMockTestCase() {
 
     @Test
     fun commitAuditWithExceptions_noExceptions_recordAddedToAuditQueue() {
-        val testSet = arrayOf("123", 456, TestClassFirst())
+        val testSet = arrayOf("123", 456, TestClassString("string"))
         val testStamp = 789L
         addPrimitiveTypesAndTestClassFirst()
         val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp)
@@ -101,7 +100,7 @@ internal class CommitAudit : PowerMockTestCase() {
 
     @Test
     fun commitAuditWithExceptions_noExceptions_threadGroupDeleted() {
-        val testSet = arrayOf("123", 456, TestClassFirst())
+        val testSet = arrayOf("123", 456, TestClassString("string"))
         val testStamp = 789L
         addPrimitiveTypesAndTestClassFirst()
         val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp)
@@ -114,7 +113,7 @@ internal class CommitAudit : PowerMockTestCase() {
 
     @Test
     fun commitAudit_queueFull_noExceptions() {
-        val testSet = arrayOf("123", 456, TestClassFirst())
+        val testSet = arrayOf("123", 456, TestClassString("string"))
         val testStamp = 789L
         addPrimitiveTypesAndTestClassFirst()
         val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp)
@@ -127,7 +126,7 @@ internal class CommitAudit : PowerMockTestCase() {
 
     @Test
     fun commitAudit_queueFull_auditQueueInternalNotChanged() {
-        val testSet = arrayOf("123", 456, TestClassFirst())
+        val testSet = arrayOf("123", 456, TestClassString("string"))
         val testStamp = 789L
         addPrimitiveTypesAndTestClassFirst()
         val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp)
@@ -143,7 +142,7 @@ internal class CommitAudit : PowerMockTestCase() {
 
     @Test
     fun commitAudit_queueFull_notCommittedGroupNotDeleted() {
-        val testSet = arrayOf("123", 456, TestClassFirst())
+        val testSet = arrayOf("123", 456, TestClassString("string"))
         val testStamp = 789L
         addPrimitiveTypesAndTestClassFirst()
         val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp)
@@ -161,7 +160,7 @@ internal class CommitAudit : PowerMockTestCase() {
 
     @Test
     fun commitAuditWithExceptions_queueFull_exceptionThrown() {
-        val testSet = arrayOf("123", 456, TestClassFirst())
+        val testSet = arrayOf("123", 456, TestClassString("string"))
         val testStamp = 789L
         addPrimitiveTypesAndTestClassFirst()
         val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp)
@@ -180,7 +179,7 @@ internal class CommitAudit : PowerMockTestCase() {
 
     @Test
     fun commitAuditWithExceptions_queueFull_auditQueueInternalNotChanged() {
-        val testSet = arrayOf("123", 456, TestClassFirst())
+        val testSet = arrayOf("123", 456, TestClassString("string"))
         val testStamp = 789L
         addPrimitiveTypesAndTestClassFirst()
         val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp)
@@ -200,7 +199,7 @@ internal class CommitAudit : PowerMockTestCase() {
 
     @Test
     fun commitAuditWithExceptions_queueFull_notCommittedGroupNotDeleted() {
-        val testSet = arrayOf("123", 456, TestClassFirst())
+        val testSet = arrayOf("123", 456, TestClassString("string"))
         val testStamp = 789L
         addPrimitiveTypesAndTestClassFirst()
         val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp)
@@ -218,14 +217,14 @@ internal class CommitAudit : PowerMockTestCase() {
 
 
     private fun createAuditRecordInternal(vararg objects: Any, unixTimeStamp: Long): AuditRecordInternal {
-        return AuditRecordInternal(*objects, information = getSampleInformation(unixTimeStamp))
+        return getRecordInternal(*objects, information = getSampleInformation(unixTimeStamp))
     }
 
     private fun addPrimitiveTypesAndTestClassFirst() {
         auditApi!!.addServiceInformation()
         auditApi!!.addPrimitiveTypes()
-        val type = AuditType(TestClassFirst::class, "TestClassFirst", TestClassFirst)
-        auditApi!!.addAuditType(type)
+        val type = ObjectType(TestClassString::class, TestClassStringPresenter)
+        auditApi!!.addObjectType(type)
     }
 
     private fun getSampleInformation(timeStamp: Long): MutableSet<InformationObject> {

@@ -1,37 +1,47 @@
 package utils
 
-import tanvd.audit.model.external.types.AuditSerializer
+import tanvd.audit.model.external.records.ObjectState
+import tanvd.audit.model.external.types.InnerType
+import tanvd.audit.model.external.types.objects.*
 
-data class TestClassFirst(val hash: Long = 1) {
-    companion object serializer : AuditSerializer<TestClassFirst> {
-        override fun deserialize(serializedString: String): TestClassFirst {
-            if (serializedString == "TestClassFirstId") {
-                return TestClassFirst()
-            } else {
-                throw IllegalArgumentException()
-            }
-        }
+data class TestClassLong(val hash: Long)
 
-        override fun serialize(entity: TestClassFirst): String {
-            return "TestClassFirstId"
-        }
+object TestClassLongPresenter : ObjectPresenter<TestClassLong>() {
+    override val entityName: String = "TestClassLong"
 
-    }
+    val id = StateLongType<TestClassLong>("Id", entityName)
+
+    override val fieldSerializers: Map<StateType<TestClassLong>, (TestClassLong) -> String> =
+        hashMapOf(id to { (hash) -> hash.toString()})
+
+    override val deserializer: (ObjectState) -> TestClassLong? = {(stateList) ->
+        if (stateList[id] == null) null else TestClassLong(stateList[id]!!.toLong()) }
 }
 
-data class TestClassSecond(val hash: Long = 2) {
-    companion object serializer : AuditSerializer<TestClassSecond> {
-        override fun deserialize(serializedString: String): TestClassSecond {
-            if (serializedString == "TestClassSecondId") {
-                return TestClassSecond()
-            } else {
-                throw IllegalArgumentException()
-            }
-        }
+data class TestClassString(val hash: String)
 
-        override fun serialize(entity: TestClassSecond): String {
-            return "TestClassSecondId"
-        }
+object TestClassStringPresenter : ObjectPresenter<TestClassString>() {
+    override val entityName: String = "TestClassString"
 
-    }
+    val id = StateStringType<TestClassString>("Id", entityName)
+
+    override val fieldSerializers: Map<StateType<TestClassString>, (TestClassString) -> String> =
+            hashMapOf(id to { (hash) -> hash})
+
+    override val deserializer: (ObjectState) -> TestClassString? = {(stateList) ->
+        if (stateList[id] == null) null else TestClassString(stateList[id]!!) }
+}
+
+data class TestClassBoolean(val hash: Boolean)
+
+object TestClassBooleanPresenter : ObjectPresenter<TestClassBoolean>() {
+    override val entityName: String = "TestClassBoolean"
+
+    val id = StateBooleanType<TestClassBoolean>("Id", entityName)
+
+    override val fieldSerializers: Map<StateType<TestClassBoolean>, (TestClassBoolean) -> String> =
+            hashMapOf(id to { (hash) -> hash.toString()})
+
+    override val deserializer: (ObjectState) -> TestClassBoolean? = {(stateList) ->
+        if (stateList[id] == null) null else TestClassBoolean(stateList[id]!!.toBoolean()) }
 }

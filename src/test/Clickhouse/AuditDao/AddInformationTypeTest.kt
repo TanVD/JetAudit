@@ -11,10 +11,11 @@ import tanvd.audit.model.external.presenters.TimeStampPresenter
 import tanvd.audit.model.external.queries.QueryParameters
 import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.records.InformationObject
-import tanvd.audit.model.external.types.InformationType
-import tanvd.audit.model.internal.AuditRecordInternal
+import tanvd.audit.model.external.types.InnerType
+import tanvd.audit.model.external.types.information.InformationType
 import utils.InformationUtils
-import utils.StringPresenter
+import utils.SamplesGenerator.getRecordInternal
+import utils.StringInfPresenter
 import utils.TypeUtils
 
 internal class AddInformationTypeTest {
@@ -46,64 +47,64 @@ internal class AddInformationTypeTest {
 
     @Test
     fun saveRecordBefore_addType_loadRecordsReturnSavedRecord() {
-        val auditRecordOriginal = AuditRecordInternal(information = getSampleInformation())
+        val auditRecordOriginal = getRecordInternal(information = getSampleInformation())
         auditDao!!.saveRecord(auditRecordOriginal)
 
         addStringInformation()
 
         val recordsLoaded = auditDao!!.loadRecords(TimeStampPresenter equal 1, QueryParameters())
 
-        auditRecordOriginal.information.add(InformationObject(StringPresenter.getDefault(),
-                InformationType.resolveType(StringPresenter)))
+        auditRecordOriginal.information.add(InformationObject(StringInfPresenter.getDefault(),
+                InformationType.resolveType(StringInfPresenter)))
         Assert.assertEquals(recordsLoaded, listOf(auditRecordOriginal))
     }
 
     @Test
     fun saveRecordBefore_addTypeAndSaveWithNewType_loadRecordsLoadedNotNew() {
-        val auditRecordFirstOriginal = AuditRecordInternal(information = getSampleInformation())
+        val auditRecordFirstOriginal = getRecordInternal(information = getSampleInformation())
         auditDao!!.saveRecord(auditRecordFirstOriginal)
 
         addStringInformation()
 
-        val auditRecordSecondOriginal = AuditRecordInternal(information = getSampleWithStringInformation())
+        val auditRecordSecondOriginal = getRecordInternal(information = getSampleWithStringInformation())
         auditDao!!.saveRecord(auditRecordSecondOriginal)
 
         val recordsLoaded = auditDao!!.loadRecords(IdPresenter equal 0, QueryParameters())
 
-        auditRecordFirstOriginal.information.add(InformationObject(StringPresenter.getDefault(),
-                InformationType.resolveType(StringPresenter)))
+        auditRecordFirstOriginal.information.add(InformationObject(StringInfPresenter.getDefault(),
+                InformationType.resolveType(StringInfPresenter)))
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
     @Test
     fun saveRecordBefore_addTypeAndSaveWithNewType_loadRecordsLoadedNew() {
-        val auditRecordFirstOriginal = AuditRecordInternal(information = getSampleInformation())
+        val auditRecordFirstOriginal = getRecordInternal(information = getSampleInformation())
         auditDao!!.saveRecord(auditRecordFirstOriginal)
 
         addStringInformation()
 
-        val auditRecordSecondOriginal = AuditRecordInternal(information = getSampleWithStringInformation())
+        val auditRecordSecondOriginal = getRecordInternal(information = getSampleWithStringInformation())
         auditDao!!.saveRecord(auditRecordSecondOriginal)
 
-        val recordsLoaded = auditDao!!.loadRecords(StringPresenter equal "string", QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(StringInfPresenter equal "string", QueryParameters())
 
         Assert.assertEquals(recordsLoaded, listOf(auditRecordSecondOriginal))
     }
 
     @Test
     fun saveRecordBefore_addTypeAndSaveWithNewType_loadRecordsLoadedBoth() {
-        val auditRecordFirstOriginal = AuditRecordInternal(information = getSampleInformation())
+        val auditRecordFirstOriginal = getRecordInternal(information = getSampleInformation())
         auditDao!!.saveRecord(auditRecordFirstOriginal)
 
         addStringInformation()
 
-        val auditRecordSecondOriginal = AuditRecordInternal(information = getSampleWithStringInformation())
+        val auditRecordSecondOriginal = getRecordInternal(information = getSampleWithStringInformation())
         auditDao!!.saveRecord(auditRecordSecondOriginal)
 
         val recordsLoaded = auditDao!!.loadRecords(TimeStampPresenter equal 1, QueryParameters())
 
-        auditRecordFirstOriginal.information.add(InformationObject(StringPresenter.getDefault(),
-                InformationType.resolveType(StringPresenter)))
+        auditRecordFirstOriginal.information.add(InformationObject(StringInfPresenter.getDefault(),
+                InformationType.resolveType(StringInfPresenter)))
         Assert.assertEquals(recordsLoaded.toSet(), setOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
     }
 
@@ -119,7 +120,7 @@ internal class AddInformationTypeTest {
 
     private fun addStringInformation() {
         @Suppress("UNCHECKED_CAST")
-        val type = InformationType(StringPresenter, "OneStringField", InformationType.InformationInnerType.String) as InformationType<Any>
+        val type = InformationType(StringInfPresenter, "OneStringField", InnerType.String) as InformationType<Any>
         InformationType.addType(type)
         auditDao!!.addInformationInDbModel(type)
     }

@@ -8,15 +8,15 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
+import tanvd.audit.implementation.clickhouse.model.getCode
 import tanvd.audit.implementation.writer.ClickhouseSqlFileWriter
-import tanvd.audit.model.external.presenters.IdPresenter
-import tanvd.audit.model.external.presenters.TimeStampPresenter
-import tanvd.audit.model.external.presenters.VersionPresenter
+import tanvd.audit.model.external.presenters.*
 import tanvd.audit.model.external.records.InformationObject
-import tanvd.audit.model.external.types.AuditType
-import tanvd.audit.model.external.types.InformationType
+import tanvd.audit.model.external.types.information.InformationType
+import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
 import utils.InformationUtils
+import utils.SamplesGenerator.getRecordInternal
 import utils.TypeUtils
 import java.io.PrintWriter
 
@@ -39,21 +39,18 @@ internal class ClickhouseSqlFileWriterTest : PowerMockTestCase() {
         val id = 0L
         val version = 1L
         val timeStamp = 2L
-        val auditRecord = AuditRecordInternal(123, 456L, information = getSampleInformation(id, timeStamp, version))
+        val auditRecord = getRecordInternal(123, 456L, information = getSampleInformation(id, timeStamp, version))
         val fileWriter = PowerMockito.mock(PrintWriter::class.java)
         val reserveWriter = ClickhouseSqlFileWriter(fileWriter)
 
         reserveWriter.write(auditRecord)
 
-        val typeInt = AuditType.resolveType(Int::class)
-        val typeLong = AuditType.resolveType(Long::class)
-
         Mockito.verify(fileWriter).println("INSERT INTO ${AuditDaoClickhouseImpl.auditTable} (" +
-                "${typeInt.code}, ${typeLong.code}, ${AuditDaoClickhouseImpl.descriptionColumn}," +
-                " ${InformationType.resolveType(IdPresenter).code}, ${InformationType.resolveType(VersionPresenter).code}," +
-                " ${InformationType.resolveType(TimeStampPresenter).code}) VALUES " +
-                "(['${typeInt.serialize(123)}'], ['${typeLong.serialize(456)}'], ['${typeInt.code}', '${typeLong.code}']," +
-                " $id, $version, $timeStamp);")
+                "${IntPresenter.value.getCode()}, ${LongPresenter.value.getCode()}, ${AuditDaoClickhouseImpl.descriptionColumn}, " +
+                "${InformationType.resolveType(IdPresenter).code}, " +
+                "${InformationType.resolveType(VersionPresenter).code}, " +
+                "${InformationType.resolveType(TimeStampPresenter).code}) VALUES " +
+                "([123], [456], [Int, Long], 0, 1, 2);")
     }
 
     @Test

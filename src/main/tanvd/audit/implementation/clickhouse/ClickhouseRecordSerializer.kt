@@ -1,16 +1,15 @@
 package tanvd.audit.implementation.clickhouse
 
 import org.slf4j.LoggerFactory
-import tanvd.audit.exceptions.UnknownAuditTypeException
+import tanvd.audit.exceptions.UnknownObjectTypeException
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl.Scheme.descriptionColumn
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl.Scheme.getPredefinedAuditTableColumn
-import tanvd.audit.implementation.clickhouse.model.DbColumn
-import tanvd.audit.implementation.clickhouse.model.DbColumnType
-import tanvd.audit.implementation.clickhouse.model.DbRow
-import tanvd.audit.implementation.clickhouse.model.toDbColumnHeader
+import tanvd.audit.implementation.clickhouse.model.*
 import tanvd.audit.model.external.records.InformationObject
-import tanvd.audit.model.external.types.AuditType
-import tanvd.audit.model.external.types.InformationType
+import tanvd.audit.model.external.records.ObjectState
+import tanvd.audit.model.external.types.information.InformationType
+import tanvd.audit.model.external.types.objects.ObjectType
+import tanvd.audit.model.external.types.objects.StateType
 import tanvd.audit.model.internal.AuditRecordInternal
 import java.util.*
 import kotlin.collections.HashSet
@@ -24,34 +23,42 @@ internal object ClickhouseRecordSerializer {
      */
     fun serialize(auditRecordInternal: AuditRecordInternal): DbRow {
 
-        val description = auditRecordInternal.objects.map { it.first.code }
+        val description = auditRecordInternal.objects.map { it.first.entityName }
 
-        val groupedObjects = auditRecordInternal.objects.groupBy { it.first }.mapValues {
-            entry ->
-            entry.value.map { it.second }
-        }
+        val elements = serializeObjects(auditRecordInternal)
 
-        val elements = groupedObjects.map { DbColumn(it.key.code, it.value, DbColumnType.DbArrayString) }.toMutableList()
-
-        //Add mandatory columns
         elements.add(DbColumn(getPredefinedAuditTableColumn(descriptionColumn), description))
 
+        serializeInformation(auditRecordInternal, elements)
+
+        return DbRow(elements)
+    }
+
+    private fun serializeObjects(auditRecordInternal: AuditRecordInternal): MutableList<DbColumn> {
+        val groupedObjects = auditRecordInternal.objects.flatMap { it.second.stateList.entries }.groupBy { it.key }
+                .mapValues { it.value.map { it.value } }
+        val elements = groupedObjects.map { DbColumn(it.key.getCode(), it.value, it.key.toDbColumnType()) }.toMutableList()
+        //Add mandatory columns
+        return elements
+    }
+
+    private fun serializeInformation(auditRecordInternal: AuditRecordInternal, elements: MutableList<DbColumn>) {
         for (type in InformationType.getTypes()) {
             val curInformation = auditRecordInternal.information.find { it.type == type }
             if (curInformation != null) {
                 elements.add(DbColumn(type.toDbColumnHeader(), curInformation.value.toString()))
+            } else {
+                elements.add(DbColumn(type.toDbColumnHeader(), type.presenter.getDefault().toString()))
             }
         }
-
-        return DbRow(elements)
     }
 
 
     /**
      * Deserialize AuditRecordInternal from string representation
-     * DbString in Map -- name code
+     * DbString in Map -- name stateName
      *
-     * @throws UnknownAuditTypeException
+     * @throws UnknownObjectTypeException
      */
     fun deserialize(row: DbRow): AuditRecordInternal {
         //mandatory columns
@@ -61,44 +68,44 @@ internal object ClickhouseRecordSerializer {
             return AuditRecordInternal(emptyList(), HashSet())
         }
 
-        val information = HashSet<InformationObject>()
+        val information = deserializeInformation(row)
 
-        for (type in InformationType.getTypes()) {
-            val curInformation = row.columns.find { it.name == type.code }
-            if (curInformation != null) {
-                when (type.type) {
-                    InformationType.InformationInnerType.Long -> {
-                        information.add(InformationObject(curInformation.elements[0].toLong(), type))
-                    }
-                    InformationType.InformationInnerType.String -> {
-                        information.add(InformationObject(curInformation.elements[0], type))
-                    }
-                    InformationType.InformationInnerType.Boolean -> {
-                        information.add(InformationObject(curInformation.elements[0].toBoolean(), type))
-                    }
-                    InformationType.InformationInnerType.ULong -> {
-                        information.add(InformationObject(curInformation.elements[0].toLong(), type))
-                    }
-                }
-            }
-        }
+        val objects = deserializeObjects(description, row)
 
+        return AuditRecordInternal(objects, information)
+    }
 
-        val objects = ArrayList<Pair<AuditType<Any>, String>>()
+    private fun deserializeObjects(description: DbColumn, row: DbRow): ArrayList<Pair<ObjectType<Any>, ObjectState>> {
+        val objects = ArrayList<Pair<ObjectType<Any>, ObjectState>>()
         val currentNumberOfType = HashMap<String, Int>()
 
         for (code in description.elements) {
-            val pair = row.columns.find { it.name == code }
-            if (pair != null) {
-                val index = currentNumberOfType[code] ?: 0
-                if (pair.elements[index].isNotEmpty()) {
-                    val type = AuditType.resolveType(code)
-                    objects.add(Pair(type, pair.elements[index]))
+            val type = ObjectType.resolveType(code)
+            val stateList = HashMap<StateType<*>, String>()
+            for (stateType in type.state) {
+                val pair = row.columns.find { it.name == stateType.getCode() }
+                if (pair != null) {
+                    val index = currentNumberOfType[code] ?: 0
+                    if (pair.elements[index].isNotEmpty()) {
+                        stateList.put(stateType, pair.elements[index])
+                    }
+                    currentNumberOfType.put(code, index + 1)
                 }
-                currentNumberOfType.put(code, index + 1)
+            }
+            objects.add(Pair(type, ObjectState(stateList)))
+
+        }
+        return objects
+    }
+
+    private fun deserializeInformation(row: DbRow): HashSet<InformationObject> {
+        val information = HashSet<InformationObject>()
+        for (type in InformationType.getTypes()) {
+            val curInformation = row.columns.find { it.name == type.code }
+            if (curInformation != null) {
+                information.add(InformationObject(type.toValue(curInformation.elements[0]), type))
             }
         }
-
-        return AuditRecordInternal(objects, information)
+        return information
     }
 }

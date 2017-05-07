@@ -1,9 +1,10 @@
 package tanvd.audit.model.external.presenters
 
-import tanvd.audit.model.external.types.InformationPresenter
+import tanvd.audit.model.external.types.information.InformationLongPresenter
+import tanvd.audit.model.external.types.information.InformationPresenter
 import tanvd.audit.utils.RandomGenerator
 
-object TimeStampPresenter : InformationPresenter<Long>() {
+object TimeStampPresenter : InformationLongPresenter() {
     override fun getDefault(): Long {
         return System.currentTimeMillis()
     }
@@ -11,7 +12,7 @@ object TimeStampPresenter : InformationPresenter<Long>() {
     override val name = "TimeStampPresenter"
 }
 
-object VersionPresenter : InformationPresenter<Long>() {
+object VersionPresenter : InformationLongPresenter() {
     override fun getDefault(): Long {
         return 0
     }
@@ -19,7 +20,7 @@ object VersionPresenter : InformationPresenter<Long>() {
     override val name = "VersionPresenter"
 }
 
-object IdPresenter : InformationPresenter<Long>() {
+object IdPresenter : InformationLongPresenter() {
     override fun getDefault(): Long {
         return RandomGenerator.next()
     }

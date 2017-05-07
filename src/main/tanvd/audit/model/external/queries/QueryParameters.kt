@@ -1,10 +1,11 @@
 package tanvd.audit.model.external.queries
 
-import tanvd.audit.exceptions.UnknownAuditTypeException
+import tanvd.audit.exceptions.UnknownObjectTypeException
 import tanvd.audit.model.external.queries.QueryParameters.OrderByParameters.Order
-import tanvd.audit.model.external.types.AuditType
-import tanvd.audit.model.external.types.InformationPresenter
-import tanvd.audit.model.external.types.InformationType
+import tanvd.audit.model.external.types.information.InformationPresenter
+import tanvd.audit.model.external.types.information.InformationType
+import tanvd.audit.model.external.types.objects.ObjectType
+import tanvd.audit.model.external.types.objects.StateType
 import kotlin.reflect.KClass
 
 /**
@@ -21,11 +22,15 @@ class QueryParameters {
         limits.limitLength = length
     }
 
-    @Throws(UnknownAuditTypeException::class)
-    fun setOrder(vararg klasses: Pair<KClass<*>, Order>, information: List<Pair<InformationPresenter<*>, Order>>) {
+    fun setInformationOrder(vararg information: Pair<InformationPresenter<*>, Order>) {
         orderBy.isOrdered = true
-        orderBy.codes = arrayListOf(*klasses.map { Pair(AuditType.resolveType(it.first).code, it.second) }.toTypedArray())
-        orderBy.codes.addAll(information.map { Pair(InformationType.resolveType(it.first).code, it.second) })
+        orderBy.codesInformation = linkedMapOf(*information.map { Pair(InformationType.resolveType(it.first), it.second) }.toTypedArray())
+
+    }
+
+    fun setObjectStatesOrder(vararg states: Pair<StateType<*>, Order>) {
+        orderBy.isOrdered = true
+        orderBy.codesState = linkedMapOf(*states)
     }
 
     class LimitParameters {
@@ -35,13 +40,14 @@ class QueryParameters {
     }
 
     /**
-     * First output will be ordered by TimeStamp, than by types in order of appearance.
+     * First output will be ordered by objects, than by information in order of appearance.
      *
-     * Beware, that comparators will be applied to arrays of id's of objects, not to objects itself
+     * Beware, that comparators will be applied to arrays of value's of objects, not to objects itself
      */
     class OrderByParameters {
         var isOrdered = false
-        var codes = ArrayList<Pair<String, Order>>()
+        var codesState = LinkedHashMap<StateType<*>, Order>()
+        var codesInformation = LinkedHashMap<InformationType<*>, Order>()
 
         enum class Order {
             ASC,

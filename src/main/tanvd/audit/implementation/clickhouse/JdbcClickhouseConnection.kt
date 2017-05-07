@@ -1,6 +1,7 @@
 package tanvd.audit.implementation.clickhouse
 
 import org.slf4j.LoggerFactory
+import ru.yandex.clickhouse.except.ClickHouseException
 import ru.yandex.clickhouse.except.ClickHouseUnknownException
 import tanvd.audit.implementation.clickhouse.model.*
 import tanvd.audit.implementation.exceptions.BasicDbException
@@ -8,7 +9,7 @@ import tanvd.audit.model.external.presenters.IdPresenter
 import tanvd.audit.model.external.presenters.VersionPresenter
 import tanvd.audit.model.external.queries.*
 import tanvd.audit.model.external.queries.QueryParameters.OrderByParameters.Order
-import tanvd.audit.model.external.types.InformationType
+import tanvd.audit.model.external.types.information.InformationType
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
@@ -19,7 +20,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
 
     private val logger = LoggerFactory.getLogger(JdbcClickhouseConnection::class.java)
 
-    private val columnAlreadyCreatedExceptionCode = 1002
+    private val columnAlreadyCreatedExceptionCode = 44
 
     /**
      * Creates table with specified header (uses ifNotExists modifier by default)
@@ -70,7 +71,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             preparedStatement = connection.prepareStatement(sqlAlter)
             preparedStatement.executeUpdate()
         } catch (e: Throwable) {
-            if (e is ClickHouseUnknownException && e.errorCode == columnAlreadyCreatedExceptionCode) {
+            if (e is ClickHouseException && e.errorCode == columnAlreadyCreatedExceptionCode) {
                 logger.trace("Trying to create existing column. It will be ignored.", e)
             } else {
                 logger.error("Error inside Clickhouse occurred: ", e)
@@ -254,7 +255,13 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
                     }
                 }
             }
-            is QueryTypeLeaf -> {
+            is QueryTypeStringLeaf -> {
+                expression.toStringSQL()
+            }
+            is QueryTypeLongLeaf -> {
+                expression.toStringSQL()
+            }
+            is QueryTypeBooleanLeaf -> {
                 expression.toStringSQL()
             }
             is QueryInformationStringLeaf -> {
@@ -280,8 +287,8 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
                 dbIndexVar = setQueryIds(expression.expressionFirst, preparedStatement, dbIndexVar)
                 dbIndexVar = setQueryIds(expression.expressionSecond, preparedStatement, dbIndexVar)
             }
-            is QueryTypeLeaf -> {
-                preparedStatement?.setString(dbIndexVar, expression.id)
+            is QueryTypeStringLeaf -> {
+                preparedStatement?.setString(dbIndexVar, expression.value)
                 dbIndexVar++
             }
             is QueryInformationStringLeaf -> {
@@ -315,8 +322,10 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
      * Every append required to end by space to construct right expression with this function
      */
     private fun addOrderBy(orderBy: QueryParameters.OrderByParameters, sqlExpression: StringBuilder) {
+        val allOrder = orderBy.codesState.map { it.key.getCode() to it.value }.toMutableList()
+        allOrder.addAll(orderBy.codesInformation.map { it.key.code to it.value })
         if (orderBy.isOrdered) {
-            sqlExpression.append("ORDER BY ${orderBy.codes.joinToString { "${it.first} ${it.second.toStringSQL()}" }} ")
+            sqlExpression.append("ORDER BY ${allOrder.joinToString { "${it.first} ${it.second.toStringSQL()}" }} ")
         }
     }
 
@@ -381,6 +390,20 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             DbColumnType.DbString -> {
                 this.setString(dbIndex, column.elements[0])
             }
+            DbColumnType.DbArrayULong -> {
+                this.setArray(dbIndex,
+                        connection.createArrayOf("UInt64", column.elements.map { it.toLong() }.toTypedArray()))
+            }
+            DbColumnType.DbArrayBoolean -> {
+                this.setArray(dbIndex,
+                        connection.createArrayOf("UInt8", column.elements.map {
+                            if (it.toBoolean()) 1 else 0
+                        }.toTypedArray()))
+            }
+            DbColumnType.DbArrayLong -> {
+                this.setArray(dbIndex,
+                        connection.createArrayOf("Int64", column.elements.map { it.toLong() }.toTypedArray()))
+            }
         }
     }
 
@@ -390,79 +413,50 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
                 logger.error("Default field got in loadPropertiesFromFile. Scheme violation.")
                 return DbColumn("", emptyList(), DbColumnType.DbArrayString)
             }
-            DbColumnType.DbArrayString -> {
-                @Suppress("UNCHECKED_CAST")
-                val resultArray = this.getArray(column.name).array as Array<String>
-                return DbColumn(column.name, resultArray.toList(), DbColumnType.DbArrayString)
-            }
             DbColumnType.DbLong -> {
                 val result = this.getLong(column.name)
                 return DbColumn(column.name, listOf(result.toString()), DbColumnType.DbLong)
+            }
+            DbColumnType.DbArrayLong -> {
+                @Suppress("UNCHECKED_CAST")
+                val resultArray = (this.getArray(column.name).array as LongArray).map {it.toString()}
+                return DbColumn(column.name, resultArray.toList(), DbColumnType.DbArrayLong)
             }
             DbColumnType.DbULong -> {
                 val result = this.getLong(column.name)
                 return DbColumn(column.name, listOf(result.toString()), DbColumnType.DbLong)
             }
+            DbColumnType.DbArrayULong -> {
+                @Suppress("UNCHECKED_CAST")
+                val resultArray = (this.getArray(column.name).array as LongArray).map { it.toString() }
+                return DbColumn(column.name, resultArray.toList(), DbColumnType.DbArrayULong)
+            }
             DbColumnType.DbBoolean -> {
                 val result = this.getInt(column.name)
                 return DbColumn(column.name, listOf(if (result == 1) true.toString() else false.toString()), DbColumnType.DbBoolean)
+            }
+            DbColumnType.DbArrayBoolean -> {
+                @Suppress("UNCHECKED_CAST")
+                val resultArray = (this.getArray(column.name).array as LongArray).map {
+                    if (it.toInt() == 1)
+                        true.toString()
+                    else
+                        false.toString()
+                }
+                return DbColumn(column.name, resultArray.toList(), DbColumnType.DbArrayBoolean)
             }
             DbColumnType.DbString -> {
                 val result = this.getString(column.name)
                 return DbColumn(column.name, listOf(result), DbColumnType.DbString)
             }
-        }
-    }
-
-    private fun QueryInformationLongLeaf.toStringSQL(): String {
-        return when (condition) {
-            QueryLongCondition.less -> {
-                "${this.type.code} < $value"
-            }
-            QueryLongCondition.more -> {
-                "${this.type.code} > $value"
-            }
-            QueryLongCondition.equal -> {
-                "${this.type.code} = $value"
+            DbColumnType.DbArrayString -> {
+                @Suppress("UNCHECKED_CAST")
+                val resultArray = this.getArray(column.name).array as Array<String>
+                return DbColumn(column.name, resultArray.toList(), DbColumnType.DbArrayString)
             }
         }
     }
 
-    private fun QueryInformationBooleanLeaf.toStringSQL(): String {
-        return when (condition) {
-            QueryBooleanCondition.`is` -> {
-                "${this.type.code} == ${if (this.value) "1" else "0"}"
-            }
-            QueryBooleanCondition.isNot -> {
-                "${this.type.code} != ${if (this.value) "1" else "0"}"
-            }
-        }
-    }
-
-    private fun QueryInformationStringLeaf.toStringSQL(): String {
-        return when (condition) {
-            QueryStringCondition.equal -> {
-                "${type.code} == ?"
-            }
-            QueryStringCondition.like -> {
-                "like(${type.code}, ?)"
-            }
-            QueryStringCondition.regexp -> {
-                "match(${type.code}, ?)"
-            }
-        }
-    }
-
-    private fun QueryTypeLeaf.toStringSQL(): String {
-        return when (typeCondition) {
-            QueryTypeCondition.equal -> {
-                "has(${type.code}, ?)"
-            }
-            QueryTypeCondition.like -> {
-                "arrayExists((x) -> like(x, ?), ${type.code})"
-            }
-        }
-    }
 
     private fun Order.toStringSQL(): String {
         return when (this) {

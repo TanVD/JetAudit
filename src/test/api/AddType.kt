@@ -15,15 +15,16 @@ import tanvd.audit.AuditAPI
 import tanvd.audit.exceptions.AddExistingAuditTypeException
 import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.dao.AuditDao
-import tanvd.audit.model.external.types.AuditType
+import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
-import utils.TestClassFirst
+import utils.TestClassString
+import utils.TestClassStringPresenter
 import utils.TypeUtils
 import java.util.concurrent.BlockingQueue
 
 
 @PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*")
-@PrepareForTest(AuditExecutor::class, AuditType::class)
+@PrepareForTest(AuditExecutor::class, ObjectType::class)
 internal class AddType : PowerMockTestCase() {
 
     private var auditDao: AuditDao? = null
@@ -64,16 +65,16 @@ internal class AddType : PowerMockTestCase() {
     fun addType_typeAdded_typeToAuditTypesAdded() {
         val type = createTestClassFirstType()
 
-        auditApi?.addAuditType(type)
+        auditApi?.addObjectType(type)
 
-        assertEquals(setOf(type), AuditType.getTypes())
+        assertEquals(setOf(type), ObjectType.getTypes())
     }
 
     @Test
     fun addType_typeAdded_typeToAuditDaoAdded() {
         val type = createTestClassFirstType()
 
-        auditApi?.addAuditType(type)
+        auditApi?.addObjectType(type)
 
         verify(auditDao)?.addTypeInDbModel(type)
     }
@@ -82,17 +83,17 @@ internal class AddType : PowerMockTestCase() {
     fun addType_typeExistingAdded_exceptionThrown() {
         val type = createTestClassFirstType()
 
-        auditApi?.addAuditType(type)
+        auditApi?.addObjectType(type)
 
         try {
-            auditApi?.addAuditType(type)
+            auditApi?.addObjectType(type)
         } catch (e: AddExistingAuditTypeException) {
             return
         }
         Assert.fail()
     }
 
-    private fun createTestClassFirstType(): AuditType<TestClassFirst> {
-        return AuditType(TestClassFirst::class, "TestClassFirst", TestClassFirst)
+    private fun createTestClassFirstType(): ObjectType<TestClassString> {
+        return ObjectType(TestClassString::class, TestClassStringPresenter)
     }
 }

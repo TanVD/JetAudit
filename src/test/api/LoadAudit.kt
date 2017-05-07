@@ -10,24 +10,24 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeClass
 import org.testng.annotations.Test
 import tanvd.audit.AuditAPI
-import tanvd.audit.exceptions.UnknownAuditTypeException
+import tanvd.audit.exceptions.UnknownObjectTypeException
 import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.dao.AuditDao
+import tanvd.audit.model.external.presenters.StringPresenter
 import tanvd.audit.model.external.queries.QueryExpression
 import tanvd.audit.model.external.queries.QueryParameters
 import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.records.AuditObject
 import tanvd.audit.model.external.records.AuditRecord
 import tanvd.audit.model.external.records.InformationObject
-import tanvd.audit.model.external.types.AuditType
+import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
-import utils.InformationUtils
-import utils.TestClassFirst
-import utils.TypeUtils
+import utils.*
+import utils.SamplesGenerator.getRecordInternal
 import java.util.concurrent.BlockingQueue
 
 @PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*")
-@PrepareForTest(AuditExecutor::class, AuditType::class)
+@PrepareForTest(AuditExecutor::class, ObjectType::class)
 internal class LoadAudit : PowerMockTestCase() {
 
     private var auditDao: AuditDao? = null
@@ -65,7 +65,7 @@ internal class LoadAudit : PowerMockTestCase() {
 
     @Test
     fun loadAudit_recordLoaded_AppropriateAuditRecordReturned() {
-        val testSet = arrayOf("123", 456, TestClassFirst())
+        val testSet = arrayOf("123", 456, TestClassString("string"))
         val testStamp = 789L
         addPrimitiveTypesAndTestClassFirst()
         val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp, id = 1)
@@ -80,7 +80,7 @@ internal class LoadAudit : PowerMockTestCase() {
 
     @Test
     fun loadAudit_recordsLoaded_AppropriateAuditRecordsReturned() {
-        val testSetFirst = arrayOf("123", 456, TestClassFirst())
+        val testSetFirst = arrayOf("123", 456, TestClassString("string"))
         val testStampFirst = 1L
         val testSetSecond = arrayOf("123", 789)
         val testStampSecond = 2L
@@ -114,7 +114,7 @@ internal class LoadAudit : PowerMockTestCase() {
 
     @Test
     fun loadAuditWithExceptions_recordLoaded_AppropriateAuditRecordReturned() {
-        val testSet = arrayOf("123", 456, TestClassFirst())
+        val testSet = arrayOf("123", 456, TestClassString("string"))
         val testStamp = 789L
         addPrimitiveTypesAndTestClassFirst()
         val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp, id = 1)
@@ -129,7 +129,7 @@ internal class LoadAudit : PowerMockTestCase() {
 
     @Test
     fun loadAuditWithExceptions_recordsLoaded_AppropriateAuditRecordsReturned() {
-        val testSetFirst = arrayOf("123", 456, TestClassFirst())
+        val testSetFirst = arrayOf("123", 456, TestClassString("string"))
         val testStampFirst = 1L
         val testSetSecond = arrayOf("123", 789)
         val testStampSecond = 2L
@@ -158,23 +158,23 @@ internal class LoadAudit : PowerMockTestCase() {
 
         try {
             auditApi!!.loadAuditWithExceptions(expression, parameters)
-        } catch (e: UnknownAuditTypeException) {
+        } catch (e: UnknownObjectTypeException) {
             return
         }
         Assert.fail()
     }
 
     private fun createAuditRecordInternal(vararg objects: Any, unixTimeStamp: Long, id: Long): AuditRecordInternal {
-        return AuditRecordInternal(*objects, information = getSampleInformation(unixTimeStamp, id))
+        return getRecordInternal(*objects, information = getSampleInformation(unixTimeStamp, id))
     }
 
     private fun fullAuditRecord(vararg objects: Any, unixTimeStamp: Long, id: Long): AuditRecord {
-        val auditObjects = objects.map { o -> AuditType.resolveType(o::class).let { AuditObject(it, o) } }
+        val auditObjects = objects.map { o -> ObjectType.resolveType(o::class).let { AuditObject(it, o, it.serialize(o)) } }
         return AuditRecord(auditObjects, getSampleInformation(unixTimeStamp, id))
     }
 
     private fun createExpressionString(): QueryExpression {
-        return String::class equal "123"
+        return StringPresenter.value equal "123"
     }
 
     private fun createSimpleParam(): QueryParameters {
@@ -187,7 +187,7 @@ internal class LoadAudit : PowerMockTestCase() {
     }
 
     private fun throwUnknownAuditTypeOnExpressionAndParam(expression: QueryExpression, parameters: QueryParameters) {
-        PowerMockito.`when`(auditDao!!.loadRecords(expression, parameters)).thenThrow(UnknownAuditTypeException::class.java)
+        PowerMockito.`when`(auditDao!!.loadRecords(expression, parameters)).thenThrow(UnknownObjectTypeException::class.java)
     }
 
     private fun returnRecordsOnExpressionAndParam(records: List<AuditRecordInternal>, expression: QueryExpression,
@@ -203,8 +203,8 @@ internal class LoadAudit : PowerMockTestCase() {
     private fun addPrimitiveTypesAndTestClassFirst() {
         auditApi!!.addPrimitiveTypes()
         auditApi!!.addServiceInformation()
-        val type = AuditType(TestClassFirst::class, "TestClassFirst", TestClassFirst)
-        auditApi!!.addAuditType(type)
+        val type = ObjectType(TestClassString::class, TestClassStringPresenter)
+        auditApi!!.addObjectType(type)
     }
 
     private fun getSampleInformation(timeStamp: Long, id: Long): MutableSet<InformationObject> {

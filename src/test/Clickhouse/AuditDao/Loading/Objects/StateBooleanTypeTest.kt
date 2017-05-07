@@ -1,5 +1,6 @@
-package Clickhouse.AuditDao.Loading.Information
+package Clickhouse.AuditDao.Loading.Objects
 
+import javassist.bytecode.SignatureAttribute
 import org.testng.Assert
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
@@ -10,13 +11,14 @@ import tanvd.audit.model.external.queries.QueryParameters
 import tanvd.audit.model.external.queries.`is`
 import tanvd.audit.model.external.queries.isNot
 import tanvd.audit.model.external.records.InformationObject
-import tanvd.audit.model.external.types.InformationType
+import tanvd.audit.model.external.types.InnerType
+import tanvd.audit.model.external.types.information.InformationType
+import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
-import utils.BooleanPresenter
-import utils.InformationUtils
-import utils.TypeUtils
+import utils.*
+import utils.SamplesGenerator.getRecordInternal
 
-internal class QueryBooleanInformationConditionTest {
+internal class StateBooleanTypeTest {
 
     companion object {
         var currentId = 0L
@@ -33,9 +35,10 @@ internal class QueryBooleanInformationConditionTest {
 
         TypeUtils.addAuditTypePrimitive(auditDao!!)
 
-        val type = InformationType(BooleanPresenter, "BooleanPresenter", InformationType.InformationInnerType.Boolean) as InformationType<Any>
-        InformationType.addType(type)
-        auditDao!!.addInformationInDbModel(type)
+        val type = ObjectType(TestClassBoolean::class, TestClassBooleanPresenter) as ObjectType<Any>
+        ObjectType.addType(type)
+        auditDao!!.addTypeInDbModel(type)
+
     }
 
     @AfterMethod
@@ -47,48 +50,46 @@ internal class QueryBooleanInformationConditionTest {
 
     @Test
     fun loadRow_LoadByIs_loadedOne() {
-        val auditRecordFirstOriginal = AuditRecordInternal(emptyList(), getSampleInformation(true))
+        val auditRecordFirstOriginal = getRecordInternal(TestClassBoolean(true), information = getSampleInformation())
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(BooleanPresenter `is` true, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TestClassBooleanPresenter.id `is` true, QueryParameters())
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
     @Test
     fun loadRow_LoadByIs_loadedNone() {
-        val auditRecordFirstOriginal = AuditRecordInternal(emptyList(), getSampleInformation(true))
+        val auditRecordFirstOriginal = getRecordInternal(TestClassBoolean(true), information = getSampleInformation())
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(BooleanPresenter `is` false, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TestClassBooleanPresenter.id `is` false, QueryParameters())
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
     @Test
     fun loadRow_LoadByIsNot_loadedOne() {
-        val auditRecordFirstOriginal = AuditRecordInternal(emptyList(), getSampleInformation(true))
+        val auditRecordFirstOriginal = getRecordInternal(TestClassBoolean(true), information = getSampleInformation())
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(BooleanPresenter isNot false, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TestClassBooleanPresenter.id isNot false, QueryParameters())
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
     @Test
     fun loadRow_LoadByIsNot_loadedNone() {
-        val auditRecordFirstOriginal = AuditRecordInternal(emptyList(), getSampleInformation(true))
+        val auditRecordFirstOriginal = getRecordInternal(TestClassBoolean(true), information = getSampleInformation())
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(BooleanPresenter isNot true, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TestClassBooleanPresenter.id isNot true, QueryParameters())
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
-    private fun getSampleInformation(value: Boolean): MutableSet<InformationObject> {
-        val information = InformationUtils.getPrimitiveInformation(currentId++, 1, 2)
-        (information).add(InformationObject(value, BooleanPresenter))
-        return information
+    private fun getSampleInformation(): MutableSet<InformationObject> {
+        return InformationUtils.getPrimitiveInformation(currentId++, 1, 2)
 
     }
 }

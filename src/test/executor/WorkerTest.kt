@@ -14,9 +14,10 @@ import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.implementation.exceptions.BasicDbException
 import tanvd.audit.implementation.writer.AuditReserveWriter
 import tanvd.audit.model.external.records.InformationObject
-import tanvd.audit.model.external.types.InformationType
+import tanvd.audit.model.external.types.InnerType
+import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.internal.AuditRecordInternal
-import utils.StringPresenter
+import utils.StringInfPresenter
 import java.util.concurrent.ArrayBlockingQueue
 
 @PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*")
@@ -424,6 +425,6 @@ internal class WorkerTest : PowerMockTestCase() {
 
     private fun getSampleInformation(value: String): MutableSet<InformationObject> {
         @Suppress("UNCHECKED_CAST")
-        return hashSetOf(InformationObject(value, InformationType(StringPresenter, "StringPresenter", InformationType.InformationInnerType.String) as InformationType<Any>))
+        return hashSetOf(InformationObject(value, InformationType(StringInfPresenter, "StringInfPresenter", InnerType.String) as InformationType<Any>))
     }
 }

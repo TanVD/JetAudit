@@ -11,20 +11,19 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeClass
 import org.testng.annotations.Test
 import tanvd.audit.AuditAPI
-import tanvd.audit.exceptions.UnknownAuditTypeException
+import tanvd.audit.exceptions.UnknownObjectTypeException
 import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.records.InformationObject
-import tanvd.audit.model.external.types.AuditType
+import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
-import utils.InformationUtils
-import utils.TestClassFirst
-import utils.TypeUtils
+import utils.*
+import utils.SamplesGenerator.getRecordInternal
 import java.util.concurrent.BlockingQueue
 
 
 @PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*")
-@PrepareForTest(AuditExecutor::class, AuditType::class)
+@PrepareForTest(AuditExecutor::class, ObjectType::class)
 internal class SaveAudit : PowerMockTestCase() {
 
     private var currentId = 0L
@@ -71,7 +70,7 @@ internal class SaveAudit : PowerMockTestCase() {
         val auditRecord = fullAuditRecord(information)
         isQueueFullOnRecord(auditRecord, false)
 
-        auditApi!!.save("123", 456, TestClassFirst(), information = information)
+        auditApi!!.save("123", 456, TestClassString("string"), information = information)
 
         Assert.assertEquals(auditRecordsNotCommitted?.get(), listOf(auditRecord))
     }
@@ -84,7 +83,7 @@ internal class SaveAudit : PowerMockTestCase() {
         val auditRecord = fullAuditRecord(information)
         isQueueFullOnRecord(auditRecord, false)
 
-        auditApi!!.saveWithException("123", 456, TestClassFirst(), information = information)
+        auditApi!!.saveWithException("123", 456, TestClassString("string"), information = information)
 
         Assert.assertEquals(auditRecordsNotCommitted?.get(), listOf(auditRecord))
     }
@@ -97,7 +96,7 @@ internal class SaveAudit : PowerMockTestCase() {
         val auditRecord = auditRecordWithoutTestClassFirst(information)
         isQueueFullOnRecord(auditRecord, false)
 
-        auditApi!!.save("123", 456, TestClassFirst(), information = information)
+        auditApi!!.save("123", 456, TestClassString("string"), information = information)
 
         Assert.assertEquals(auditRecordsNotCommitted?.get(), listOf(auditRecord))
     }
@@ -107,26 +106,19 @@ internal class SaveAudit : PowerMockTestCase() {
         addPrimitiveTypes()
 
         try {
-            auditApi?.saveWithException("123", 456, TestClassFirst(), information = HashSet())
-        } catch (e: UnknownAuditTypeException) {
+            auditApi?.saveWithException("123", 456, TestClassString("string"), information = HashSet())
+        } catch (e: UnknownObjectTypeException) {
             return
         }
         Assert.fail()
     }
 
     private fun fullAuditRecord(information: MutableSet<InformationObject>): AuditRecordInternal {
-        return AuditRecordInternal(listOf(
-                Pair(AuditType.resolveType(String::class), "123"),
-                Pair(AuditType.resolveType(Int::class), "456"),
-                Pair(AuditType.resolveType(TestClassFirst::class), "TestClassFirstId")
-        ), information)
+        return getRecordInternal("123", 456, TestClassString("string"), information = information)
     }
 
     private fun auditRecordWithoutTestClassFirst(information: MutableSet<InformationObject>): AuditRecordInternal {
-        return AuditRecordInternal(listOf(
-                Pair(AuditType.resolveType(String::class), "123"),
-                Pair(AuditType.resolveType(Int::class), "456")
-        ), information)
+        return getRecordInternal("123", 456, information = information)
     }
 
     private fun addPrimitiveTypes() {
@@ -137,8 +129,8 @@ internal class SaveAudit : PowerMockTestCase() {
     private fun addPrimitiveTypesAndTestClassFirst() {
         auditApi!!.addPrimitiveTypes()
         auditApi!!.addServiceInformation()
-        val type = AuditType(TestClassFirst::class, "TestClassFirst", TestClassFirst)
-        auditApi!!.addAuditType(type)
+        val type = ObjectType(TestClassString::class, TestClassStringPresenter)
+        auditApi!!.addObjectType(type)
     }
 
     private fun isQueueFullOnRecord(record: AuditRecordInternal, full: Boolean) {

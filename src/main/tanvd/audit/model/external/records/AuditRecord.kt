@@ -1,12 +1,8 @@
 package tanvd.audit.model.external.records
 
-import tanvd.audit.model.external.types.AuditType
-import tanvd.audit.model.external.types.InformationPresenter
-
-/**
- * External representation of loaded audit object with rich type informations.
- */
-data class AuditObject(val type: AuditType<Any>, val obj: Any)
+import tanvd.audit.model.external.types.information.InformationPresenter
+import tanvd.audit.model.external.types.objects.ObjectType
+import tanvd.audit.model.external.types.objects.StateType
 
 /**
  * External representation of loaded audit record

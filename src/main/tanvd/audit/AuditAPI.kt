@@ -4,23 +4,25 @@ import org.slf4j.LoggerFactory
 import tanvd.audit.exceptions.AddExistingAuditTypeException
 import tanvd.audit.exceptions.AddExistingInformationTypeException
 import tanvd.audit.exceptions.AuditQueueFullException
-import tanvd.audit.exceptions.UnknownAuditTypeException
+import tanvd.audit.exceptions.UnknownObjectTypeException
 import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.implementation.dao.DbType
 import tanvd.audit.model.external.presenters.IdPresenter
 import tanvd.audit.model.external.presenters.TimeStampPresenter
 import tanvd.audit.model.external.presenters.VersionPresenter
+import tanvd.audit.model.external.presenters.IntPresenter
+import tanvd.audit.model.external.presenters.LongPresenter
+import tanvd.audit.model.external.presenters.StringPresenter
 import tanvd.audit.model.external.queries.QueryExpression
 import tanvd.audit.model.external.queries.QueryParameters
 import tanvd.audit.model.external.records.AuditObject
 import tanvd.audit.model.external.records.AuditRecord
 import tanvd.audit.model.external.records.InformationObject
-import tanvd.audit.model.external.serializers.IntSerializer
-import tanvd.audit.model.external.serializers.LongSerializer
-import tanvd.audit.model.external.serializers.StringSerializer
-import tanvd.audit.model.external.types.AuditType
-import tanvd.audit.model.external.types.InformationType
+import tanvd.audit.model.external.records.ObjectState
+import tanvd.audit.model.external.types.InnerType
+import tanvd.audit.model.external.types.information.InformationType
+import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
 import tanvd.audit.utils.PropertyLoader
 import java.util.concurrent.ArrayBlockingQueue
@@ -158,38 +160,38 @@ class AuditAPI {
     internal fun addServiceInformation() {
         InformationType.addType(InformationType(IdPresenter,
                 PropertyLoader.loadProperty("IdColumn") ?: "IdColumn",
-                InformationType.InformationInnerType.Long) as InformationType<Any>)
+                InnerType.Long) as InformationType<Any>)
         InformationType.addType(InformationType(VersionPresenter,
                 PropertyLoader.loadProperty("VersionColumn") ?: "VersionColumn",
-                InformationType.InformationInnerType.ULong) as InformationType<Any>)
+                InnerType.ULong) as InformationType<Any>)
         InformationType.addType(InformationType(TimeStampPresenter,
                 PropertyLoader.loadProperty("TimeStampColumn") ?: "TimeStampColumn",
-                InformationType.InformationInnerType.Long) as InformationType<Any>)
+                InnerType.Long) as InformationType<Any>)
     }
 
     /**
      * Initializing type system with primitive types
      */
     internal fun addPrimitiveTypes() {
-        addAuditType(AuditType(String::class, "String", StringSerializer))
-        addAuditType(AuditType(Int::class, "Int", IntSerializer))
-        addAuditType(AuditType(Long::class, "Long", LongSerializer))
+        addObjectType(ObjectType(String::class, StringPresenter))
+        addObjectType(ObjectType(Int::class, IntPresenter))
+        addObjectType(ObjectType(Long::class, LongPresenter))
     }
 
     /**
      * Add type of audit entity to JetAudit type system
      *
-     * In case of AuditType duplicate
+     * In case of ObjectType duplicate
      * @throws AddExistingAuditTypeException
      */
-    fun <T> addAuditType(type: AuditType<T>) {
+    fun <T : Any> addObjectType(type: ObjectType<T>) {
         @Suppress("UNCHECKED_CAST")
-        if (AuditType.getTypes().contains(type as AuditType<Any>)) {
-            throw AddExistingAuditTypeException("Already existing audit type requested to add -- ${type.code}")
+        if (ObjectType.getTypes().contains(type as ObjectType<Any>)) {
+            throw AddExistingAuditTypeException("Already existing audit type requested to add -- ${type.klass}")
         }
         auditDao.addTypeInDbModel(type)
-        synchronized(AuditType) {
-            AuditType.addType(type)
+        synchronized(ObjectType) {
+            ObjectType.addType(type)
         }
     }
 
@@ -217,17 +219,17 @@ class AuditAPI {
      * Unknown types will be ignored and reported with log error.
      */
     fun save(vararg objects: Any, information: Set<InformationObject> = emptySet()) {
-        val recordObjects = ArrayList<Pair<AuditType<Any>, String>>()
+        val recordObjects = ArrayList<Pair<ObjectType<Any>, ObjectState>>()
         for (o in objects) {
             try {
-                val type = AuditType.resolveType(o::class)
+                val type = ObjectType.resolveType(o::class)
                 recordObjects.add(Pair(type, type.serialize(o)))
-            } catch (e: UnknownAuditTypeException) {
-                logger.error("AuditAPI met unknown AuditType. Object will be ignored")
+            } catch (e: UnknownObjectTypeException) {
+                logger.error("AuditAPI met unknown ObjectType. Object will be ignored")
             }
         }
 
-        auditRecordsNotCommitted.get().add(AuditRecordInternal(recordObjects, addDefaults(information)))
+        auditRecordsNotCommitted.get().add(AuditRecordInternal(recordObjects, information.toMutableSet()))
     }
 
 
@@ -236,26 +238,13 @@ class AuditAPI {
      *
      * This method throws exceptions related to AuditApi. Exceptions of Db are ignored anyway.
      *
-     * @throws UnknownAuditTypeException
+     * @throws UnknownObjectTypeException
      */
     fun saveWithException(vararg objects: Any, information: MutableSet<InformationObject> = HashSet()) {
-        val recordObjects = objects.map { o -> AuditType.resolveType(o::class).let { it to it.serialize(o) } }
+        val recordObjects = objects.map { o -> ObjectType.resolveType(o::class).let { it to it.serialize(o) } }
 
-        auditRecordsNotCommitted.get().add(AuditRecordInternal(recordObjects, addDefaults(information)))
+        auditRecordsNotCommitted.get().add(AuditRecordInternal(recordObjects, information))
     }
-
-    private fun addDefaults(information: Set<InformationObject>): MutableSet<InformationObject> {
-        val informationAll = HashSet<InformationObject>()
-        for (type in InformationType.getTypes()) {
-            var curInformation = information.find { it.type == type }
-            if (curInformation == null) {
-                curInformation = InformationObject(type.presenter.getDefault(), type)
-            }
-            informationAll.add(curInformation)
-        }
-        return informationAll
-    }
-
 
     /**
      * Commit all audit records associated with Thread.
@@ -305,7 +294,7 @@ class AuditAPI {
      *
      * If some entities was not found null instead will be returned
      *
-     * Beware that due to use of batching you will have only one real object and a lot of links to it for every id
+     * Beware that due to use of batching you will have only one real object and a lot of links to it for every value
      *
      * This method not throwing any exceptions.
      */
@@ -313,8 +302,8 @@ class AuditAPI {
         val auditRecords: List<AuditRecordInternal?>
         try {
             auditRecords = auditDao.loadRecords(expression, parameters)
-        } catch (e: UnknownAuditTypeException) {
-            logger.error("AuditAPI met unknown AuditType. Empty list will be returned.")
+        } catch (e: UnknownObjectTypeException) {
+            logger.error("AuditAPI met unknown ObjectType. Empty list will be returned.")
             return emptyList()
         }
 
@@ -335,7 +324,7 @@ class AuditAPI {
      *
      * This method throws exceptions related to AuditApi. Exceptions of Db are ignored anyway.
      *
-     * @throws UnknownAuditTypeException
+     * @throws UnknownObjectTypeException
      */
     fun loadAuditWithExceptions(expression: QueryExpression, parameters: QueryParameters, useBatching: Boolean = true):
             List<AuditRecord> {
@@ -378,11 +367,11 @@ class AuditAPI {
 
         val resultList = auditRecords.map { (objects, information) ->
             AuditRecord(objects.map {
-                (type, id) ->
-                if (deserializedMaps[type]?.get(id) == null) {
+                (type, state) ->
+                if (deserializedMaps[type]?.get(state) == null) {
                     null
                 } else {
-                    deserializedMaps[type]!![id]!!.let { AuditObject(type, it) }
+                    deserializedMaps[type]!![state]!!.let { AuditObject(type, it, state) }
                 }
             }, information)
         }
@@ -397,7 +386,7 @@ class AuditAPI {
                 if (obj == null) {
                     null
                 } else {
-                    AuditObject(it.first, obj)
+                    AuditObject(it.first, obj, it.second)
                 }
             }, it.information)
         }

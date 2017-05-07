@@ -1,18 +1,13 @@
 package tanvd.audit.implementation.clickhouse.model
 
-import org.slf4j.LoggerFactory
-import tanvd.audit.model.external.types.InformationType
+import tanvd.audit.model.external.types.information.InformationType
+import tanvd.audit.model.external.types.objects.StateType
 import java.util.*
 
 /**
  * Row of Clickhouse DB.
  */
 internal data class DbRow(val columns: List<DbColumn> = ArrayList()) {
-
-    companion object log {
-        private val logger = LoggerFactory.getLogger(DbRow::class.java)
-
-    }
 
     fun toStringHeader(): String {
         return columns.map { it.name }.joinToString()
@@ -23,29 +18,7 @@ internal data class DbRow(val columns: List<DbColumn> = ArrayList()) {
     }
 
     fun toValues(): String {
-        return columns.map { (_, elements, type) ->
-            when (type) {
-                DbColumnType.DbLong -> {
-                    elements[0]
-                }
-                DbColumnType.DbArrayString -> {
-                    elements.map { "\'" + it + "\'" }.joinToString(prefix = "[", postfix = "]")
-                }
-                DbColumnType.DbDate -> {
-                    //Should never come here
-                    logger.error("Invoke not implemented function. Should never come here.")
-                }
-                DbColumnType.DbULong -> {
-                    elements[0]
-                }
-                DbColumnType.DbBoolean -> {
-                    if (elements[0].toBoolean()) "1" else "0"
-                }
-                DbColumnType.DbString -> {
-                    elements[0]
-                }
-            }
-        }.joinToString()
+        return columns.map { it.toValues() }.joinToString()
     }
 
 }
@@ -56,6 +29,29 @@ internal data class DbRow(val columns: List<DbColumn> = ArrayList()) {
 internal data class DbColumn(val name: String, val elements: List<String>, val type: DbColumnType) {
     constructor(header: DbColumnHeader, elements: List<String>) : this(header.name, elements, header.type)
     constructor(header: DbColumnHeader, vararg elements: String) : this(header.name, elements.toList(), header.type)
+
+    fun toValues(): String {
+        return if (type.isArray) {
+            elements.map { valueToSQL(it) }.joinToString(prefix = "[", postfix = "]")
+        } else {
+            valueToSQL(elements[0])
+        }
+    }
+
+    private fun valueToSQL(value: String): String {
+        return when (type) {
+            DbColumnType.DbString -> {
+                "\'" + value + "\'"
+            }
+            DbColumnType.DbBoolean -> {
+                if (value.toBoolean()) "1" else "0"
+            }
+            else -> {
+                value
+            }
+
+        }
+    }
 }
 
 /**
@@ -64,55 +60,73 @@ internal data class DbColumn(val name: String, val elements: List<String>, val t
  */
 internal enum class DbColumnType {
     DbDate {
+        override val isArray = false
+
         override fun toString(): String {
             return "Date"
         }
     },
-    DbArrayString {
-        override fun toString(): String {
-            return "Array(String)"
-        }
-    },
     DbULong {
+        override val isArray = false
+
         override fun toString(): String {
             return "UInt64"
         }
     },
+    DbArrayULong {
+        override val isArray = true
+
+        override fun toString(): String {
+            return "Array(UInt64)"
+        }
+    },
     DbBoolean {
+        override val isArray = false
+
         override fun toString(): String {
             return "UInt8"
         }
     },
+    DbArrayBoolean {
+        override val isArray = true
+
+        override fun toString(): String {
+            return "Array(UInt8)"
+        }
+    },
     DbString {
+        override val isArray = false
+
         override fun toString(): String {
             return "String"
         }
     },
+    DbArrayString {
+        override val isArray = true
+
+        override fun toString(): String {
+            return "Array(String)"
+        }
+    },
     DbLong {
+        override val isArray = false
+
         override fun toString(): String {
             return "Int64"
         }
+    },
+    DbArrayLong {
+        override val isArray = true
+
+        override fun toString(): String {
+            return "Array(Int64)"
+        }
     };
 
-    companion object Factory {
-        fun getFromInformationInnerType(type: InformationType.InformationInnerType): DbColumnType {
-            when (type) {
-                InformationType.InformationInnerType.Long -> {
-                    return DbLong
-                }
-                InformationType.InformationInnerType.String -> {
-                    return DbString
-                }
-                InformationType.InformationInnerType.Boolean -> {
-                    return DbBoolean
-                }
-                InformationType.InformationInnerType.ULong -> {
-                    return DbULong
-                }
-            }
-        }
-    }
+    abstract val isArray: Boolean
+
 }
+
 
 /**
  * Header for Clickhouse DB
@@ -132,6 +146,7 @@ internal data class DbTableHeader(val columnsHeader: List<DbColumnHeader>) {
  * Header for Clickhouse Column
  */
 internal data class DbColumnHeader(val name: String, val type: DbColumnType) {
+
     /** Returns string definition of ColumnHeader -- name **/
     fun toDefString(): String {
         return name
@@ -139,5 +154,10 @@ internal data class DbColumnHeader(val name: String, val type: DbColumnType) {
 }
 
 internal fun InformationType<*>.toDbColumnHeader(): DbColumnHeader {
-    return DbColumnHeader(this.code, DbColumnType.getFromInformationInnerType(this.type))
+    return DbColumnHeader(this.code, this.toDbColumnType())
+}
+
+
+internal fun StateType<*>.getCode(): String {
+    return this.objectName + "_" + this.stateName
 }
