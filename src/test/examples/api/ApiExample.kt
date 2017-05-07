@@ -25,6 +25,8 @@ import java.util.*
 internal class AuditApiExample {
 
     object OrderPresenter : ObjectPresenter<Order>() {
+        override val useDeserialization: Boolean = true
+
         override val entityName: String = "Order"
 
         val id = StateStringType<Order>("Id", entityName)
@@ -41,6 +43,8 @@ internal class AuditApiExample {
     }
 
     object AccountPresenter : ObjectPresenter<Account>() {
+        override val useDeserialization: Boolean = true
+
         override val entityName: String = "Account"
 
         val id = StateStringType<Account>("Id", entityName)
@@ -93,7 +97,7 @@ internal class AuditApiExample {
 
         System.out.println("Printing first record: ")
 
-        System.out.println(records[0].objects.joinToString(separator = " ") { it?.obj?.toString() ?: "Unknown entity" })
+        System.out.println(records[0].objects.joinToString(separator = " ") { it.obj?.toString() ?: "Unknown entity" })
 
         System.out.println("Time: ${printTime(records[0].getInformationValue(TimeStampPresenter)!!)}")
     }
@@ -133,7 +137,7 @@ internal class AuditApiExample {
         for (i in 0..(records.size - 1)) {
             System.out.println("Printing $i record: ")
 
-            System.out.println(records[i].objects.joinToString(separator = " ") { it?.obj?.toString() ?: "Unknown entity" } + " " +
+            System.out.println(records[i].objects.joinToString(separator = " ") { it.obj?.toString() ?: "Unknown entity" } + " " +
                     "Title: " + records[i].getInformationValue(TitlePresenter))
 
             System.out.println("Time: ${printTime(records[i].getInformationValue(TimeStampPresenter)!!)}")
@@ -184,7 +188,7 @@ internal class AuditApiExample {
         for (i in 0..(records.size - 1)) {
             System.out.println("Printing $i record: ")
 
-            System.out.println(records[i].objects.joinToString(separator = " ") { it?.obj?.toString() ?: "Unknown entity" } + " " +
+            System.out.println(records[i].objects.joinToString(separator = " ") { it.obj?.toString() ?: "Unknown entity" } + " " +
                     "Title: " + records[i].getInformationValue(TitlePresenter) + " " +
                     "IsExternal: " + records[i].getInformationValue(IsExternalPresenter))
 
@@ -214,7 +218,7 @@ internal class AuditApiExample {
         for (i in 0..(resultingRecords.size - 1)) {
             System.out.println("Printing $i record: ")
 
-            System.out.println(resultingRecords[i].objects.joinToString(separator = " ") { it?.obj?.toString() ?: "Unknown entity" } + " " +
+            System.out.println(resultingRecords[i].objects.joinToString(separator = " ") { it.obj?.toString() ?: "Unknown entity" } + " " +
                     "Title: " + records[i].getInformationValue(TitlePresenter) + " " +
                     "IsExternal: " + records[i].getInformationValue(IsExternalPresenter))
 

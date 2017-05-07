@@ -85,11 +85,11 @@ internal object ClickhouseRecordSerializer {
             for (stateType in type.state) {
                 val pair = row.columns.find { it.name == stateType.getCode() }
                 if (pair != null) {
-                    val index = currentNumberOfType[code] ?: 0
+                    val index = currentNumberOfType[stateType.getCode()] ?: 0
                     if (pair.elements[index].isNotEmpty()) {
                         stateList.put(stateType, pair.elements[index])
                     }
-                    currentNumberOfType.put(code, index + 1)
+                    currentNumberOfType.put(stateType.getCode(), index + 1)
                 }
             }
             objects.add(Pair(type, ObjectState(stateList)))

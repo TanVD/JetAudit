@@ -7,6 +7,8 @@ import tanvd.audit.model.external.types.objects.*
 data class TestClassLong(val hash: Long)
 
 object TestClassLongPresenter : ObjectPresenter<TestClassLong>() {
+    override val useDeserialization: Boolean = true
+
     override val entityName: String = "TestClassLong"
 
     val id = StateLongType<TestClassLong>("Id", entityName)
@@ -21,6 +23,8 @@ object TestClassLongPresenter : ObjectPresenter<TestClassLong>() {
 data class TestClassString(val hash: String)
 
 object TestClassStringPresenter : ObjectPresenter<TestClassString>() {
+    override val useDeserialization: Boolean = true
+
     override val entityName: String = "TestClassString"
 
     val id = StateStringType<TestClassString>("Id", entityName)
@@ -35,6 +39,8 @@ object TestClassStringPresenter : ObjectPresenter<TestClassString>() {
 data class TestClassBoolean(val hash: Boolean)
 
 object TestClassBooleanPresenter : ObjectPresenter<TestClassBoolean>() {
+    override val useDeserialization: Boolean = true
+
     override val entityName: String = "TestClassBoolean"
 
     val id = StateBooleanType<TestClassBoolean>("Id", entityName)

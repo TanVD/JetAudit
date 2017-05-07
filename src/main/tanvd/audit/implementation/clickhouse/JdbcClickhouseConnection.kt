@@ -419,7 +419,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             }
             DbColumnType.DbArrayLong -> {
                 @Suppress("UNCHECKED_CAST")
-                val resultArray = (this.getArray(column.name).array as LongArray).map {it.toString()}
+                val resultArray = (this.getArray(column.name).array as LongArray).map { it.toString() }
                 return DbColumn(column.name, resultArray.toList(), DbColumnType.DbArrayLong)
             }
             DbColumnType.DbULong -> {

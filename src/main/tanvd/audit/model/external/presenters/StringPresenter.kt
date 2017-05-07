@@ -6,6 +6,8 @@ import tanvd.audit.model.external.types.objects.StateStringType
 import tanvd.audit.model.external.types.objects.StateType
 
 object StringPresenter : ObjectPresenter<String>() {
+    override val useDeserialization: Boolean = true
+
     override val entityName: String = "String"
 
     val value = StateStringType<String>("Value", entityName)

@@ -363,13 +363,18 @@ class AuditAPI {
         val preparedForBatchDeserialization = auditRecords.flatMap { it.objects }.groupBy { it.first }
                 .mapValues { it.value.map { it.second }.distinct() }
 
-        val deserializedMaps = preparedForBatchDeserialization.mapValues { it.key.serializer.deserializeBatch(it.value) }
+        val deserializedMaps = preparedForBatchDeserialization.mapValues {
+            if (it.key.useDeserialization)
+                it.key.serializer.deserializeBatch(it.value)
+            else
+                emptyMap()
+        }
 
         val resultList = auditRecords.map { (objects, information) ->
             AuditRecord(objects.map {
                 (type, state) ->
                 if (deserializedMaps[type]?.get(state) == null) {
-                    null
+                    AuditObject(type, null, state)
                 } else {
                     deserializedMaps[type]!![state]!!.let { AuditObject(type, it, state) }
                 }
@@ -382,11 +387,11 @@ class AuditAPI {
     private fun deserializeAuditRecords(auditRecords: List<AuditRecordInternal>): List<AuditRecord> {
         return auditRecords.map {
             AuditRecord(it.objects.map {
-                val obj = it.first.deserialize(it.second)
-                if (obj == null) {
-                    null
+                val type = it.first
+                if (type.useDeserialization) {
+                    AuditObject(type, type.deserialize(it.second), it.second)
                 } else {
-                    AuditObject(it.first, obj, it.second)
+                    AuditObject(type, null, it.second)
                 }
             }, it.information)
         }

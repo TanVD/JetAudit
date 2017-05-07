@@ -1,6 +1,10 @@
 package tanvd.audit.model.external.presenters
 
-object LongPresenter : tanvd.audit.model.external.types.objects.ObjectPresenter<Long>() {
+import tanvd.audit.model.external.types.objects.ObjectPresenter
+
+object LongPresenter : ObjectPresenter<Long>() {
+    override val useDeserialization: Boolean = true
+
     override val entityName: String = "Long"
 
     val value = tanvd.audit.model.external.types.objects.StateLongType<Long>("Value", entityName)

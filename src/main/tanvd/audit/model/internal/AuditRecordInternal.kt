@@ -17,10 +17,7 @@ internal data class AuditRecordInternal(val objects: List<Pair<ObjectType<*>, Ob
         fun createFromRecordWithNewVersion(auditRecord: AuditRecord): AuditRecordInternal {
             return AuditRecordInternal(
                     auditRecord.objects.mapNotNull {
-                        if (it != null)
                             it.type to it.state
-                        else
-                            null
                     },
                     auditRecord.informations.map {
                         if (it.type.presenter.name == VersionPresenter.name)
