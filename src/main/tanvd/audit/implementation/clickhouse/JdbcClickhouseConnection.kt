@@ -2,7 +2,6 @@ package tanvd.audit.implementation.clickhouse
 
 import org.slf4j.LoggerFactory
 import ru.yandex.clickhouse.except.ClickHouseException
-import ru.yandex.clickhouse.except.ClickHouseUnknownException
 import tanvd.audit.implementation.clickhouse.model.*
 import tanvd.audit.implementation.exceptions.BasicDbException
 import tanvd.audit.model.external.presenters.IdPresenter
@@ -335,7 +334,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
 
         val sqlSelect = StringBuilder()
 
-        sqlSelect.append("SELECT COUNT(*) FROM $tableName WHERE ")
+        sqlSelect.append("SELECT COUNT(*) FROM $tableName PREWHERE ")
 
         addExpression(expression, sqlSelect)
 
