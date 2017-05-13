@@ -1,12 +1,12 @@
 package tanvd.audit.implementation.dao
 
 import tanvd.audit.exceptions.UninitializedException
-import tanvd.audit.exceptions.UnknownAuditTypeException
+import tanvd.audit.exceptions.UnknownObjectTypeException
 import tanvd.audit.implementation.exceptions.BasicDbException
 import tanvd.audit.model.external.queries.QueryExpression
 import tanvd.audit.model.external.queries.QueryParameters
-import tanvd.audit.model.external.types.AuditType
-import tanvd.audit.model.external.types.InformationType
+import tanvd.audit.model.external.types.information.InformationType
+import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
 import javax.sql.DataSource
 
@@ -35,7 +35,7 @@ internal interface AuditDao {
      *
      * @throws BasicDbException
      */
-    fun <T> addTypeInDbModel(type: AuditType<T>)
+    fun <T : Any> addTypeInDbModel(type: ObjectType<T>)
 
     /**
      * Performs operations on Db scheme needed to support new information type.
@@ -50,7 +50,7 @@ internal interface AuditDao {
      * Implementations must pass parameters of query to Db (it means, that implementations must not apply parameters
      * to result set of query returned by Db)
      *
-     * @throws UnknownAuditTypeException
+     * @throws UnknownObjectTypeException
      * @throws BasicDbException
      */
     fun loadRecords(expression: QueryExpression, parameters: QueryParameters): List<AuditRecordInternal>

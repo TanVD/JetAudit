@@ -1,16 +1,11 @@
-package tanvd.audit.model.external.types
+package tanvd.audit.model.external.types.information
 
 import tanvd.audit.exceptions.UnknownInformationTypeException
+import tanvd.audit.model.external.types.InnerType
 
 
-data class InformationType<T>(val presenter: InformationPresenter<T>, val code: String, val type: InformationInnerType) {
+data class InformationType<T>(val presenter: InformationPresenter<T>, val code: String, val type: InnerType) {
 
-    enum class InformationInnerType {
-        Long,
-        ULong,
-        String,
-        Boolean;
-    }
 
     companion object TypesResolution {
         private val informationTypes: MutableSet<InformationType<Any>> = LinkedHashSet()
@@ -18,14 +13,14 @@ data class InformationType<T>(val presenter: InformationPresenter<T>, val code: 
         private val informationTypesByPresenter: MutableMap<InformationPresenter<*>, InformationType<Any>> = HashMap()
 
         /**
-         * Resolve code to InformationType
+         * Resolve stateName to InformationType
          *
          * @throws UnknownInformationTypeException
          */
         fun resolveType(code: String): InformationType<Any> {
             val informationType = informationTypesByCode[code]
             if (informationType == null) {
-                throw UnknownInformationTypeException("Unknown InformationType requested to resolve by code -- $code")
+                throw UnknownInformationTypeException("Unknown InformationType requested to resolve by stateName -- $code")
             } else {
                 return informationType
             }

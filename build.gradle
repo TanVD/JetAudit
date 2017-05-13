@@ -42,11 +42,9 @@ test {
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-    compile "ru.yandex.clickhouse:clickhouse-jdbc:0.1.17"
-    compile "mysql:mysql-connector-java:6.0.6"
+    compile "ru.yandex.clickhouse:clickhouse-jdbc:0.1.20"
     compile "org.slf4j:slf4j-api:1.7.25"
     compile "ch.qos.logback:logback-classic:1.2.2"
-    compile files("lib/Kara/kotlinx.reflection.jar")
     testCompile "org.testng:testng:6.11"
     testCompile "org.mockito:mockito-all:1.10.19"
     //need it for kotlin object mocking purposes (mocking static members)

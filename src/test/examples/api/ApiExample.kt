@@ -2,17 +2,21 @@ package examples.api
 
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
+import org.testng.annotations.Test
 import tanvd.audit.AuditAPI
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.dao.DbType
 import tanvd.audit.model.external.presenters.TimeStampPresenter
 import tanvd.audit.model.external.queries.*
+import tanvd.audit.model.external.queries.QueryParameters.OrderByParameters.Order.*
 import tanvd.audit.model.external.records.AuditRecord
 import tanvd.audit.model.external.records.InformationObject
-import tanvd.audit.model.external.types.AuditSerializer
-import tanvd.audit.model.external.types.AuditType
-import tanvd.audit.model.external.types.InformationPresenter
-import tanvd.audit.model.external.types.InformationType
+import tanvd.audit.model.external.records.ObjectState
+import tanvd.audit.model.external.types.InnerType
+import tanvd.audit.model.external.types.information.InformationLongPresenter
+import tanvd.audit.model.external.types.information.InformationPresenter
+import tanvd.audit.model.external.types.information.InformationType
+import tanvd.audit.model.external.types.objects.*
 import utils.TypeUtils
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -20,34 +24,37 @@ import java.util.*
 
 internal class AuditApiExample {
 
+    object OrderPresenter : ObjectPresenter<Order>() {
+        override val useDeserialization: Boolean = true
+
+        override val entityName: String = "Order"
+
+        val id = StateStringType<Order>("Id", entityName)
+
+        override val fieldSerializers: Map<StateType<Order>, (Order) -> String> = hashMapOf(id to {value -> value.id})
+        override val deserializer: (ObjectState) -> Order? = {(stateList) -> Order(stateList[id]!!)}
+
+    }
+
     class Order(val id: String) {
-
-        companion object serializer : AuditSerializer<Order> {
-            override fun deserialize(serializedString: String): Order {
-                return Order(serializedString)
-            }
-
-            override fun serialize(entity: Order): String {
-                return entity.id
-            }
-        }
-
         override fun toString(): String {
             return "Order: " + id
         }
     }
 
+    object AccountPresenter : ObjectPresenter<Account>() {
+        override val useDeserialization: Boolean = true
+
+        override val entityName: String = "Account"
+
+        val id = StateStringType<Account>("Id", entityName)
+
+        override val fieldSerializers: Map<StateType<Account>, (Account) -> String> = hashMapOf(id to {value -> value.id})
+        override val deserializer: (ObjectState) -> Account? = {(stateList) -> Account(stateList[id]!!)}
+
+    }
+
     class Account(val id: String) {
-        companion object serializer : AuditSerializer<Account> {
-            override fun deserialize(serializedString: String): Account {
-                return Account(serializedString)
-            }
-
-            override fun serialize(entity: Account): String {
-                return entity.id
-            }
-        }
-
         override fun toString(): String {
             return "Account: " + id
         }
@@ -58,8 +65,8 @@ internal class AuditApiExample {
     @BeforeMethod
     fun addTypes() {
         auditApi = AuditAPI(DbType.Clickhouse, "jdbc:clickhouse://localhost:8123/example", "default", "")
-        auditApi!!.addAuditType(AuditType(Order::class, "Order", Order))
-        auditApi!!.addAuditType(AuditType(Account::class, "Account", Account))
+        auditApi!!.addObjectType(ObjectType(Order::class, OrderPresenter))
+        auditApi!!.addObjectType(ObjectType(Account::class, AccountPresenter))
 
     }
 
@@ -74,7 +81,7 @@ internal class AuditApiExample {
         return dateFormat.format(Date.from(Instant.ofEpochMilli(time)))
     }
 
-    //@Test
+//    @Test
     fun simpleSaveAndLoad() {
 
         val accountFirst = Account("John Doe")
@@ -84,18 +91,18 @@ internal class AuditApiExample {
 
         Thread.sleep(5000)
 
-        val records = auditApi!!.load(Account::class equal accountFirst, QueryParameters())
+        val records = auditApi!!.load(AccountPresenter.id equal "John Doe", QueryParameters())
 
         System.out.println("Found ${records.size} records")
 
         System.out.println("Printing first record: ")
 
-        System.out.println(records[0].objects.joinToString(separator = " ") { it?.obj?.toString() ?: "Unknown entity" })
+        System.out.println(records[0].objects.joinToString(separator = " ") { it.obj?.toString() ?: "Unknown entity" })
 
         System.out.println("Time: ${printTime(records[0].getInformationValue(TimeStampPresenter)!!)}")
     }
 
-    object TitlePresenter : InformationPresenter<Long>() {
+    object TitlePresenter : InformationLongPresenter() {
         override val name: String = "TitleInformation"
 
         override fun getDefault(): Long {
@@ -104,10 +111,10 @@ internal class AuditApiExample {
 
     }
 
-    //@Test
+//    @Test
     fun usageOfInformationAndOrderBy() {
 
-        val typeTitle = InformationType(TitlePresenter, "TitleOfJohns", InformationType.InformationInnerType.Long)
+        val typeTitle = InformationType(TitlePresenter, "TitleOfJohns", InnerType.Long)
         auditApi!!.addInformationType(typeTitle)
 
         val accountFirst = Account("John Doe")
@@ -121,8 +128,8 @@ internal class AuditApiExample {
         Thread.sleep(5000)
 
         val parameters = QueryParameters()
-        parameters.setOrder(information = listOf(TitlePresenter to QueryParameters.OrderByParameters.Order.DESC))
-        val records = auditApi!!.load((Account::class equal accountFirst) and
+        parameters.setInformationOrder(TitlePresenter to DESC)
+        val records = auditApi!!.load((AccountPresenter.id equal "John Doe") and
                 ((TitlePresenter less 15000) and (TitlePresenter more 14995)), parameters)
 
         System.out.println("Found ${records.size} records")
@@ -130,7 +137,7 @@ internal class AuditApiExample {
         for (i in 0..(records.size - 1)) {
             System.out.println("Printing $i record: ")
 
-            System.out.println(records[i].objects.joinToString(separator = " ") { it?.obj?.toString() ?: "Unknown entity" } + " " +
+            System.out.println(records[i].objects.joinToString(separator = " ") { it.obj?.toString() ?: "Unknown entity" } + " " +
                     "Title: " + records[i].getInformationValue(TitlePresenter))
 
             System.out.println("Time: ${printTime(records[i].getInformationValue(TimeStampPresenter)!!)}")
@@ -148,11 +155,11 @@ internal class AuditApiExample {
     }
 
     //Please, use it with extreme caution
-    //@Test
+//    @Test
     fun updatingOfInformation() {
 
         //create initial
-        val typeTitle = InformationType(TitlePresenter, "TitleOfJohns", InformationType.InformationInnerType.Long)
+        val typeTitle = InformationType(TitlePresenter, "TitleOfJohns", InnerType.Long)
         auditApi!!.addInformationType(typeTitle)
 
         val accountFirst = Account("John Doe")
@@ -165,13 +172,13 @@ internal class AuditApiExample {
 
         Thread.sleep(5000)
 
-        val typeIsExternal = InformationType(IsExternalPresenter, "IsExternalRecord", InformationType.InformationInnerType.Boolean)
+        val typeIsExternal = InformationType(IsExternalPresenter, "IsExternalRecord", InnerType.Boolean)
         auditApi!!.addInformationType(typeIsExternal)
 
 
         val parameters = QueryParameters()
-        parameters.setOrder(information = listOf(TitlePresenter to QueryParameters.OrderByParameters.Order.DESC))
-        val records = auditApi!!.load((Account::class equal accountFirst) and
+        parameters.setInformationOrder(TitlePresenter to DESC)
+        val records = auditApi!!.load((AccountPresenter.id equal "John Doe") and
                 ((TitlePresenter less 15000) and (TitlePresenter more 14995)), parameters)
 
         //print initial
@@ -181,7 +188,7 @@ internal class AuditApiExample {
         for (i in 0..(records.size - 1)) {
             System.out.println("Printing $i record: ")
 
-            System.out.println(records[i].objects.joinToString(separator = " ") { it?.obj?.toString() ?: "Unknown entity" } + " " +
+            System.out.println(records[i].objects.joinToString(separator = " ") { it.obj?.toString() ?: "Unknown entity" } + " " +
                     "Title: " + records[i].getInformationValue(TitlePresenter) + " " +
                     "IsExternal: " + records[i].getInformationValue(IsExternalPresenter))
 
@@ -203,7 +210,7 @@ internal class AuditApiExample {
 
         //print new
 
-        val resultingRecords = auditApi!!.load((Account::class equal accountFirst) and
+        val resultingRecords = auditApi!!.load((AccountPresenter.id equal "John Doe") and
                 ((TitlePresenter less 15000) and (TitlePresenter more 14995)), parameters)
 
         System.out.println("Found ${records.size} records")
@@ -211,7 +218,7 @@ internal class AuditApiExample {
         for (i in 0..(resultingRecords.size - 1)) {
             System.out.println("Printing $i record: ")
 
-            System.out.println(resultingRecords[i].objects.joinToString(separator = " ") { it?.obj?.toString() ?: "Unknown entity" } + " " +
+            System.out.println(resultingRecords[i].objects.joinToString(separator = " ") { it.obj?.toString() ?: "Unknown entity" } + " " +
                     "Title: " + records[i].getInformationValue(TitlePresenter) + " " +
                     "IsExternal: " + records[i].getInformationValue(IsExternalPresenter))
 

@@ -1,9 +1,6 @@
 package tanvd.audit.implementation.clickhouse
 
-import tanvd.audit.implementation.clickhouse.model.DbColumnHeader
-import tanvd.audit.implementation.clickhouse.model.DbColumnType
-import tanvd.audit.implementation.clickhouse.model.DbTableHeader
-import tanvd.audit.implementation.clickhouse.model.toDbColumnHeader
+import tanvd.audit.implementation.clickhouse.model.*
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.implementation.exceptions.BasicDbException
 import tanvd.audit.model.external.presenters.IdPresenter
@@ -11,8 +8,8 @@ import tanvd.audit.model.external.presenters.TimeStampPresenter
 import tanvd.audit.model.external.presenters.VersionPresenter
 import tanvd.audit.model.external.queries.QueryExpression
 import tanvd.audit.model.external.queries.QueryParameters
-import tanvd.audit.model.external.types.AuditType
-import tanvd.audit.model.external.types.InformationType
+import tanvd.audit.model.external.types.information.InformationType
+import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
 import tanvd.audit.utils.PropertyLoader
 import javax.sql.DataSource
@@ -43,7 +40,12 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
 
         fun getInformationColumns(): Array<DbColumnHeader> {
             return InformationType.getTypes().
-                    map { DbColumnHeader(it.code, DbColumnType.getFromInformationInnerType(it.type)) }.toTypedArray()
+                    map { DbColumnHeader(it.code, it.toDbColumnType()) }.toTypedArray()
+        }
+
+        fun getTypesColumns(): Array<DbColumnHeader> {
+            return ObjectType.getTypes().flatMap { it.state.map { DbColumnHeader(it.getCode(), it.toDbColumnType()) } }.
+                    toTypedArray()
         }
 
         fun getPredefinedAuditTableColumn(name: String): DbColumnHeader {
@@ -64,11 +66,11 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
      * @throws BasicDbException
      */
     private fun initTables() {
-        val columnsHeader = arrayListOf(*defaultColumns, *mandatoryColumns, *getInformationColumns())
-        AuditType.getTypes().mapTo(columnsHeader) { DbColumnHeader(it.code, DbColumnType.DbArrayString) }
+        val columnsHeader = arrayListOf(*defaultColumns, *mandatoryColumns, *getInformationColumns(), *getTypesColumns())
+
         clickhouseConnection.createTable(auditTable, DbTableHeader(columnsHeader),
-                listOf(dateColumn, InformationType.resolveType(IdPresenter).code,
-                        InformationType.resolveType(TimeStampPresenter).code), dateColumn,
+                listOf(dateColumn, InformationType.resolveType(TimeStampPresenter).code,
+                        InformationType.resolveType(IdPresenter).code), dateColumn,
                 InformationType.resolveType(VersionPresenter).code)
     }
 
@@ -88,8 +90,7 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
      * @throws BasicDbException
      */
     override fun saveRecords(auditRecordInternals: List<AuditRecordInternal>) {
-        val columnsHeader = arrayListOf(*mandatoryColumns, *getInformationColumns())
-        AuditType.getTypes().mapTo(columnsHeader) { DbColumnHeader(it.code, DbColumnType.DbArrayString) }
+        val columnsHeader = arrayListOf(*mandatoryColumns, *getInformationColumns(), *getTypesColumns())
 
         val rows = auditRecordInternals.map { ClickhouseRecordSerializer.serialize(it) }
 
@@ -101,10 +102,12 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
      *
      * @throws BasicDbException
      */
-    override fun <T> addTypeInDbModel(type: AuditType<T>) {
-        clickhouseConnection.addColumn(auditTable, DbColumnHeader(type.code, DbColumnType.DbArrayString))
-
+    override fun <T : Any> addTypeInDbModel(type: ObjectType<T>) {
+        for (stateType in type.state) {
+            clickhouseConnection.addColumn(auditTable, DbColumnHeader(stateType.getCode(), stateType.toDbColumnType()))
+        }
     }
+
 
     override fun <T> addInformationInDbModel(information: InformationType<T>) {
         clickhouseConnection.addColumn(auditTable, information.toDbColumnHeader())
@@ -116,8 +119,7 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
      * @throws BasicDbException
      */
     override fun loadRecords(expression: QueryExpression, parameters: QueryParameters): List<AuditRecordInternal> {
-        val selectColumns = arrayListOf(*mandatoryColumns, *getInformationColumns())
-        AuditType.getTypes().mapTo(selectColumns) { DbColumnHeader(it.code, DbColumnType.DbArrayString) }
+        val selectColumns = arrayListOf(*mandatoryColumns, *getInformationColumns(), *getTypesColumns())
 
         val resultList = clickhouseConnection.loadRows(auditTable, DbTableHeader(selectColumns), expression, parameters)
         val auditRecordList = resultList.map { ClickhouseRecordSerializer.deserialize(it) }

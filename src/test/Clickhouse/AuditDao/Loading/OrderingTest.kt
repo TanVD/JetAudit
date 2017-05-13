@@ -9,15 +9,16 @@ import tanvd.audit.implementation.dao.DbType
 import tanvd.audit.model.external.presenters.IdPresenter
 import tanvd.audit.model.external.presenters.TimeStampPresenter
 import tanvd.audit.model.external.presenters.VersionPresenter
+import tanvd.audit.model.external.presenters.IntPresenter
+import tanvd.audit.model.external.presenters.StringPresenter
 import tanvd.audit.model.external.queries.QueryParameters
 import tanvd.audit.model.external.queries.QueryParameters.OrderByParameters.Order.ASC
 import tanvd.audit.model.external.queries.QueryParameters.OrderByParameters.Order.DESC
 import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.queries.or
 import tanvd.audit.model.external.records.InformationObject
-import tanvd.audit.model.external.types.AuditType
-import tanvd.audit.model.internal.AuditRecordInternal
 import utils.InformationUtils
+import utils.SamplesGenerator.getRecordInternal
 import utils.TypeUtils
 
 internal class OrderingTest {
@@ -47,52 +48,40 @@ internal class OrderingTest {
 
     @Test
     fun loadRecords_AscendingByIntIds_AscendingOrder() {
-        val arrayObjectsFirst = arrayListOf(
-                Pair(AuditType.resolveType(Int::class), "123"),
-                Pair(AuditType.resolveType(String::class), "string"))
-        val auditRecordFirstOriginal = AuditRecordInternal(arrayObjectsFirst, getSampleInformation())
-        val arrayObjectsSecond = arrayListOf(
-                Pair(AuditType.resolveType(Int::class), "456"),
-                Pair(AuditType.resolveType(String::class), "string"))
-        val auditRecordSecondOriginal = AuditRecordInternal(arrayObjectsSecond, getSampleInformation())
+        val auditRecordFirstOriginal = getRecordInternal(123, "string", information = getSampleInformation())
+        val auditRecordSecondOriginal = getRecordInternal(456, "string", information = getSampleInformation())
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
         val parameters = QueryParameters()
-        parameters.setOrder(Pair(Int::class, ASC), information = emptyList())
+        parameters.setObjectStatesOrder(IntPresenter.value to ASC)
 
 
-        val recordsLoaded = auditDao!!.loadRecords(String::class equal "string", parameters)
+        val recordsLoaded = auditDao!!.loadRecords(StringPresenter.value equal "string", parameters)
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
     }
 
     @Test
     fun loadRows_DescendingByIntsIds_DescendingOrder() {
-        val arrayObjectsFirst = arrayListOf(
-                Pair(AuditType.resolveType(Int::class), "123"),
-                Pair(AuditType.resolveType(String::class), "string"))
-        val auditRecordFirstOriginal = AuditRecordInternal(arrayObjectsFirst, getSampleInformation())
-        val arrayObjectsSecond = arrayListOf(
-                Pair(AuditType.resolveType(Int::class), "456"),
-                Pair(AuditType.resolveType(String::class), "string"))
-        val auditRecordSecondOriginal = AuditRecordInternal(arrayObjectsSecond, getSampleInformation())
+        val auditRecordFirstOriginal = getRecordInternal(123, "string", information = getSampleInformation())
+        val auditRecordSecondOriginal = getRecordInternal(456, "string", information = getSampleInformation())
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
         val parameters = QueryParameters()
-        parameters.setOrder(Pair(Int::class, DESC), information = emptyList())
-        val recordsLoaded = auditDao!!.loadRecords(String::class equal "string", parameters)
+        parameters.setObjectStatesOrder(IntPresenter.value to DESC)
+        val recordsLoaded = auditDao!!.loadRecords(StringPresenter.value equal "string", parameters)
         Assert.assertEquals(recordsLoaded, listOf(auditRecordSecondOriginal, auditRecordFirstOriginal))
 
     }
 
     @Test
     fun loadRecords_AscendingByTimestamp_AscendingOrder() {
-        val auditRecordFirstOriginal = AuditRecordInternal(emptyList(), getSampleInformation(2))
-        val auditRecordSecondOriginal = AuditRecordInternal(emptyList(), getSampleInformation(3))
+        val auditRecordFirstOriginal = getRecordInternal(information = getSampleInformation(2))
+        val auditRecordSecondOriginal = getRecordInternal(information = getSampleInformation(3))
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
         val parameters = QueryParameters()
-        parameters.setOrder(information = listOf(Pair(TimeStampPresenter, ASC)))
+        parameters.setInformationOrder(TimeStampPresenter to ASC)
 
         val recordsLoaded = auditDao!!.loadRecords((IdPresenter equal 0) or (IdPresenter equal 1), parameters)
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
@@ -101,12 +90,12 @@ internal class OrderingTest {
 
     @Test
     fun loadRows_DescendingByTimestamp_DescendingOrder() {
-        val auditRecordFirstOriginal = AuditRecordInternal(emptyList(), getSampleInformation(2))
-        val auditRecordSecondOriginal = AuditRecordInternal(emptyList(), getSampleInformation(3))
+        val auditRecordFirstOriginal = getRecordInternal(information =  getSampleInformation(2))
+        val auditRecordSecondOriginal = getRecordInternal(information =  getSampleInformation(3))
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
         val parameters = QueryParameters()
-        parameters.setOrder(information = listOf(Pair(TimeStampPresenter, DESC)))
+        parameters.setInformationOrder(TimeStampPresenter to DESC)
 
         val recordsLoaded = auditDao!!.loadRecords((IdPresenter equal 0) or (IdPresenter equal 1), parameters)
         Assert.assertEquals(recordsLoaded, listOf(auditRecordSecondOriginal, auditRecordFirstOriginal))
@@ -115,129 +104,97 @@ internal class OrderingTest {
 
     @Test
     fun loadRows_AscendingIntsIdsArraysFirstElementDifferent_AscendingByFirstElement() {
-        val arrayObjectsFirst = arrayListOf(
-                Pair(AuditType.resolveType(Int::class), "254"),
-                Pair(AuditType.resolveType(Int::class), "127"),
-                Pair(AuditType.resolveType(String::class), "string"))
-        val auditRecordFirstOriginal = AuditRecordInternal(arrayObjectsFirst, getSampleInformation())
-        val arrayObjectsSecond = arrayListOf(
-                Pair(AuditType.resolveType(Int::class), "127"),
-                Pair(AuditType.resolveType(Int::class), "254"),
-                Pair(AuditType.resolveType(String::class), "string"))
-        val auditRecordSecondOriginal = AuditRecordInternal(arrayObjectsSecond, getSampleInformation())
+        val auditRecordFirstOriginal = getRecordInternal(254, 127, "string", information = getSampleInformation())
+        val auditRecordSecondOriginal = getRecordInternal(127, 254, "string", information = getSampleInformation())
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
         val parameters = QueryParameters()
-        parameters.setOrder(Pair(Int::class, ASC), information = emptyList())
-        val recordsLoaded = auditDao!!.loadRecords(String::class equal "string", parameters)
+        parameters.setObjectStatesOrder(IntPresenter.value to ASC)
+        val recordsLoaded = auditDao!!.loadRecords(StringPresenter.value equal "string", parameters)
         Assert.assertEquals(recordsLoaded, listOf(auditRecordSecondOriginal, auditRecordFirstOriginal))
     }
 
     @Test
     fun loadRows_DescendingIntsIdsArraysFirstElementDifferent_DescendingByFirstElement() {
-        val arrayObjectsFirst = arrayListOf(
-                Pair(AuditType.resolveType(Int::class), "254"),
-                Pair(AuditType.resolveType(Int::class), "127"),
-                Pair(AuditType.resolveType(String::class), "string"))
-        val auditRecordFirstOriginal = AuditRecordInternal(arrayObjectsFirst, getSampleInformation())
-        val arrayObjectsSecond = arrayListOf(
-                Pair(AuditType.resolveType(Int::class), "127"),
-                Pair(AuditType.resolveType(Int::class), "254"),
-                Pair(AuditType.resolveType(String::class), "string"))
-        val auditRecordSecondOriginal = AuditRecordInternal(arrayObjectsSecond, getSampleInformation())
+        val auditRecordFirstOriginal = getRecordInternal(254, 127, "string", information = getSampleInformation())
+        val auditRecordSecondOriginal = getRecordInternal(127, 254, "string", information = getSampleInformation())
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
         val parameters = QueryParameters()
-        parameters.setOrder(Pair(Int::class, DESC), information = emptyList())
-        val recordsLoaded = auditDao!!.loadRecords(String::class equal "string", parameters)
+        parameters.setObjectStatesOrder(IntPresenter.value to DESC)
+        val recordsLoaded = auditDao!!.loadRecords(StringPresenter.value equal "string", parameters)
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
     }
 
     @Test
     fun loadRows_AscendingIntsIdsArraysFirstElementEqual_AscendingBySecondElement() {
-        val arrayObjectsFirst = arrayListOf(
-                Pair(AuditType.resolveType(Int::class), "127"),
-                Pair(AuditType.resolveType(Int::class), "254"),
-                Pair(AuditType.resolveType(String::class), "string"))
-        val auditRecordFirstOriginal = AuditRecordInternal(arrayObjectsFirst, getSampleInformation())
-        val arrayObjectsSecond = arrayListOf(
-                Pair(AuditType.resolveType(Int::class), "127"),
-                Pair(AuditType.resolveType(Int::class), "508"),
-                Pair(AuditType.resolveType(String::class), "string"))
-        val auditRecordSecondOriginal = AuditRecordInternal(arrayObjectsSecond, getSampleInformation())
+        val auditRecordFirstOriginal = getRecordInternal(127, 254, "string", information = getSampleInformation())
+        val auditRecordSecondOriginal = getRecordInternal(127, 508, "string", information = getSampleInformation())
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
         val parameters = QueryParameters()
-        parameters.setOrder(Pair(Int::class, ASC), information = emptyList())
-        val recordsLoaded = auditDao!!.loadRecords(String::class equal "string", parameters)
+        parameters.setObjectStatesOrder(IntPresenter.value to ASC)
+        val recordsLoaded = auditDao!!.loadRecords(StringPresenter.value equal "string", parameters)
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
     }
 
     @Test
     fun loadRows_DescendingIntsIdsArraysFirstElementEqual_DescendingBySecondElement() {
-        val arrayObjectsFirst = arrayListOf(
-                Pair(AuditType.resolveType(Int::class), "254"),
-                Pair(AuditType.resolveType(Int::class), "127"),
-                Pair(AuditType.resolveType(String::class), "string"))
-        val auditRecordFirstOriginal = AuditRecordInternal(arrayObjectsFirst, getSampleInformation())
-        val arrayObjectsSecond = arrayListOf(
-                Pair(AuditType.resolveType(Int::class), "254"),
-                Pair(AuditType.resolveType(Int::class), "508"),
-                Pair(AuditType.resolveType(String::class), "string"))
-        val auditRecordSecondOriginal = AuditRecordInternal(arrayObjectsSecond, getSampleInformation())
+        val auditRecordFirstOriginal = getRecordInternal(254, 127, "string", information = getSampleInformation())
+        val auditRecordSecondOriginal = getRecordInternal(254, 508, "string", information = getSampleInformation())
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
         val parameters = QueryParameters()
-        parameters.setOrder(Pair(Int::class, DESC), information = emptyList())
-        val recordsLoaded = auditDao!!.loadRecords(String::class equal "string", parameters)
+        parameters.setObjectStatesOrder(IntPresenter.value to DESC)
+        val recordsLoaded = auditDao!!.loadRecords(StringPresenter.value equal "string", parameters)
         Assert.assertEquals(recordsLoaded, listOf(auditRecordSecondOriginal, auditRecordFirstOriginal))
     }
 
     @Test
     fun loadRows_AscendingTimestampVersionArraysFirstElementDifferent_AscendingByFirstElement() {
-        val auditRecordFirstOriginal = AuditRecordInternal(emptyList(), getSampleInformation(2, 3))
-        val auditRecordSecondOriginal = AuditRecordInternal(emptyList(), getSampleInformation(3, 4))
+        val auditRecordFirstOriginal = getRecordInternal(information = getSampleInformation(2, 3))
+        val auditRecordSecondOriginal = getRecordInternal(information = getSampleInformation(3, 4))
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
         val parameters = QueryParameters()
-        parameters.setOrder(information = listOf(Pair(TimeStampPresenter, ASC), Pair(VersionPresenter, DESC)))
+        parameters.setInformationOrder(TimeStampPresenter to ASC, VersionPresenter to DESC)
         val recordsLoaded = auditDao!!.loadRecords((IdPresenter equal 0) or (IdPresenter equal 1), parameters)
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
     }
 
     @Test
     fun loadRows_DescendingTimestampVersionArraysFirstElementDifferent_DescendingByFirstElement() {
-        val auditRecordFirstOriginal = AuditRecordInternal(emptyList(), getSampleInformation(2, 3))
-        val auditRecordSecondOriginal = AuditRecordInternal(emptyList(), getSampleInformation(3, 4))
+        val auditRecordFirstOriginal = getRecordInternal(information = getSampleInformation(2, 3))
+        val auditRecordSecondOriginal = getRecordInternal(information = getSampleInformation(3, 4))
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
         val parameters = QueryParameters()
-        parameters.setOrder(information = listOf(Pair(TimeStampPresenter, DESC), Pair(VersionPresenter, ASC)))
+        parameters.setInformationOrder(TimeStampPresenter to DESC, VersionPresenter to ASC)
         val recordsLoaded = auditDao!!.loadRecords((IdPresenter equal 0) or (IdPresenter equal 1), parameters)
         Assert.assertEquals(recordsLoaded, listOf(auditRecordSecondOriginal, auditRecordFirstOriginal))
     }
 
     @Test
     fun loadRows_AscendingTimestampVersionArraysFirstElementEqual_AscendingBySecondElement() {
-        val auditRecordFirstOriginal = AuditRecordInternal(emptyList(), getSampleInformation(2, 3))
-        val auditRecordSecondOriginal = AuditRecordInternal(emptyList(), getSampleInformation(2, 4))
+        val auditRecordFirstOriginal = getRecordInternal(information = getSampleInformation(2, 3))
+        val auditRecordSecondOriginal = getRecordInternal(information = getSampleInformation(2, 4))
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
         val parameters = QueryParameters()
-        parameters.setOrder(information = listOf(Pair(TimeStampPresenter, DESC), Pair(VersionPresenter, ASC)))
+        parameters.setInformationOrder(TimeStampPresenter to DESC, VersionPresenter to ASC)
         val recordsLoaded = auditDao!!.loadRecords((IdPresenter equal 0) or (IdPresenter equal 1), parameters)
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
     }
 
     @Test
     fun loadRows_DescendingTimestampVersionArraysFirstElementEqual_DescendingBySecondElement() {
-        val auditRecordFirstOriginal = AuditRecordInternal(emptyList(), getSampleInformation(2, 3))
-        val auditRecordSecondOriginal = AuditRecordInternal(emptyList(), getSampleInformation(2, 4))
+        val auditRecordFirstOriginal = getRecordInternal(information = getSampleInformation(2, 3))
+        val auditRecordSecondOriginal = getRecordInternal(information = getSampleInformation(2, 4))
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
         val parameters = QueryParameters()
-        parameters.setOrder(information = listOf(Pair(TimeStampPresenter, ASC), Pair(VersionPresenter, DESC)))
+        parameters.setInformationOrder(TimeStampPresenter to ASC, VersionPresenter to DESC)
         val recordsLoaded = auditDao!!.loadRecords((IdPresenter equal 0) or (IdPresenter equal 1), parameters)
         Assert.assertEquals(recordsLoaded, listOf(auditRecordSecondOriginal, auditRecordFirstOriginal))
     }

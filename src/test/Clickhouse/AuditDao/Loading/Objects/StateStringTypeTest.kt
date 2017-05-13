@@ -1,4 +1,4 @@
-package Clickhouse.AuditDao.Loading.Information
+package Clickhouse.AuditDao.Loading.Objects
 
 import org.testng.Assert
 import org.testng.annotations.AfterMethod
@@ -11,13 +11,11 @@ import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.queries.like
 import tanvd.audit.model.external.queries.regexp
 import tanvd.audit.model.external.records.InformationObject
-import tanvd.audit.model.external.types.InformationType
-import tanvd.audit.model.internal.AuditRecordInternal
-import utils.InformationUtils
-import utils.StringPresenter
-import utils.TypeUtils
+import tanvd.audit.model.external.types.objects.ObjectType
+import utils.*
+import utils.SamplesGenerator.getRecordInternal
 
-internal class QueryStringInformationConditionTest {
+internal class StateStringTypeTest {
 
     companion object {
         var currentId = 0L
@@ -34,9 +32,9 @@ internal class QueryStringInformationConditionTest {
 
         TypeUtils.addAuditTypePrimitive(auditDao!!)
 
-        val type = InformationType(StringPresenter, "StringPresenter", InformationType.InformationInnerType.String) as InformationType<Any>
-        InformationType.addType(type)
-        auditDao!!.addInformationInDbModel(type)
+        val type = ObjectType(TestClassString::class, TestClassStringPresenter) as ObjectType<Any>
+        ObjectType.addType(type)
+        auditDao!!.addTypeInDbModel(type)
     }
 
     @AfterMethod
@@ -48,68 +46,65 @@ internal class QueryStringInformationConditionTest {
 
     @Test
     fun loadRow_LoadByEqual_loadedOne() {
-        val auditRecordFirstOriginal = AuditRecordInternal(emptyList(), getSampleInformation("string"))
+        val auditRecordFirstOriginal = getRecordInternal(TestClassString("string"), information = getSampleInformation())
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(StringPresenter equal "string", QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TestClassStringPresenter.id equal "string", QueryParameters())
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
     @Test
     fun loadRow_LoadByEqual_loadedNone() {
-        val auditRecordFirstOriginal = AuditRecordInternal(emptyList(), getSampleInformation("string"))
+        val auditRecordFirstOriginal = getRecordInternal(TestClassString("string"), information = getSampleInformation())
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(StringPresenter equal "error", QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TestClassStringPresenter.id equal "error", QueryParameters())
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
     @Test
     fun loadRow_LoadByLike_loadedOne() {
-        val auditRecordFirstOriginal = AuditRecordInternal(emptyList(), getSampleInformation("string"))
+        val auditRecordFirstOriginal = getRecordInternal(TestClassString("string"), information = getSampleInformation())
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(StringPresenter like "str%", QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TestClassStringPresenter.id like "str%", QueryParameters())
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
     @Test
     fun loadRow_LoadByIsNot_loadedNone() {
-        val auditRecordFirstOriginal = AuditRecordInternal(emptyList(), getSampleInformation("string"))
+        val auditRecordFirstOriginal = getRecordInternal(TestClassString("string"), information = getSampleInformation())
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(StringPresenter like "s_", QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TestClassStringPresenter.id like "s_", QueryParameters())
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
     @Test
     fun loadRow_LoadByRegExp_loadedOne() {
-        val auditRecordFirstOriginal = AuditRecordInternal(emptyList(), getSampleInformation("string"))
+        val auditRecordFirstOriginal = getRecordInternal(TestClassString("string"), information = getSampleInformation())
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(StringPresenter regexp "st", QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TestClassStringPresenter.id regexp "st", QueryParameters())
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
     @Test
     fun loadRow_LoadByRegExp_loadedNone() {
-        val auditRecordFirstOriginal = AuditRecordInternal(emptyList(), getSampleInformation("string"))
+        val auditRecordFirstOriginal = getRecordInternal(TestClassString("string"), information = getSampleInformation())
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(StringPresenter regexp "zo", QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TestClassStringPresenter.id regexp "zo", QueryParameters())
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
-    private fun getSampleInformation(value: String): MutableSet<InformationObject> {
-        val information = InformationUtils.getPrimitiveInformation(currentId++, 1, 2)
-        information.add(InformationObject(value, StringPresenter))
-        return information
-
+    private fun getSampleInformation(): MutableSet<InformationObject> {
+        return InformationUtils.getPrimitiveInformation(currentId++, 1, 2)
     }
 }

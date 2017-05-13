@@ -3,12 +3,13 @@ package tanvd.audit.model.internal
 import tanvd.audit.model.external.presenters.VersionPresenter
 import tanvd.audit.model.external.records.AuditRecord
 import tanvd.audit.model.external.records.InformationObject
-import tanvd.audit.model.external.types.AuditType
+import tanvd.audit.model.external.records.ObjectState
+import tanvd.audit.model.external.types.objects.ObjectType
 
 /**
  * Internal representation of audit record. Used to transfer objects array to DAO.
  */
-internal data class AuditRecordInternal(val objects: List<Pair<AuditType<Any>, String>>,
+internal data class AuditRecordInternal(val objects: List<Pair<ObjectType<*>, ObjectState>>,
                                         val information: MutableSet<InformationObject>) {
     var generation = 1
 
@@ -16,10 +17,7 @@ internal data class AuditRecordInternal(val objects: List<Pair<AuditType<Any>, S
         fun createFromRecordWithNewVersion(auditRecord: AuditRecord): AuditRecordInternal {
             return AuditRecordInternal(
                     auditRecord.objects.mapNotNull {
-                        if (it != null)
-                            it.type to (it.type.serialize(it.obj))
-                        else
-                            null
+                            it.type to it.state
                     },
                     auditRecord.informations.map {
                         if (it.type.presenter.name == VersionPresenter.name)
@@ -29,8 +27,5 @@ internal data class AuditRecordInternal(val objects: List<Pair<AuditType<Any>, S
                     }.toMutableSet())
         }
     }
-
-    constructor(vararg objects: Any, information: MutableSet<InformationObject>) :
-            this(objects.map { o -> AuditType.resolveType(o::class).let { it to it.serialize(o) } }, information)
 }
 

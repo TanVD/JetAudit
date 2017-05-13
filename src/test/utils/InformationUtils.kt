@@ -4,7 +4,7 @@ import tanvd.audit.model.external.presenters.IdPresenter
 import tanvd.audit.model.external.presenters.TimeStampPresenter
 import tanvd.audit.model.external.presenters.VersionPresenter
 import tanvd.audit.model.external.records.InformationObject
-import tanvd.audit.model.external.types.InformationType
+import tanvd.audit.model.external.types.information.InformationType
 
 internal object InformationUtils {
     fun getPrimitiveInformation(id: Long, timeStamp: Long, version: Long): MutableSet<InformationObject> {

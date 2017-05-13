@@ -15,9 +15,10 @@ import tanvd.audit.AuditAPI
 import tanvd.audit.exceptions.AddExistingInformationTypeException
 import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.dao.AuditDao
-import tanvd.audit.model.external.types.InformationType
+import tanvd.audit.model.external.types.InnerType
+import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.internal.AuditRecordInternal
-import utils.BooleanPresenter
+import utils.BooleanInfPresenter
 import utils.TypeUtils
 import java.util.concurrent.BlockingQueue
 
@@ -94,7 +95,7 @@ internal class AddInformation : PowerMockTestCase() {
 
     @Suppress("UNCHECKED_CAST")
     private fun createSampleInformationType(): InformationType<Any> {
-        return InformationType(BooleanPresenter, "BooleanPresenter", InformationType.InformationInnerType.Boolean) as
+        return InformationType(BooleanInfPresenter, "BooleanInfPresenter", InnerType.Boolean) as
                 InformationType<Any>
     }
 }
