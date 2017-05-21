@@ -3,12 +3,13 @@ package tanvd.audit.implementation.dao
 import tanvd.audit.exceptions.UninitializedException
 import tanvd.audit.exceptions.UnknownObjectTypeException
 import tanvd.audit.implementation.exceptions.BasicDbException
+import tanvd.audit.model.external.db.DbProperties
+import tanvd.audit.model.external.db.DbType
 import tanvd.audit.model.external.queries.QueryExpression
 import tanvd.audit.model.external.queries.QueryParameters
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
-import javax.sql.DataSource
 
 
 internal interface AuditDao {
@@ -18,6 +19,7 @@ internal interface AuditDao {
      *
      * @throws BasicDbException
      */
+    @Throws(BasicDbException::class)
     fun saveRecord(auditRecordInternal: AuditRecordInternal)
 
     /**
@@ -35,6 +37,7 @@ internal interface AuditDao {
      *
      * @throws BasicDbException
      */
+    @Throws(BasicDbException::class)
     fun <T : Any> addTypeInDbModel(type: ObjectType<T>)
 
     /**
@@ -42,6 +45,7 @@ internal interface AuditDao {
      *
      * @throws BasicDbException
      */
+    @Throws(BasicDbException::class)
     fun <T> addInformationInDbModel(information: InformationType<T>)
 
     /**
@@ -53,6 +57,7 @@ internal interface AuditDao {
      * @throws UnknownObjectTypeException
      * @throws BasicDbException
      */
+    @Throws(BasicDbException::class)
     fun loadRecords(expression: QueryExpression, parameters: QueryParameters): List<AuditRecordInternal>
 
     /**
@@ -63,40 +68,26 @@ internal interface AuditDao {
      *
      * @throws BasicDbException
      */
+    @Throws(BasicDbException::class)
     fun countRecords(expression: QueryExpression): Int
 
     companion object AuditDaoFactory {
-        private var connectionUrl: String? = null
 
-        private var user: String? = null
-
-        private var password: String? = null
+        private var dbProperties: DbProperties? = null
 
         private var dbType: DbType = DbType.Clickhouse
 
-        private var dataSource: DataSource? = null
-
-        fun setConfig(dbType: DbType, connectionUrl: String, user: String, password: String) {
+        fun setConfig(dbType: DbType, dbProperties: DbProperties) {
             this.dbType = dbType
-            this.connectionUrl = connectionUrl
-            this.user = user
-            this.password = password
-        }
-
-        fun setConfig(dbType: DbType, dataSource: DataSource) {
-            this.dbType = dbType
-            this.dataSource = dataSource
+            this.dbProperties = dbProperties
         }
 
         @Throws(UninitializedException::class)
         fun getDao(): AuditDao {
-            if (dataSource != null) {
-                return dbType.getDao(dataSource!!)
-            } else if (connectionUrl != null && user != null && password != null) {
-                return dbType.getDao(connectionUrl!!, user!!, password!!)
-            } else {
-                throw UninitializedException("AuditDaoFactory not initialized, but getDao called")
+            if (dbProperties != null) {
+                return dbType.getDao(dbProperties!!)
             }
+            throw UninitializedException("DbProperties not initialized")
         }
 
     }

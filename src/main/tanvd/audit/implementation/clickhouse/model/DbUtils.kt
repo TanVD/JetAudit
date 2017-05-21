@@ -2,6 +2,8 @@ package tanvd.audit.implementation.clickhouse.model
 
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.external.types.objects.StateType
+import java.text.DateFormat
+import java.text.SimpleDateFormat
 import java.util.*
 
 /**
@@ -64,6 +66,13 @@ internal enum class DbColumnType {
 
         override fun toString(): String {
             return "Date"
+        }
+    },
+    DbArrayDate {
+        override val isArray = true
+
+        override fun toString(): String {
+            return "Array(Date)"
         }
     },
     DbULong {
@@ -160,4 +169,8 @@ internal fun InformationType<*>.toDbColumnHeader(): DbColumnHeader {
 
 internal fun StateType<*>.getCode(): String {
     return this.objectName + "_" + this.stateName
+}
+
+internal fun getDateFormat(): DateFormat {
+    return SimpleDateFormat("yyyy-MM-dd")
 }

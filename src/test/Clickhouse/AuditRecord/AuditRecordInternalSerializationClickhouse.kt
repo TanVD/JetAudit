@@ -10,10 +10,8 @@ import tanvd.audit.model.external.presenters.*
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.external.types.objects.ObjectType
-import tanvd.audit.model.internal.AuditRecordInternal
 import utils.*
 import utils.SamplesGenerator.getRecordInternal
-import java.util.*
 
 internal class AuditRecordInternalSerializationClickhouse {
 
@@ -28,7 +26,7 @@ internal class AuditRecordInternalSerializationClickhouse {
 
     @Test
     fun serializeArray_PrimitiveTypesDifferent_serializedAsExpected() {
-        val auditRecord = getRecordInternal("1234", 123, information =  getSampleInformation())
+        val auditRecord = getRecordInternal("1234", 123, information = getSampleInformation())
         val row = ClickhouseRecordSerializer.serialize(auditRecord)
 
         val expectedSet = setOf(DbColumn(StringPresenter.value.getCode(), listOf("1234"), DbColumnType.DbArrayString),
@@ -127,11 +125,12 @@ internal class AuditRecordInternalSerializationClickhouse {
     }
 
     private fun getSampleInformation(): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(0, 1, 2)
+        return InformationUtils.getPrimitiveInformation(0, 1, 2, SamplesGenerator.getMilleniumnStart())
     }
 
     private fun getSampleInformationColumns(): Array<DbColumn> {
         return arrayOf(
+                DbColumn(InformationType.resolveType(DatePresenter).toDbColumnHeader(), listOf("2000-01-01")),
                 DbColumn(InformationType.resolveType(VersionPresenter).toDbColumnHeader(), listOf("2")),
                 DbColumn(InformationType.resolveType(TimeStampPresenter).toDbColumnHeader(), listOf("1")),
                 DbColumn(InformationType.resolveType(IdPresenter).toDbColumnHeader(), listOf("0"))

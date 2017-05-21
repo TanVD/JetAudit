@@ -5,18 +5,15 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-import tanvd.audit.implementation.dao.DbType
+import tanvd.audit.model.external.db.DbType
 import tanvd.audit.model.external.queries.QueryParameters
 import tanvd.audit.model.external.queries.`is`
 import tanvd.audit.model.external.queries.isNot
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.InnerType
 import tanvd.audit.model.external.types.information.InformationType
-import tanvd.audit.model.internal.AuditRecordInternal
-import utils.BooleanInfPresenter
-import utils.InformationUtils
+import utils.*
 import utils.SamplesGenerator.getRecordInternal
-import utils.TypeUtils
 
 internal class InformationBoolean {
 
@@ -31,11 +28,11 @@ internal class InformationBoolean {
         TypeUtils.addAuditTypesPrimitive()
         TypeUtils.addInformationTypesPrimitive()
 
-        auditDao = DbType.Clickhouse.getDao("jdbc:clickhouse://localhost:8123/example", "default", "") as AuditDaoClickhouseImpl
+        auditDao = DbType.Clickhouse.getDao(DbUtils.getDbProperties()) as AuditDaoClickhouseImpl
 
         TypeUtils.addAuditTypePrimitive(auditDao!!)
 
-        val type = InformationType(BooleanInfPresenter, "BooleanInfPresenter", InnerType.Boolean) as InformationType<Any>
+        val type = InformationType(BooleanInfPresenter, InnerType.Boolean) as InformationType<Any>
         InformationType.addType(type)
         auditDao!!.addInformationInDbModel(type)
     }
@@ -88,7 +85,7 @@ internal class InformationBoolean {
     }
 
     private fun getSampleInformation(value: Boolean): MutableSet<InformationObject> {
-        val information = InformationUtils.getPrimitiveInformation(currentId++, 1, 2)
+        val information = InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMilleniumnStart())
         (information).add(InformationObject(value, BooleanInfPresenter))
         return information
 

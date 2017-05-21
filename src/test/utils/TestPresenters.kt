@@ -1,11 +1,10 @@
 package utils
 
 import tanvd.audit.model.external.types.information.InformationBooleanPresenter
-import tanvd.audit.model.external.types.information.InformationPresenter
 import tanvd.audit.model.external.types.information.InformationStringPresenter
 
 internal object StringInfPresenter : InformationStringPresenter() {
-    override val name: String = "StringInfPresenter"
+    override val code: String = "StringInfColumn"
 
     override fun getDefault(): String {
         return ""
@@ -13,7 +12,7 @@ internal object StringInfPresenter : InformationStringPresenter() {
 }
 
 internal object BooleanInfPresenter : InformationBooleanPresenter() {
-    override val name: String = "BooleanInfPresenter"
+    override val code: String = "BooleanInfColumn"
 
     override fun getDefault(): Boolean {
         return false

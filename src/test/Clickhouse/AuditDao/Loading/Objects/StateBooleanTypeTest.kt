@@ -1,20 +1,16 @@
 package Clickhouse.AuditDao.Loading.Objects
 
-import javassist.bytecode.SignatureAttribute
 import org.testng.Assert
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-import tanvd.audit.implementation.dao.DbType
+import tanvd.audit.model.external.db.DbType
 import tanvd.audit.model.external.queries.QueryParameters
 import tanvd.audit.model.external.queries.`is`
 import tanvd.audit.model.external.queries.isNot
 import tanvd.audit.model.external.records.InformationObject
-import tanvd.audit.model.external.types.InnerType
-import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.external.types.objects.ObjectType
-import tanvd.audit.model.internal.AuditRecordInternal
 import utils.*
 import utils.SamplesGenerator.getRecordInternal
 
@@ -31,7 +27,7 @@ internal class StateBooleanTypeTest {
         TypeUtils.addAuditTypesPrimitive()
         TypeUtils.addInformationTypesPrimitive()
 
-        auditDao = DbType.Clickhouse.getDao("jdbc:clickhouse://localhost:8123/example", "default", "") as AuditDaoClickhouseImpl
+        auditDao = DbType.Clickhouse.getDao(DbUtils.getDbProperties()) as AuditDaoClickhouseImpl
 
         TypeUtils.addAuditTypePrimitive(auditDao!!)
 
@@ -89,7 +85,7 @@ internal class StateBooleanTypeTest {
     }
 
     private fun getSampleInformation(): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(currentId++, 1, 2)
+        return InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMilleniumnStart())
 
     }
 }

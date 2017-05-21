@@ -5,19 +5,17 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-import tanvd.audit.implementation.dao.DbType
-import tanvd.audit.model.external.presenters.IdPresenter
-import tanvd.audit.model.external.presenters.TimeStampPresenter
-import tanvd.audit.model.external.presenters.VersionPresenter
-import tanvd.audit.model.external.presenters.IntPresenter
-import tanvd.audit.model.external.presenters.StringPresenter
+import tanvd.audit.model.external.db.DbType
+import tanvd.audit.model.external.presenters.*
 import tanvd.audit.model.external.queries.QueryParameters
 import tanvd.audit.model.external.queries.QueryParameters.OrderByParameters.Order.ASC
 import tanvd.audit.model.external.queries.QueryParameters.OrderByParameters.Order.DESC
 import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.queries.or
 import tanvd.audit.model.external.records.InformationObject
+import utils.DbUtils
 import utils.InformationUtils
+import utils.SamplesGenerator
 import utils.SamplesGenerator.getRecordInternal
 import utils.TypeUtils
 
@@ -34,7 +32,7 @@ internal class OrderingTest {
         TypeUtils.addAuditTypesPrimitive()
         TypeUtils.addInformationTypesPrimitive()
 
-        auditDao = DbType.Clickhouse.getDao("jdbc:clickhouse://localhost:8123/example", "default", "") as AuditDaoClickhouseImpl
+        auditDao = DbType.Clickhouse.getDao(DbUtils.getDbProperties()) as AuditDaoClickhouseImpl
 
         TypeUtils.addAuditTypePrimitive(auditDao!!)
     }
@@ -90,8 +88,8 @@ internal class OrderingTest {
 
     @Test
     fun loadRows_DescendingByTimestamp_DescendingOrder() {
-        val auditRecordFirstOriginal = getRecordInternal(information =  getSampleInformation(2))
-        val auditRecordSecondOriginal = getRecordInternal(information =  getSampleInformation(3))
+        val auditRecordFirstOriginal = getRecordInternal(information = getSampleInformation(2))
+        val auditRecordSecondOriginal = getRecordInternal(information = getSampleInformation(3))
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
         val parameters = QueryParameters()
@@ -200,15 +198,15 @@ internal class OrderingTest {
     }
 
     private fun getSampleInformation(): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(currentId++, 1, 2)
+        return InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMilleniumnStart())
     }
 
     private fun getSampleInformation(timeStamp: Long): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(currentId++, timeStamp, 2)
+        return InformationUtils.getPrimitiveInformation(currentId++, timeStamp, 2, SamplesGenerator.getMilleniumnStart())
     }
 
     private fun getSampleInformation(timeStamp: Long, version: Long): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(currentId++, timeStamp, version)
+        return InformationUtils.getPrimitiveInformation(currentId++, timeStamp, version, SamplesGenerator.getMilleniumnStart())
     }
 
 

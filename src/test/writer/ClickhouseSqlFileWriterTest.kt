@@ -13,9 +13,8 @@ import tanvd.audit.implementation.writer.ClickhouseSqlFileWriter
 import tanvd.audit.model.external.presenters.*
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.information.InformationType
-import tanvd.audit.model.external.types.objects.ObjectType
-import tanvd.audit.model.internal.AuditRecordInternal
 import utils.InformationUtils
+import utils.SamplesGenerator
 import utils.SamplesGenerator.getRecordInternal
 import utils.TypeUtils
 import java.io.PrintWriter
@@ -49,8 +48,9 @@ internal class ClickhouseSqlFileWriterTest : PowerMockTestCase() {
                 "${IntPresenter.value.getCode()}, ${LongPresenter.value.getCode()}, ${AuditDaoClickhouseImpl.descriptionColumn}, " +
                 "${InformationType.resolveType(IdPresenter).code}, " +
                 "${InformationType.resolveType(VersionPresenter).code}, " +
-                "${InformationType.resolveType(TimeStampPresenter).code}) VALUES " +
-                "([123], [456], [Int, Long], 0, 1, 2);")
+                "${InformationType.resolveType(TimeStampPresenter).code}, " +
+                "${InformationType.resolveType(DatePresenter).code}) VALUES " +
+                "([123], [456], [Int, Long], 0, 1, 2, 2000-01-01);")
     }
 
     @Test
@@ -64,6 +64,6 @@ internal class ClickhouseSqlFileWriterTest : PowerMockTestCase() {
     }
 
     private fun getSampleInformation(id: Long, timeStamp: Long, version: Long): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(id, timeStamp, version)
+        return InformationUtils.getPrimitiveInformation(id, timeStamp, version, SamplesGenerator.getMilleniumnStart())
     }
 }

@@ -7,13 +7,9 @@ import tanvd.audit.exceptions.AuditQueueFullException
 import tanvd.audit.exceptions.UnknownObjectTypeException
 import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.dao.AuditDao
-import tanvd.audit.implementation.dao.DbType
-import tanvd.audit.model.external.presenters.IdPresenter
-import tanvd.audit.model.external.presenters.TimeStampPresenter
-import tanvd.audit.model.external.presenters.VersionPresenter
-import tanvd.audit.model.external.presenters.IntPresenter
-import tanvd.audit.model.external.presenters.LongPresenter
-import tanvd.audit.model.external.presenters.StringPresenter
+import tanvd.audit.model.external.db.DbProperties
+import tanvd.audit.model.external.db.DbType
+import tanvd.audit.model.external.presenters.*
 import tanvd.audit.model.external.queries.QueryExpression
 import tanvd.audit.model.external.queries.QueryParameters
 import tanvd.audit.model.external.records.AuditObject
@@ -27,7 +23,6 @@ import tanvd.audit.model.internal.AuditRecordInternal
 import tanvd.audit.utils.PropertyLoader
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
-import javax.sql.DataSource
 
 /**
  * Asynchronous saving of entities.
@@ -61,7 +56,7 @@ import javax.sql.DataSource
  *      #Clickouse scheme config
  *      AuditTable             (default Audit),
  *      DescriptionColumn      (default Description),
- *      DateColumn             (default Audit_Date),
+ *      DateColumn             (default DateColumn),
  *      TimeStampColumn        (default TimeStampColumn),
  *      VersionColumn          (default VersionColumn),
  *      IdColumn               (default IdColumn),
@@ -103,7 +98,7 @@ class AuditAPI {
     /**
      * Create AuditApi with default dataSource
      */
-    constructor(dbType: DbType, connectionUrl: String, user: String, password: String) {
+    constructor(dbType: DbType, dbProperties: DbProperties) {
         auditQueueInternal = ArrayBlockingQueue(capacityOfQueue)
         auditRecordsNotCommitted = object : ThreadLocal<ArrayList<AuditRecordInternal>>() {
             override fun initialValue(): ArrayList<AuditRecordInternal>? {
@@ -112,27 +107,7 @@ class AuditAPI {
         }
 
         addServiceInformation()
-        AuditDao.setConfig(dbType, connectionUrl, user, password)
-        auditDao = AuditDao.getDao()
-
-        executor = AuditExecutor(auditQueueInternal)
-
-        addPrimitiveTypes()
-    }
-
-    /**
-     * Create AuditApi with your dataSource
-     */
-    constructor(dbType: DbType, dataSource: DataSource) {
-        auditQueueInternal = ArrayBlockingQueue(capacityOfQueue)
-        auditRecordsNotCommitted = object : ThreadLocal<ArrayList<AuditRecordInternal>>() {
-            override fun initialValue(): ArrayList<AuditRecordInternal>? {
-                return ArrayList()
-            }
-        }
-
-        addServiceInformation()
-        AuditDao.setConfig(dbType, dataSource)
+        AuditDao.setConfig(dbType, dbProperties)
         auditDao = AuditDao.getDao()
 
         executor = AuditExecutor(auditQueueInternal)
@@ -159,14 +134,13 @@ class AuditAPI {
     @Suppress("UNCHECKED_CAST")
     internal fun addServiceInformation() {
         InformationType.addType(InformationType(IdPresenter,
-                PropertyLoader.loadProperty("IdColumn") ?: "IdColumn",
                 InnerType.Long) as InformationType<Any>)
         InformationType.addType(InformationType(VersionPresenter,
-                PropertyLoader.loadProperty("VersionColumn") ?: "VersionColumn",
                 InnerType.ULong) as InformationType<Any>)
         InformationType.addType(InformationType(TimeStampPresenter,
-                PropertyLoader.loadProperty("TimeStampColumn") ?: "TimeStampColumn",
                 InnerType.Long) as InformationType<Any>)
+        InformationType.addType(InformationType(DatePresenter,
+                InnerType.Date) as InformationType<Any>)
     }
 
     /**
@@ -365,7 +339,7 @@ class AuditAPI {
 
         val deserializedMaps = preparedForBatchDeserialization.mapValues {
             if (it.key.useDeserialization)
-                it.key.serializer.deserializeBatch(it.value)
+                it.key.deserializeBatch(it.value)
             else
                 emptyMap()
         }

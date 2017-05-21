@@ -5,20 +5,15 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-import tanvd.audit.implementation.dao.DbType
-import tanvd.audit.model.external.presenters.TimeStampPresenter
+import tanvd.audit.model.external.db.DbType
 import tanvd.audit.model.external.queries.QueryParameters
 import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.queries.less
 import tanvd.audit.model.external.queries.more
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.objects.ObjectType
-import tanvd.audit.model.internal.AuditRecordInternal
-import utils.InformationUtils
+import utils.*
 import utils.SamplesGenerator.getRecordInternal
-import utils.TestClassLong
-import utils.TestClassLongPresenter
-import utils.TypeUtils
 
 internal class StateLongTypeTest {
 
@@ -33,7 +28,7 @@ internal class StateLongTypeTest {
         TypeUtils.addAuditTypesPrimitive()
         TypeUtils.addInformationTypesPrimitive()
 
-        auditDao = DbType.Clickhouse.getDao("jdbc:clickhouse://localhost:8123/example", "default", "") as AuditDaoClickhouseImpl
+        auditDao = DbType.Clickhouse.getDao(DbUtils.getDbProperties()) as AuditDaoClickhouseImpl
 
         TypeUtils.addAuditTypePrimitive(auditDao!!)
 
@@ -110,7 +105,7 @@ internal class StateLongTypeTest {
     }
 
     private fun getSampleInformation(): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(currentId++, 1, 2)
+        return InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMilleniumnStart())
     }
 }
 

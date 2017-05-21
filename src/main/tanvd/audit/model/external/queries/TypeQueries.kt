@@ -1,18 +1,15 @@
 package tanvd.audit.model.external.queries
 
-import tanvd.audit.exceptions.UnknownObjectTypeException
-import tanvd.audit.model.external.types.information.InformationLongPresenter
-import tanvd.audit.model.external.types.objects.*
-import javax.management.Query
-import kotlin.reflect.KClass
-
+import tanvd.audit.model.external.types.objects.StateBooleanType
+import tanvd.audit.model.external.types.objects.StateLongType
+import tanvd.audit.model.external.types.objects.StateStringType
 
 
 /**
  * Leaf with LongStateType.
  */
 class QueryTypeLongLeaf(val typeCondition: QueryLongCondition, val id: String,
-                          val stateType: StateLongType<*> ) : QueryExpression
+                        val stateType: StateLongType<*>) : QueryExpression
 
 
 infix fun <T : Any> StateLongType<T>.less(number: Long): QueryTypeLongLeaf {
@@ -31,7 +28,7 @@ infix fun <T : Any> StateLongType<T>.equal(number: Long): QueryTypeLongLeaf {
  * Leaf with StringStateType.
  */
 class QueryTypeStringLeaf(val typeCondition: QueryStringCondition, val value: String,
-                          val stateType: StateStringType<*> ) : QueryExpression
+                          val stateType: StateStringType<*>) : QueryExpression
 
 
 infix fun <T : Any> StateStringType<T>.like(string: String): QueryTypeStringLeaf {
@@ -50,7 +47,7 @@ infix fun <T : Any> StateStringType<T>.regexp(string: String): QueryTypeStringLe
  * Leaf with BooleanStateType.
  */
 class QueryTypeBooleanLeaf(val typeCondition: QueryBooleanCondition, val id: String,
-                          val stateType: StateBooleanType<*> ) : QueryExpression
+                           val stateType: StateBooleanType<*>) : QueryExpression
 
 
 infix fun <T : Any> StateBooleanType<T>.`is`(value: Boolean): QueryTypeBooleanLeaf {

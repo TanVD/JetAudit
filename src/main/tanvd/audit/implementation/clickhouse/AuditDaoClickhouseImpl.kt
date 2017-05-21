@@ -3,6 +3,8 @@ package tanvd.audit.implementation.clickhouse
 import tanvd.audit.implementation.clickhouse.model.*
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.implementation.exceptions.BasicDbException
+import tanvd.audit.model.external.db.DbProperties
+import tanvd.audit.model.external.presenters.DatePresenter
 import tanvd.audit.model.external.presenters.IdPresenter
 import tanvd.audit.model.external.presenters.TimeStampPresenter
 import tanvd.audit.model.external.presenters.VersionPresenter
@@ -17,8 +19,7 @@ import javax.sql.DataSource
 /**
  * Dao to Clickhouse DB.
  */
-internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
-
+internal class AuditDaoClickhouseImpl(dataSource: DataSource, val dbProperties: DbProperties) : AuditDao {
 
     /**
      * Predefined scheme for clickhouse base.
@@ -26,11 +27,7 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
     companion object Scheme {
         val auditTable = PropertyLoader.loadProperty("AuditTable") ?: "Audit"
 
-        val dateColumn = PropertyLoader.loadProperty("DateColumn") ?: "Audit_Date"
         val descriptionColumn = PropertyLoader.loadProperty("DescriptionColumn") ?: "Description"
-
-        /** Default column with date for MergeTree Engine. Should not be inserted or selected.*/
-        val defaultColumns = arrayOf(DbColumnHeader(dateColumn, DbColumnType.DbDate))
 
         /**
          * Mandatory columns for audit. Should be presented in every insert. Treated specifically rather than
@@ -49,7 +46,7 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
         }
 
         fun getPredefinedAuditTableColumn(name: String): DbColumnHeader {
-            return arrayOf(*defaultColumns, *mandatoryColumns).find { it.name == name }!!
+            return arrayOf(*mandatoryColumns).find { it.name == name }!!
         }
 
     }
@@ -66,12 +63,15 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
      * @throws BasicDbException
      */
     private fun initTables() {
-        val columnsHeader = arrayListOf(*defaultColumns, *mandatoryColumns, *getInformationColumns(), *getTypesColumns())
-
-        clickhouseConnection.createTable(auditTable, DbTableHeader(columnsHeader),
-                listOf(dateColumn, InformationType.resolveType(TimeStampPresenter).code,
-                        InformationType.resolveType(IdPresenter).code), dateColumn,
-                InformationType.resolveType(VersionPresenter).code)
+        if (dbProperties.useDefaultDDL) {
+            val columnsHeader = arrayListOf(*mandatoryColumns, *getInformationColumns(), *getTypesColumns())
+            clickhouseConnection.createTable(auditTable, DbTableHeader(columnsHeader),
+                    listOf(InformationType.resolveType(DatePresenter).code,
+                            InformationType.resolveType(TimeStampPresenter).code,
+                            InformationType.resolveType(IdPresenter).code),
+                    InformationType.resolveType(DatePresenter).code,
+                    InformationType.resolveType(VersionPresenter).code)
+        }
     }
 
     /**
@@ -103,14 +103,18 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
      * @throws BasicDbException
      */
     override fun <T : Any> addTypeInDbModel(type: ObjectType<T>) {
-        for (stateType in type.state) {
-            clickhouseConnection.addColumn(auditTable, DbColumnHeader(stateType.getCode(), stateType.toDbColumnType()))
+        if (dbProperties.useDefaultDDL) {
+            for (stateType in type.state) {
+                clickhouseConnection.addColumn(auditTable, DbColumnHeader(stateType.getCode(), stateType.toDbColumnType()))
+            }
         }
     }
 
 
     override fun <T> addInformationInDbModel(information: InformationType<T>) {
-        clickhouseConnection.addColumn(auditTable, information.toDbColumnHeader())
+        if (dbProperties.useDefaultDDL) {
+            clickhouseConnection.addColumn(auditTable, information.toDbColumnHeader())
+        }
     }
 
     /**

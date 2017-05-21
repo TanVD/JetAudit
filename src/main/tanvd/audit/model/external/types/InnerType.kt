@@ -4,5 +4,6 @@ enum class InnerType {
     Long,
     ULong,
     String,
-    Boolean;
+    Boolean,
+    Date;
 }

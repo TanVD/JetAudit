@@ -17,10 +17,10 @@ internal data class AuditRecordInternal(val objects: List<Pair<ObjectType<*>, Ob
         fun createFromRecordWithNewVersion(auditRecord: AuditRecord): AuditRecordInternal {
             return AuditRecordInternal(
                     auditRecord.objects.mapNotNull {
-                            it.type to it.state
+                        it.type to it.state
                     },
                     auditRecord.informations.map {
-                        if (it.type.presenter.name == VersionPresenter.name)
+                        if (it.type.code == VersionPresenter.code)
                             InformationObject((it.value as Long) + 1, VersionPresenter)
                         else
                             it

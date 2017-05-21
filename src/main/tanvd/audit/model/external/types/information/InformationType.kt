@@ -3,9 +3,10 @@ package tanvd.audit.model.external.types.information
 import tanvd.audit.exceptions.UnknownInformationTypeException
 import tanvd.audit.model.external.types.InnerType
 
+data class InformationType<T>(val presenter: InformationPresenter<T>, val type: InnerType) :
+        InformationSerializer<T> by presenter {
 
-data class InformationType<T>(val presenter: InformationPresenter<T>, val code: String, val type: InnerType) {
-
+    val code = presenter.code
 
     companion object TypesResolution {
         private val informationTypes: MutableSet<InformationType<Any>> = LinkedHashSet()
@@ -34,7 +35,7 @@ data class InformationType<T>(val presenter: InformationPresenter<T>, val code: 
         fun resolveType(presenter: InformationPresenter<*>): InformationType<Any> {
             val informationType = informationTypesByPresenter[presenter]
             if (informationType == null) {
-                throw UnknownInformationTypeException("Unknown InformationType requested to resolve by presenter -- ${presenter.name}")
+                throw UnknownInformationTypeException("Unknown InformationType requested to resolve by presenter -- ${presenter.code}")
             } else {
                 return informationType
             }

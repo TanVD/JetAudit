@@ -18,6 +18,9 @@ internal fun InformationType<*>.toDbColumnType(): DbColumnType {
         InnerType.ULong -> {
             DbColumnType.DbULong
         }
+        InnerType.Date -> {
+            DbColumnType.DbDate
+        }
     }
 }
 
@@ -35,22 +38,8 @@ internal fun StateType<*>.toDbColumnType(): DbColumnType {
         InnerType.ULong -> {
             DbColumnType.DbArrayULong
         }
-    }
-}
-
-internal fun InformationType<*>.toValue(serialized: String): Any {
-    return when (type) {
-        InnerType.Long -> {
-            serialized.toLong()
-        }
-        InnerType.String -> {
-            serialized
-        }
-        InnerType.Boolean -> {
-            serialized.toBoolean()
-        }
-        InnerType.ULong -> {
-            serialized.toLong()
+        InnerType.Date -> {
+            DbColumnType.DbArrayDate
         }
     }
 }

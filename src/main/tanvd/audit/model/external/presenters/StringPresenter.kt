@@ -13,7 +13,7 @@ object StringPresenter : ObjectPresenter<String>() {
     val value = StateStringType<String>("Value", entityName)
 
     override val fieldSerializers: Map<StateType<String>, (String) -> String> =
-            hashMapOf(value to { value -> value})
+            hashMapOf(value to { value -> value })
 
     override val deserializer: (ObjectState) -> String? = { (stateList) -> stateList[value] }
 }

@@ -46,9 +46,9 @@ internal object ClickhouseRecordSerializer {
         for (type in InformationType.getTypes()) {
             val curInformation = auditRecordInternal.information.find { it.type == type }
             if (curInformation != null) {
-                elements.add(DbColumn(type.toDbColumnHeader(), curInformation.value.toString()))
+                elements.add(DbColumn(type.toDbColumnHeader(), type.presenter.serialize(curInformation.value)))
             } else {
-                elements.add(DbColumn(type.toDbColumnHeader(), type.presenter.getDefault().toString()))
+                elements.add(DbColumn(type.toDbColumnHeader(), type.presenter.serialize(type.presenter.getDefault())))
             }
         }
     }
@@ -86,9 +86,7 @@ internal object ClickhouseRecordSerializer {
                 val pair = row.columns.find { it.name == stateType.getCode() }
                 if (pair != null) {
                     val index = currentNumberOfType[stateType.getCode()] ?: 0
-                    if (pair.elements[index].isNotEmpty()) {
-                        stateList.put(stateType, pair.elements[index])
-                    }
+                    stateList.put(stateType, pair.elements[index])
                     currentNumberOfType.put(stateType.getCode(), index + 1)
                 }
             }
@@ -103,7 +101,7 @@ internal object ClickhouseRecordSerializer {
         for (type in InformationType.getTypes()) {
             val curInformation = row.columns.find { it.name == type.code }
             if (curInformation != null) {
-                information.add(InformationObject(type.toValue(curInformation.elements[0]), type))
+                information.add(InformationObject(type.deserialize(curInformation.elements[0]), type))
             }
         }
         return information

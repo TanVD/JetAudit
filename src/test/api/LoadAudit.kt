@@ -24,6 +24,7 @@ import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
 import utils.*
 import utils.SamplesGenerator.getRecordInternal
+import java.util.*
 import java.util.concurrent.BlockingQueue
 
 @PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*")
@@ -208,6 +209,6 @@ internal class LoadAudit : PowerMockTestCase() {
     }
 
     private fun getSampleInformation(timeStamp: Long, id: Long): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(id, timeStamp, 2)
+        return InformationUtils.getPrimitiveInformation(id, timeStamp, 2, SamplesGenerator.getMilleniumnStart())
     }
 }

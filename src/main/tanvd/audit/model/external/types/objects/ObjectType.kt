@@ -3,12 +3,12 @@ package tanvd.audit.model.external.types.objects
 import tanvd.audit.exceptions.UnknownObjectTypeException
 import kotlin.reflect.KClass
 
-data class ObjectType<T : Any>(val klass: KClass<T>, val entityName: String,
-                               val serializer: ObjectSerializer<T>, val state: Set<StateType<T>>) :
-        ObjectSerializer<T> by serializer {
+data class ObjectType<T : Any>(val klass: KClass<T>, val objectPresenter: ObjectPresenter<T>) :
+        ObjectSerializer<T> by objectPresenter {
 
-    constructor(klass: KClass<T>, objectPresenter: ObjectPresenter<T>) : this(klass, objectPresenter.entityName,
-            objectPresenter, objectPresenter.fieldSerializers.keys)
+    val state = objectPresenter.fieldSerializers.keys
+
+    val entityName = objectPresenter.entityName
 
     companion object TypesResolution {
         private val types: MutableSet<ObjectType<Any>> = java.util.HashSet()

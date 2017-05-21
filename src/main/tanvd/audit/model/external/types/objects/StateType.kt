@@ -15,7 +15,7 @@ class StateStringType<T>(stateName: String, objectName: String) : StateType<T>(s
 /**
  * Internal class
  */
-abstract class StateType<T>(val stateName: String, val objectName: String, val type: InnerType) {
+sealed class StateType<T>(val stateName: String, val objectName: String, val type: InnerType) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other?.javaClass != javaClass) return false
