@@ -209,6 +209,6 @@ internal class LoadAudit : PowerMockTestCase() {
     }
 
     private fun getSampleInformation(timeStamp: Long, id: Long): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(id, timeStamp, 2, SamplesGenerator.getMilleniumnStart())
+        return InformationUtils.getPrimitiveInformation(id, timeStamp, 2, SamplesGenerator.getMillenniumStart())
     }
 }

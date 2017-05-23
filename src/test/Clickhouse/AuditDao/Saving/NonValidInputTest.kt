@@ -130,7 +130,7 @@ internal class NonValidInputTest {
     }
 
     private fun getSampleInformation(): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(SavingTest.currentId++, 1, 2, SamplesGenerator.getMilleniumnStart())
+        return InformationUtils.getPrimitiveInformation(SavingTest.currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
     }
 
 }

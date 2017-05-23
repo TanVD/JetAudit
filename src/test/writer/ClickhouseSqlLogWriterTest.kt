@@ -55,6 +55,6 @@ internal class ClickhouseSqlLogWriterTest : PowerMockTestCase() {
     }
 
     private fun getSampleInformation(id: Long, timeStamp: Long, version: Long): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(id, timeStamp, version, SamplesGenerator.getMilleniumnStart())
+        return InformationUtils.getPrimitiveInformation(id, timeStamp, version, SamplesGenerator.getMillenniumStart())
     }
 }

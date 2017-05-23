@@ -10,7 +10,6 @@ import tanvd.audit.model.external.presenters.IdPresenter
 import tanvd.audit.model.external.presenters.LongPresenter
 import tanvd.audit.model.external.presenters.TimeStampPresenter
 import tanvd.audit.model.external.queries.QueryParameters
-import tanvd.audit.model.external.queries.`is`
 import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.queries.or
 import tanvd.audit.model.external.records.InformationObject
@@ -135,7 +134,7 @@ internal class SavingTest {
 
         auditDao!!.saveRecord(auditRecordFirstOriginal)
 
-        val recordsLoaded = auditDao!!.loadRecords(BooleanInfPresenter `is` true, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(BooleanInfPresenter equal true, QueryParameters())
         Assert.assertEquals(recordsLoaded.toSet(), setOf(auditRecordFirstOriginal))
     }
 
@@ -156,7 +155,7 @@ internal class SavingTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(BooleanInfPresenter `is` true, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(BooleanInfPresenter equal true, QueryParameters())
         Assert.assertEquals(recordsLoaded.toSet(), setOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
     }
 
@@ -212,15 +211,15 @@ internal class SavingTest {
     }
 
     private fun getSampleInformation(): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMilleniumnStart())
+        return InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
     }
 
     private fun getSampleInformation(timeStamp: Long): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(currentId++, timeStamp, 2, SamplesGenerator.getMilleniumnStart())
+        return InformationUtils.getPrimitiveInformation(currentId++, timeStamp, 2, SamplesGenerator.getMillenniumStart())
     }
 
     private fun getSampleInformation(id: Long, timeStamp: Long, version: Long = 2): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(id, timeStamp, version, SamplesGenerator.getMilleniumnStart())
+        return InformationUtils.getPrimitiveInformation(id, timeStamp, version, SamplesGenerator.getMillenniumStart())
     }
 
 }

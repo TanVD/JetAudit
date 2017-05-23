@@ -1,27 +1,29 @@
 package tanvd.audit.model.external.queries
 
-//QueryLongCondition
+interface InnerTypeCondition
 
-enum class QueryLongCondition {
+//NumberCondition
+
+enum class NumberCondition : InnerTypeCondition {
     less,
-    more,
-    equal;
+    more;
 }
 
-//QueryStringCondition
+//StringCondition
 
-enum class QueryStringCondition {
+enum class StringCondition : InnerTypeCondition {
     like,
-    equal,
-    /**
-     * Beware, it is not a full match. True if got partial match
-     */
-    regexp
+    regexp;
 }
 
-//QueryBooleanCondition
+//EqualityCondition
+enum class EqualityCondition : InnerTypeCondition {
+    equal,
+    notEqual;
+}
 
-enum class QueryBooleanCondition {
-    `is`,
-    isNot
+//ListCondition
+enum class ListCondition : InnerTypeCondition {
+    inList,
+    notInList;
 }

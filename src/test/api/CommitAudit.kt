@@ -229,6 +229,6 @@ internal class CommitAudit : PowerMockTestCase() {
     }
 
     private fun getSampleInformation(timeStamp: Long): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(currentId++, timeStamp, 2, SamplesGenerator.getMilleniumnStart())
+        return InformationUtils.getPrimitiveInformation(currentId++, timeStamp, 2, SamplesGenerator.getMillenniumStart())
     }
 }

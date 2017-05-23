@@ -10,9 +10,9 @@ object StringPresenter : ObjectPresenter<String>() {
 
     override val entityName: String = "String"
 
-    val value = StateStringType<String>("Value", entityName)
+    val value = StateStringType("Value", entityName)
 
-    override val fieldSerializers: Map<StateType<String>, (String) -> String> =
+    override val fieldSerializers: Map<StateType<*>, (String) -> String> =
             hashMapOf(value to { value -> value })
 
     override val deserializer: (ObjectState) -> String? = { (stateList) -> stateList[value] }

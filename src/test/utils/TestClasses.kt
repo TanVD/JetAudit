@@ -10,9 +10,9 @@ object TestClassLongPresenter : ObjectPresenter<TestClassLong>() {
 
     override val entityName: String = "TestClassLong"
 
-    val id = StateLongType<TestClassLong>("Id", entityName)
+    val id = StateLongType("Id", entityName)
 
-    override val fieldSerializers: Map<StateType<TestClassLong>, (TestClassLong) -> String> =
+    override val fieldSerializers: Map<StateType<*>, (TestClassLong) -> String> =
             hashMapOf(id to { (hash) -> hash.toString() })
 
     override val deserializer: (ObjectState) -> TestClassLong? = { (stateList) ->
@@ -27,9 +27,9 @@ object TestClassStringPresenter : ObjectPresenter<TestClassString>() {
 
     override val entityName: String = "TestClassString"
 
-    val id = StateStringType<TestClassString>("Id", entityName)
+    val id = StateStringType("Id", entityName)
 
-    override val fieldSerializers: Map<StateType<TestClassString>, (TestClassString) -> String> =
+    override val fieldSerializers: Map<StateType<*>, (TestClassString) -> String> =
             hashMapOf(id to { (hash) -> hash })
 
     override val deserializer: (ObjectState) -> TestClassString? = { (stateList) ->
@@ -44,9 +44,9 @@ object TestClassBooleanPresenter : ObjectPresenter<TestClassBoolean>() {
 
     override val entityName: String = "TestClassBoolean"
 
-    val id = StateBooleanType<TestClassBoolean>("Id", entityName)
+    val id = StateBooleanType("Id", entityName)
 
-    override val fieldSerializers: Map<StateType<TestClassBoolean>, (TestClassBoolean) -> String> =
+    override val fieldSerializers: Map<StateType<*>, (TestClassBoolean) -> String> =
             hashMapOf(id to { (hash) -> hash.toString() })
 
     override val deserializer: (ObjectState) -> TestClassBoolean? = { (stateList) ->

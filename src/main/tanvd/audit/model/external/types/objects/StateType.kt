@@ -5,11 +5,11 @@ import tanvd.audit.model.external.types.InnerType
 /**
  * External class for users
  */
-class StateLongType<T>(stateName: String, objectName: String) : StateType<T>(stateName, objectName, InnerType.Long)
+class StateLongType(stateName: String, objectName: String) : StateType<Long>(stateName, objectName, InnerType.Long)
 
-class StateBooleanType<T>(stateName: String, objectName: String) : StateType<T>(stateName, objectName, InnerType.Boolean)
+class StateBooleanType(stateName: String, objectName: String) : StateType<Boolean>(stateName, objectName, InnerType.Boolean)
 
-class StateStringType<T>(stateName: String, objectName: String) : StateType<T>(stateName, objectName, InnerType.String)
+class StateStringType(stateName: String, objectName: String) : StateType<String>(stateName, objectName, InnerType.String)
 
 
 /**

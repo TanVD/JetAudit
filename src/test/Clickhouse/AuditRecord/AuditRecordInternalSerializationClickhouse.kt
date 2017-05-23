@@ -125,7 +125,7 @@ internal class AuditRecordInternalSerializationClickhouse {
     }
 
     private fun getSampleInformation(): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(0, 1, 2, SamplesGenerator.getMilleniumnStart())
+        return InformationUtils.getPrimitiveInformation(0, 1, 2, SamplesGenerator.getMillenniumStart())
     }
 
     private fun getSampleInformationColumns(): Array<DbColumn> {

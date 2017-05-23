@@ -198,15 +198,15 @@ internal class OrderingTest {
     }
 
     private fun getSampleInformation(): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMilleniumnStart())
+        return InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
     }
 
     private fun getSampleInformation(timeStamp: Long): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(currentId++, timeStamp, 2, SamplesGenerator.getMilleniumnStart())
+        return InformationUtils.getPrimitiveInformation(currentId++, timeStamp, 2, SamplesGenerator.getMillenniumStart())
     }
 
     private fun getSampleInformation(timeStamp: Long, version: Long): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(currentId++, timeStamp, version, SamplesGenerator.getMilleniumnStart())
+        return InformationUtils.getPrimitiveInformation(currentId++, timeStamp, version, SamplesGenerator.getMillenniumStart())
     }
 
 

@@ -32,9 +32,9 @@ internal class AuditApiExample {
 
         override val entityName: String = "Order"
 
-        val id = StateStringType<Order>("Id", entityName)
+        val id = StateStringType("Id", entityName)
 
-        override val fieldSerializers: Map<StateType<Order>, (Order) -> String> = hashMapOf(id to { value -> value.id })
+        override val fieldSerializers: Map<StateType<*>, (Order) -> String> = hashMapOf(id to { value -> value.id })
         override val deserializer: (ObjectState) -> Order? = { (stateList) -> Order(stateList[id]!!) }
 
     }
@@ -50,9 +50,9 @@ internal class AuditApiExample {
 
         override val entityName: String = "Account"
 
-        val id = StateStringType<Account>("Id", entityName)
+        val id = StateStringType("Id", entityName)
 
-        override val fieldSerializers: Map<StateType<Account>, (Account) -> String> = hashMapOf(id to { value -> value.id })
+        override val fieldSerializers: Map<StateType<*>, (Account) -> String> = hashMapOf(id to { value -> value.id })
         override val deserializer: (ObjectState) -> Account? = { (stateList) -> Account(stateList[id]!!) }
 
     }

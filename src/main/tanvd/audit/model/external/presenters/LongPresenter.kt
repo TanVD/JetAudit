@@ -10,9 +10,9 @@ object LongPresenter : ObjectPresenter<Long>() {
 
     override val entityName: String = "Long"
 
-    val value = StateLongType<Long>("Value", entityName)
+    val value = StateLongType("Value", entityName)
 
-    override val fieldSerializers: Map<StateType<Long>, (Long) -> String> =
+    override val fieldSerializers: Map<StateType<*>, (Long) -> String> =
             hashMapOf(value to { value -> value.toString() })
 
     override val deserializer: (ObjectState) -> Long? = { (stateList) -> stateList[value]?.toLong() }

@@ -8,12 +8,13 @@ import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.model.external.db.DbType
 import tanvd.audit.model.external.presenters.StringPresenter
 import tanvd.audit.model.external.presenters.TimeStampPresenter
+import tanvd.audit.model.external.queries.EqualityCondition
+import tanvd.audit.model.external.queries.QueryEqualityTypeLeaf
 import tanvd.audit.model.external.queries.QueryParameters
 import tanvd.audit.model.external.queries.QueryParameters.OrderByParameters.Order.ASC
-import tanvd.audit.model.external.queries.QueryStringCondition
-import tanvd.audit.model.external.queries.QueryTypeStringLeaf
 import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.records.InformationObject
+import tanvd.audit.model.external.types.InnerType
 import utils.DbUtils
 import utils.InformationUtils
 import utils.SamplesGenerator
@@ -90,7 +91,8 @@ internal class PagingTest {
 
     @Test
     fun countRows_countNoSavedRows_gotRightNumber() {
-        val count = auditDao!!.countRecords(QueryTypeStringLeaf(QueryStringCondition.equal, "string", StringPresenter.value))
+        val count = auditDao!!.countRecords(QueryEqualityTypeLeaf(EqualityCondition.equal, "string", InnerType.String,
+                StringPresenter.value))
         Assert.assertEquals(count, 0)
     }
 
@@ -105,11 +107,11 @@ internal class PagingTest {
     }
 
     private fun getSampleInformation(): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMilleniumnStart())
+        return InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
     }
 
     private fun getSampleInformation(timeStamp: Long): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(currentId++, timeStamp, 2, SamplesGenerator.getMilleniumnStart())
+        return InformationUtils.getPrimitiveInformation(currentId++, timeStamp, 2, SamplesGenerator.getMillenniumStart())
     }
 
 }
