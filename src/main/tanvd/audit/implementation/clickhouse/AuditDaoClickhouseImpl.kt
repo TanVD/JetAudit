@@ -25,7 +25,7 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource, val dbProperties: 
      * Predefined scheme for clickhouse base.
      */
     companion object Scheme {
-        val auditTable = PropertyLoader.loadProperty("AuditTable") ?: "Audit"
+        val auditTable = PropertyLoader.loadProperty("AuditTable") ?: "AuditTable"
 
         val descriptionColumn = PropertyLoader.loadProperty("DescriptionColumn") ?: "Description"
 

@@ -152,7 +152,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
     fun loadRows(tableName: String, columnsToSelect: DbTableHeader, expression: QueryExpression,
                  parameters: QueryParameters): List<DbRow> {
         val sqlSelect = StringBuilder()
-        sqlSelect.append("SELECT ${columnsToSelect.toDefString()} FROM $tableName WHERE ")
+        sqlSelect.append("SELECT ${columnsToSelect.toDefString()} FROM $tableName PREWHERE ")
 
         addExpression(expression, sqlSelect)
 

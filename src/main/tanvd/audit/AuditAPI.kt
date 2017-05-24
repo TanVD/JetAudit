@@ -54,7 +54,7 @@ import java.util.concurrent.BlockingQueue
  *      ReserveWriter          (default File) (may be File|Log)
  *
  *      #Clickouse scheme config
- *      AuditTable             (default Audit),
+ *      AuditTable             (default AuditTable),
  *      DescriptionColumn      (default Description),
  *      DateColumn             (default DateColumn),
  *      TimeStampColumn        (default TimeStampColumn),
