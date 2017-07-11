@@ -8,6 +8,7 @@ import tanvd.audit.model.external.presenters.IdPresenter
 import tanvd.audit.model.external.presenters.VersionPresenter
 import tanvd.audit.model.external.queries.*
 import tanvd.audit.model.external.queries.QueryParameters.OrderByParameters.Order
+import tanvd.audit.model.external.types.InnerType
 import tanvd.audit.model.external.types.information.InformationType
 import java.sql.Connection
 import java.sql.PreparedStatement
@@ -29,15 +30,11 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
      */
     fun createTable(tableName: String, tableHeader: DbTableHeader,
                     primaryKey: List<String>, dateKey: String, versionKey: String,
-                    setDefaultDate: Boolean = true, ifNotExists: Boolean = true) {
+                    ifNotExists: Boolean = true) {
         val sqlCreate = StringBuilder()
         sqlCreate.append("CREATE TABLE ${if (ifNotExists) "IF NOT EXISTS " else ""} ")
         sqlCreate.append(tableHeader.columnsHeader.joinToString(prefix = "$tableName (", postfix = ") ") {
-            if (it.name == dateKey && setDefaultDate) {
-                "${it.name} ${it.type} DEFAULT today()"
-            } else {
-                "${it.name} ${it.type}"
-            }
+            "${it.name} ${it.type}"
         })
         sqlCreate.append("ENGINE = ReplacingMergeTree($dateKey, (${primaryKey.joinToString()}), 8192, $versionKey);")
 
@@ -155,7 +152,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
     fun loadRows(tableName: String, columnsToSelect: DbTableHeader, expression: QueryExpression,
                  parameters: QueryParameters): List<DbRow> {
         val sqlSelect = StringBuilder()
-        sqlSelect.append("SELECT ${columnsToSelect.toDefString()} FROM $tableName WHERE ")
+        sqlSelect.append("SELECT ${columnsToSelect.toDefString()} FROM $tableName PREWHERE ")
 
         addExpression(expression, sqlSelect)
 
@@ -174,9 +171,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             connection = dataSource.connection
             preparedStatement = connection.prepareStatement(sqlSelect.toString())
 
-            var dbIndex = 1
-            dbIndex = setQueryIds(expression, preparedStatement, dbIndex)
-            setLimits(parameters.limits, preparedStatement, dbIndex)
+            setLimits(parameters.limits, preparedStatement, 1)
 
             resultSet = preparedStatement.executeQuery()
 
@@ -254,22 +249,10 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
                     }
                 }
             }
-            is QueryTypeStringLeaf -> {
+            is QueryTypeLeafCondition<*> -> {
                 expression.toStringSQL()
             }
-            is QueryTypeLongLeaf -> {
-                expression.toStringSQL()
-            }
-            is QueryTypeBooleanLeaf -> {
-                expression.toStringSQL()
-            }
-            is QueryInformationStringLeaf -> {
-                expression.toStringSQL()
-            }
-            is QueryInformationLongLeaf -> {
-                expression.toStringSQL()
-            }
-            is QueryInformationBooleanLeaf -> {
+            is QueryInformationLeafCondition<*> -> {
                 expression.toStringSQL()
             }
             else -> {
@@ -278,26 +261,6 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             }
         }
     }
-
-    private fun setQueryIds(expression: QueryExpression, preparedStatement: PreparedStatement?, dbIndex: Int): Int {
-        var dbIndexVar = dbIndex
-        when (expression) {
-            is QueryNode -> {
-                dbIndexVar = setQueryIds(expression.expressionFirst, preparedStatement, dbIndexVar)
-                dbIndexVar = setQueryIds(expression.expressionSecond, preparedStatement, dbIndexVar)
-            }
-            is QueryTypeStringLeaf -> {
-                preparedStatement?.setString(dbIndexVar, expression.value)
-                dbIndexVar++
-            }
-            is QueryInformationStringLeaf -> {
-                preparedStatement?.setString(dbIndexVar, expression.value)
-                dbIndexVar++
-            }
-        }
-        return dbIndexVar
-    }
-
 
     /**
      * Every append required to end by space to construct right expression with this function
@@ -347,8 +310,6 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             connection = dataSource.connection
             preparedStatement = connection.prepareStatement(sqlSelect.toString())
 
-            setQueryIds(expression, preparedStatement, 1)
-
             resultSet = preparedStatement.executeQuery()
 
             if (resultSet.next()) {
@@ -375,7 +336,13 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
                         connection.createArrayOf("String", column.elements.toTypedArray()))
             }
             DbColumnType.DbDate -> {
-                logger.error("Default field got in insert. Scheme violation.")
+                this.setDate(dbIndex, java.sql.Date(getDateFormat().parse(column.elements[0]).time))
+            }
+            DbColumnType.DbArrayDate -> {
+                this.setArray(dbIndex,
+                        connection.createArrayOf("Date", column.elements.map {
+                            java.sql.Date(getDateFormat().parse(column.elements[0]).time)
+                        }.toTypedArray()))
             }
             DbColumnType.DbLong -> {
                 this.setLong(dbIndex, column.elements[0].toLong())
@@ -409,34 +376,41 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
     private fun ResultSet.getColumn(column: DbColumnHeader): DbColumn {
         when (column.type) {
             DbColumnType.DbDate -> {
-                logger.error("Default field got in loadPropertiesFromFile. Scheme violation.")
-                return DbColumn("", emptyList(), DbColumnType.DbArrayString)
+                val dateSerialized = getDateFormat().format(java.util.Date(getDate(column.name).time)).toString()
+                return DbColumn(column.name, listOf(dateSerialized), DbColumnType.DbDate)
+            }
+            DbColumnType.DbArrayDate -> {
+                @Suppress("UNCHECKED_CAST")
+                val resultArray = (getArray(column.name).array as Array<Date>).map {
+                    getDateFormat().format(java.util.Date(it.time)).toString()
+                }
+                return DbColumn(column.name, resultArray.toList(), DbColumnType.DbArrayDate)
             }
             DbColumnType.DbLong -> {
-                val result = this.getLong(column.name)
+                val result = getLong(column.name)
                 return DbColumn(column.name, listOf(result.toString()), DbColumnType.DbLong)
             }
             DbColumnType.DbArrayLong -> {
                 @Suppress("UNCHECKED_CAST")
-                val resultArray = (this.getArray(column.name).array as LongArray).map { it.toString() }
+                val resultArray = (getArray(column.name).array as LongArray).map { it.toString() }
                 return DbColumn(column.name, resultArray.toList(), DbColumnType.DbArrayLong)
             }
             DbColumnType.DbULong -> {
-                val result = this.getLong(column.name)
+                val result = getLong(column.name)
                 return DbColumn(column.name, listOf(result.toString()), DbColumnType.DbLong)
             }
             DbColumnType.DbArrayULong -> {
                 @Suppress("UNCHECKED_CAST")
-                val resultArray = (this.getArray(column.name).array as LongArray).map { it.toString() }
+                val resultArray = (getArray(column.name).array as LongArray).map { it.toString() }
                 return DbColumn(column.name, resultArray.toList(), DbColumnType.DbArrayULong)
             }
             DbColumnType.DbBoolean -> {
-                val result = this.getInt(column.name)
+                val result = getInt(column.name)
                 return DbColumn(column.name, listOf(if (result == 1) true.toString() else false.toString()), DbColumnType.DbBoolean)
             }
             DbColumnType.DbArrayBoolean -> {
                 @Suppress("UNCHECKED_CAST")
-                val resultArray = (this.getArray(column.name).array as LongArray).map {
+                val resultArray = (getArray(column.name).array as LongArray).map {
                     if (it.toInt() == 1)
                         true.toString()
                     else
@@ -445,14 +419,15 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
                 return DbColumn(column.name, resultArray.toList(), DbColumnType.DbArrayBoolean)
             }
             DbColumnType.DbString -> {
-                val result = this.getString(column.name)
+                val result = getString(column.name)
                 return DbColumn(column.name, listOf(result), DbColumnType.DbString)
             }
             DbColumnType.DbArrayString -> {
                 @Suppress("UNCHECKED_CAST")
-                val resultArray = this.getArray(column.name).array as Array<String>
+                val resultArray = getArray(column.name).array as Array<String>
                 return DbColumn(column.name, resultArray.toList(), DbColumnType.DbArrayString)
             }
+
         }
     }
 

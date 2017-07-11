@@ -5,18 +5,13 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-import tanvd.audit.implementation.dao.DbType
-import tanvd.audit.model.external.queries.QueryParameters
-import tanvd.audit.model.external.queries.`is`
-import tanvd.audit.model.external.queries.isNot
+import tanvd.audit.model.external.db.DbType
+import tanvd.audit.model.external.queries.*
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.InnerType
 import tanvd.audit.model.external.types.information.InformationType
-import tanvd.audit.model.internal.AuditRecordInternal
-import utils.BooleanInfPresenter
-import utils.InformationUtils
+import utils.*
 import utils.SamplesGenerator.getRecordInternal
-import utils.TypeUtils
 
 internal class InformationBoolean {
 
@@ -31,11 +26,11 @@ internal class InformationBoolean {
         TypeUtils.addAuditTypesPrimitive()
         TypeUtils.addInformationTypesPrimitive()
 
-        auditDao = DbType.Clickhouse.getDao("jdbc:clickhouse://localhost:8123/example", "default", "") as AuditDaoClickhouseImpl
+        auditDao = DbType.Clickhouse.getDao(DbUtils.getDbProperties()) as AuditDaoClickhouseImpl
 
         TypeUtils.addAuditTypePrimitive(auditDao!!)
 
-        val type = InformationType(BooleanInfPresenter, "BooleanInfPresenter", InnerType.Boolean) as InformationType<Any>
+        val type = InformationType(BooleanInfPresenter, InnerType.Boolean) as InformationType<Any>
         InformationType.addType(type)
         auditDao!!.addInformationInDbModel(type)
     }
@@ -47,13 +42,15 @@ internal class InformationBoolean {
         currentId = 0
     }
 
+//Equality
+
     @Test
     fun loadRow_LoadByIs_loadedOne() {
         val auditRecordFirstOriginal = getRecordInternal(information = getSampleInformation(true))
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(BooleanInfPresenter `is` true, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(BooleanInfPresenter equal true, QueryParameters())
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
@@ -63,7 +60,7 @@ internal class InformationBoolean {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(BooleanInfPresenter `is` false, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(BooleanInfPresenter equal false, QueryParameters())
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
@@ -73,7 +70,7 @@ internal class InformationBoolean {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(BooleanInfPresenter isNot false, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(BooleanInfPresenter notEqual false, QueryParameters())
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
@@ -83,12 +80,54 @@ internal class InformationBoolean {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(BooleanInfPresenter isNot true, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(BooleanInfPresenter notEqual true, QueryParameters())
+        Assert.assertEquals(recordsLoaded.size, 0)
+    }
+
+//List
+
+    @Test
+    fun loadRow_LoadByInList_loadedOne() {
+        val auditRecordFirstOriginal = getRecordInternal(information = getSampleInformation(true))
+
+        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
+
+        val recordsLoaded = auditDao!!.loadRecords(BooleanInfPresenter inList listOf(true), QueryParameters())
+        Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
+    }
+
+    @Test
+    fun loadRow_LoadByInList_loadedNone() {
+        val auditRecordFirstOriginal = getRecordInternal(information = getSampleInformation(true))
+
+        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
+
+        val recordsLoaded = auditDao!!.loadRecords(BooleanInfPresenter inList listOf(false), QueryParameters())
+        Assert.assertEquals(recordsLoaded.size, 0)
+    }
+
+    @Test
+    fun loadRow_LoadByNotInList_loadedOne() {
+        val auditRecordFirstOriginal = getRecordInternal(information = getSampleInformation(true))
+
+        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
+
+        val recordsLoaded = auditDao!!.loadRecords(BooleanInfPresenter notInList listOf(false), QueryParameters())
+        Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
+    }
+
+    @Test
+    fun loadRow_LoadByNotInList_loadedNone() {
+        val auditRecordFirstOriginal = getRecordInternal(information = getSampleInformation(true))
+
+        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
+
+        val recordsLoaded = auditDao!!.loadRecords(BooleanInfPresenter notInList listOf(true), QueryParameters())
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
     private fun getSampleInformation(value: Boolean): MutableSet<InformationObject> {
-        val information = InformationUtils.getPrimitiveInformation(currentId++, 1, 2)
+        val information = InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
         (information).add(InformationObject(value, BooleanInfPresenter))
         return information
 

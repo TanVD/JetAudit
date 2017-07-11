@@ -19,6 +19,7 @@ import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
 import utils.*
 import utils.SamplesGenerator.getRecordInternal
+import java.util.*
 import java.util.concurrent.BlockingQueue
 
 
@@ -138,6 +139,6 @@ internal class SaveAudit : PowerMockTestCase() {
     }
 
     private fun getSampleInformation(): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(currentId++, 1, 2)
+        return InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
     }
 }

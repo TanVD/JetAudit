@@ -1,12 +1,9 @@
 package tanvd.audit.model.external.queries
 
-import tanvd.audit.exceptions.UnknownObjectTypeException
 import tanvd.audit.model.external.queries.QueryParameters.OrderByParameters.Order
 import tanvd.audit.model.external.types.information.InformationPresenter
 import tanvd.audit.model.external.types.information.InformationType
-import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.external.types.objects.StateType
-import kotlin.reflect.KClass
 
 /**
  * Query parameters for JetAudit

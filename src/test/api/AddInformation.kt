@@ -95,7 +95,6 @@ internal class AddInformation : PowerMockTestCase() {
 
     @Suppress("UNCHECKED_CAST")
     private fun createSampleInformationType(): InformationType<Any> {
-        return InformationType(BooleanInfPresenter, "BooleanInfPresenter", InnerType.Boolean) as
-                InformationType<Any>
+        return InformationType(BooleanInfPresenter, InnerType.Boolean) as InformationType<Any>
     }
 }

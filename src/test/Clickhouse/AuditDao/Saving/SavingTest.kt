@@ -5,12 +5,11 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-import tanvd.audit.implementation.dao.DbType
+import tanvd.audit.model.external.db.DbType
 import tanvd.audit.model.external.presenters.IdPresenter
-import tanvd.audit.model.external.presenters.TimeStampPresenter
 import tanvd.audit.model.external.presenters.LongPresenter
+import tanvd.audit.model.external.presenters.TimeStampPresenter
 import tanvd.audit.model.external.queries.QueryParameters
-import tanvd.audit.model.external.queries.`is`
 import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.queries.or
 import tanvd.audit.model.external.records.InformationObject
@@ -35,7 +34,7 @@ internal class SavingTest {
         TypeUtils.addAuditTypesPrimitive()
         TypeUtils.addInformationTypesPrimitive()
 
-        auditDao = DbType.Clickhouse.getDao("jdbc:clickhouse://localhost:8123/example", "default", "") as AuditDaoClickhouseImpl
+        auditDao = DbType.Clickhouse.getDao(DbUtils.getDbProperties()) as AuditDaoClickhouseImpl
 
         TypeUtils.addAuditTypePrimitive(auditDao!!)
 
@@ -124,7 +123,7 @@ internal class SavingTest {
     @Test
     fun saveRecord_BooleanInformation_loadRecordsReturnSavedRecord() {
         @Suppress("UNCHECKED_CAST")
-        val type = InformationType(BooleanInfPresenter, "BooleanInfPresenter", InnerType.Boolean) as InformationType<Any>
+        val type = InformationType(BooleanInfPresenter, InnerType.Boolean) as InformationType<Any>
         InformationType.addType(type)
         auditDao!!.addInformationInDbModel(type)
 
@@ -135,14 +134,14 @@ internal class SavingTest {
 
         auditDao!!.saveRecord(auditRecordFirstOriginal)
 
-        val recordsLoaded = auditDao!!.loadRecords(BooleanInfPresenter `is` true, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(BooleanInfPresenter equal true, QueryParameters())
         Assert.assertEquals(recordsLoaded.toSet(), setOf(auditRecordFirstOriginal))
     }
 
     @Test
     fun saveRecords_BooleanInformation_loadRecordsReturnSavedRecords() {
         @Suppress("UNCHECKED_CAST")
-        val type = InformationType(BooleanInfPresenter, "BooleanInfPresenter", InnerType.Boolean) as InformationType<Any>
+        val type = InformationType(BooleanInfPresenter, InnerType.Boolean) as InformationType<Any>
         InformationType.addType(type)
         auditDao!!.addInformationInDbModel(type)
 
@@ -156,14 +155,14 @@ internal class SavingTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(BooleanInfPresenter `is` true, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(BooleanInfPresenter equal true, QueryParameters())
         Assert.assertEquals(recordsLoaded.toSet(), setOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
     }
 
     @Test
     fun saveRecord_StringInformation_loadRecordsReturnSavedRecord() {
         @Suppress("UNCHECKED_CAST")
-        val type = InformationType(StringInfPresenter, "StringInfPresenter", InnerType.String) as InformationType<Any>
+        val type = InformationType(StringInfPresenter, InnerType.String) as InformationType<Any>
         InformationType.addType(type)
         auditDao!!.addInformationInDbModel(type)
 
@@ -181,7 +180,7 @@ internal class SavingTest {
     @Test
     fun saveRecords_StringInformation_loadRecordsReturnSavedRecords() {
         @Suppress("UNCHECKED_CAST")
-        val type = InformationType(StringInfPresenter, "StringPresenter", InnerType.String) as InformationType<Any>
+        val type = InformationType(StringInfPresenter, InnerType.String) as InformationType<Any>
         InformationType.addType(type)
         auditDao!!.addInformationInDbModel(type)
 
@@ -212,15 +211,15 @@ internal class SavingTest {
     }
 
     private fun getSampleInformation(): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(currentId++, 1, 2)
+        return InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
     }
 
     private fun getSampleInformation(timeStamp: Long): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(currentId++, timeStamp, 2)
+        return InformationUtils.getPrimitiveInformation(currentId++, timeStamp, 2, SamplesGenerator.getMillenniumStart())
     }
 
     private fun getSampleInformation(id: Long, timeStamp: Long, version: Long = 2): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(id, timeStamp, version)
+        return InformationUtils.getPrimitiveInformation(id, timeStamp, version, SamplesGenerator.getMillenniumStart())
     }
 
 }

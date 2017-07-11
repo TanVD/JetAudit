@@ -2,21 +2,24 @@ package examples.api
 
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
-import org.testng.annotations.Test
 import tanvd.audit.AuditAPI
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-import tanvd.audit.implementation.dao.DbType
+import tanvd.audit.model.external.db.DbType
 import tanvd.audit.model.external.presenters.TimeStampPresenter
 import tanvd.audit.model.external.queries.*
-import tanvd.audit.model.external.queries.QueryParameters.OrderByParameters.Order.*
+import tanvd.audit.model.external.queries.QueryParameters.OrderByParameters.Order.DESC
 import tanvd.audit.model.external.records.AuditRecord
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.records.ObjectState
 import tanvd.audit.model.external.types.InnerType
+import tanvd.audit.model.external.types.information.InformationBooleanPresenter
 import tanvd.audit.model.external.types.information.InformationLongPresenter
-import tanvd.audit.model.external.types.information.InformationPresenter
 import tanvd.audit.model.external.types.information.InformationType
-import tanvd.audit.model.external.types.objects.*
+import tanvd.audit.model.external.types.objects.ObjectPresenter
+import tanvd.audit.model.external.types.objects.ObjectType
+import tanvd.audit.model.external.types.objects.StateStringType
+import tanvd.audit.model.external.types.objects.StateType
+import utils.DbUtils
 import utils.TypeUtils
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -29,10 +32,10 @@ internal class AuditApiExample {
 
         override val entityName: String = "Order"
 
-        val id = StateStringType<Order>("Id", entityName)
+        val id = StateStringType("Id", entityName)
 
-        override val fieldSerializers: Map<StateType<Order>, (Order) -> String> = hashMapOf(id to {value -> value.id})
-        override val deserializer: (ObjectState) -> Order? = {(stateList) -> Order(stateList[id]!!)}
+        override val fieldSerializers: Map<StateType<*>, (Order) -> String> = hashMapOf(id to { value -> value.id })
+        override val deserializer: (ObjectState) -> Order? = { (stateList) -> Order(stateList[id]!!) }
 
     }
 
@@ -47,10 +50,10 @@ internal class AuditApiExample {
 
         override val entityName: String = "Account"
 
-        val id = StateStringType<Account>("Id", entityName)
+        val id = StateStringType("Id", entityName)
 
-        override val fieldSerializers: Map<StateType<Account>, (Account) -> String> = hashMapOf(id to {value -> value.id})
-        override val deserializer: (ObjectState) -> Account? = {(stateList) -> Account(stateList[id]!!)}
+        override val fieldSerializers: Map<StateType<*>, (Account) -> String> = hashMapOf(id to { value -> value.id })
+        override val deserializer: (ObjectState) -> Account? = { (stateList) -> Account(stateList[id]!!) }
 
     }
 
@@ -64,7 +67,7 @@ internal class AuditApiExample {
 
     @BeforeMethod
     fun addTypes() {
-        auditApi = AuditAPI(DbType.Clickhouse, "jdbc:clickhouse://localhost:8123/example", "default", "")
+        auditApi = AuditAPI(DbType.Clickhouse, DbUtils.getDbProperties())
         auditApi!!.addObjectType(ObjectType(Order::class, OrderPresenter))
         auditApi!!.addObjectType(ObjectType(Account::class, AccountPresenter))
 
@@ -81,7 +84,7 @@ internal class AuditApiExample {
         return dateFormat.format(Date.from(Instant.ofEpochMilli(time)))
     }
 
-//    @Test
+    //    @Test
     fun simpleSaveAndLoad() {
 
         val accountFirst = Account("John Doe")
@@ -103,7 +106,7 @@ internal class AuditApiExample {
     }
 
     object TitlePresenter : InformationLongPresenter() {
-        override val name: String = "TitleInformation"
+        override val code: String = "TitleInformation"
 
         override fun getDefault(): Long {
             return -1
@@ -111,10 +114,10 @@ internal class AuditApiExample {
 
     }
 
-//    @Test
+    //    @Test
     fun usageOfInformationAndOrderBy() {
 
-        val typeTitle = InformationType(TitlePresenter, "TitleOfJohns", InnerType.Long)
+        val typeTitle = InformationType(TitlePresenter, InnerType.Long)
         auditApi!!.addInformationType(typeTitle)
 
         val accountFirst = Account("John Doe")
@@ -144,8 +147,8 @@ internal class AuditApiExample {
         }
     }
 
-    object IsExternalPresenter : InformationPresenter<Boolean>() {
-        override val name: String = "IsExternalPresenter"
+    object IsExternalPresenter : InformationBooleanPresenter() {
+        override val code: String = "IsExternalPresenter"
 
         //for all already created false is default anyway
         override fun getDefault(): Boolean {
@@ -159,7 +162,7 @@ internal class AuditApiExample {
     fun updatingOfInformation() {
 
         //create initial
-        val typeTitle = InformationType(TitlePresenter, "TitleOfJohns", InnerType.Long)
+        val typeTitle = InformationType(TitlePresenter, InnerType.Long)
         auditApi!!.addInformationType(typeTitle)
 
         val accountFirst = Account("John Doe")
@@ -172,7 +175,7 @@ internal class AuditApiExample {
 
         Thread.sleep(5000)
 
-        val typeIsExternal = InformationType(IsExternalPresenter, "IsExternalRecord", InnerType.Boolean)
+        val typeIsExternal = InformationType(IsExternalPresenter, InnerType.Boolean)
         auditApi!!.addInformationType(typeIsExternal)
 
 
@@ -199,7 +202,7 @@ internal class AuditApiExample {
 
         val updatedRecords = ArrayList<AuditRecord>()
         for (record in records) {
-            record.informations.removeIf { it.type.presenter.name == IsExternalPresenter.name }
+            record.informations.removeIf { it.type.code == IsExternalPresenter.code }
             record.informations.add(InformationObject(true, IsExternalPresenter))
             updatedRecords.add(record)
         }

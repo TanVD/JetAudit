@@ -25,7 +25,7 @@ internal class IntSerializerTest {
     fun serializeInt_maxInt_serializedAsExpected() {
         val number: Int = Int.MAX_VALUE
         val serialized: ObjectState = IntPresenter.serialize(number)
-        Assert.assertEquals(serialized,  getObjectState(number))
+        Assert.assertEquals(serialized, getObjectState(number))
     }
 
     @Test
@@ -39,7 +39,7 @@ internal class IntSerializerTest {
     fun serializeInt_minInt_serializedAsExpected() {
         val number: Int = Int.MIN_VALUE
         val serialized: ObjectState = IntPresenter.serialize(number)
-        Assert.assertEquals(serialized,  getObjectState(number))
+        Assert.assertEquals(serialized, getObjectState(number))
     }
 
     @Test

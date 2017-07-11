@@ -5,17 +5,15 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-import tanvd.audit.implementation.dao.DbType
+import tanvd.audit.model.external.db.DbType
 import tanvd.audit.model.external.presenters.StringPresenter
 import tanvd.audit.model.external.queries.QueryParameters
 import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.InnerType
 import tanvd.audit.model.external.types.information.InformationType
-import utils.InformationUtils
+import utils.*
 import utils.SamplesGenerator.getRecordInternal
-import utils.StringInfPresenter
-import utils.TypeUtils
 
 internal class NonValidInputTest {
 
@@ -31,10 +29,10 @@ internal class NonValidInputTest {
         TypeUtils.addAuditTypesPrimitive()
         TypeUtils.addInformationTypesPrimitive()
 
-        auditDao = DbType.Clickhouse.getDao("jdbc:clickhouse://localhost:8123/example", "default", "") as AuditDaoClickhouseImpl
+        auditDao = DbType.Clickhouse.getDao(DbUtils.getDbProperties()) as AuditDaoClickhouseImpl
 
         @Suppress("UNCHECKED_CAST")
-        val type = InformationType(StringInfPresenter, "OneStringField", InnerType.String) as InformationType<Any>
+        val type = InformationType(StringInfPresenter, InnerType.String) as InformationType<Any>
         InformationType.addType(type)
         auditDao!!.addInformationInDbModel(type)
 
@@ -53,7 +51,7 @@ internal class NonValidInputTest {
         val stringInjection = "'; Select * from example.Audit; --"
 
         val information = getSampleInformation()
-        information.add(InformationObject("", InformationType.resolveType("OneStringField")))
+        information.add(InformationObject("", InformationType.resolveType("StringInfColumn")))
         val auditRecordOriginal = getRecordInternal(stringInjection, information = information)
 
         auditDao!!.saveRecord(auditRecordOriginal)
@@ -67,7 +65,7 @@ internal class NonValidInputTest {
         val stringInjection = "`; Select * from example.Audit; --"
 
         val information = getSampleInformation()
-        information.add(InformationObject("", InformationType.resolveType("OneStringField")))
+        information.add(InformationObject("", InformationType.resolveType("StringInfColumn")))
         val auditRecordOriginal = getRecordInternal(stringInjection, information = information)
 
         auditDao!!.saveRecord(auditRecordOriginal)
@@ -81,7 +79,7 @@ internal class NonValidInputTest {
         val stringInjection = "'`\n\b\t\\--"
 
         val information = getSampleInformation()
-        information.add(InformationObject("", InformationType.resolveType("OneStringField")))
+        information.add(InformationObject("", InformationType.resolveType("StringInfColumn")))
         val auditRecordOriginal = getRecordInternal(stringInjection, information = information)
 
         auditDao!!.saveRecord(auditRecordOriginal)
@@ -94,7 +92,7 @@ internal class NonValidInputTest {
     fun tryStringSqlInjectionWithQuoteToInformationType() {
         val stringInjection = "'; Select * from example.Audit; --"
         val informationObject = getSampleInformation()
-        informationObject.add(InformationObject(stringInjection, InformationType.resolveType("OneStringField")))
+        informationObject.add(InformationObject(stringInjection, InformationType.resolveType("StringInfColumn")))
         val auditRecordOriginal = getRecordInternal(information = informationObject)
 
         auditDao!!.saveRecord(auditRecordOriginal)
@@ -108,7 +106,7 @@ internal class NonValidInputTest {
         val stringInjection = "`; Select * from example.Audit; --"
 
         val informationObject = getSampleInformation()
-        informationObject.add(InformationObject(stringInjection, InformationType.resolveType("OneStringField")))
+        informationObject.add(InformationObject(stringInjection, InformationType.resolveType("StringInfColumn")))
         val auditRecordOriginal = getRecordInternal(information = informationObject)
 
         auditDao!!.saveRecord(auditRecordOriginal)
@@ -122,7 +120,7 @@ internal class NonValidInputTest {
         val stringInjection = "'`\n\b\t\\--"
 
         val informationObject = getSampleInformation()
-        informationObject.add(InformationObject(stringInjection, InformationType.resolveType("OneStringField")))
+        informationObject.add(InformationObject(stringInjection, InformationType.resolveType("StringInfColumn")))
         val auditRecordOriginal = getRecordInternal(information = informationObject)
 
         auditDao!!.saveRecord(auditRecordOriginal)
@@ -132,7 +130,7 @@ internal class NonValidInputTest {
     }
 
     private fun getSampleInformation(): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(SavingTest.currentId++, 1, 2)
+        return InformationUtils.getPrimitiveInformation(SavingTest.currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
     }
 
 }

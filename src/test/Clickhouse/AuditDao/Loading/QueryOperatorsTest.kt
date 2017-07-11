@@ -5,14 +5,16 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-import tanvd.audit.implementation.dao.DbType
+import tanvd.audit.model.external.db.DbType
 import tanvd.audit.model.external.presenters.StringPresenter
 import tanvd.audit.model.external.queries.QueryParameters
 import tanvd.audit.model.external.queries.and
 import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.queries.or
 import tanvd.audit.model.external.records.InformationObject
+import utils.DbUtils
 import utils.InformationUtils
+import utils.SamplesGenerator
 import utils.SamplesGenerator.getRecordInternal
 import utils.TypeUtils
 
@@ -30,7 +32,7 @@ internal class QueryOperatorsTest {
         TypeUtils.addAuditTypesPrimitive()
         TypeUtils.addInformationTypesPrimitive()
 
-        auditDao = DbType.Clickhouse.getDao("jdbc:clickhouse://localhost:8123/example", "default", "") as AuditDaoClickhouseImpl
+        auditDao = DbType.Clickhouse.getDao(DbUtils.getDbProperties()) as AuditDaoClickhouseImpl
 
         TypeUtils.addAuditTypePrimitive(auditDao!!)
     }
@@ -92,7 +94,7 @@ internal class QueryOperatorsTest {
     @Test
     fun loadRows_OrStringsEqual_loadedOne() {
         val auditRecordFirstOriginal = getRecordInternal("string1", "string1", information = getSampleInformation())
-        val auditRecordSecondOriginal = getRecordInternal("string3", "string3", information =  getSampleInformation())
+        val auditRecordSecondOriginal = getRecordInternal("string3", "string3", information = getSampleInformation())
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
         val recordsLoaded = auditDao!!.loadRecords(
@@ -113,6 +115,6 @@ internal class QueryOperatorsTest {
     }
 
     private fun getSampleInformation(): MutableSet<InformationObject> {
-        return InformationUtils.getPrimitiveInformation(currentId++, 1, 2)
+        return InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
     }
 }

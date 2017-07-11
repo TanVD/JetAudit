@@ -1,7 +1,6 @@
 package tanvd.audit.implementation.clickhouse.model
 
 import tanvd.audit.model.external.types.information.InformationType
-import tanvd.audit.model.external.types.objects.StateType
 import java.util.*
 
 /**
@@ -64,6 +63,13 @@ internal enum class DbColumnType {
 
         override fun toString(): String {
             return "Date"
+        }
+    },
+    DbArrayDate {
+        override val isArray = true
+
+        override fun toString(): String {
+            return "Array(Date)"
         }
     },
     DbULong {
@@ -155,9 +161,4 @@ internal data class DbColumnHeader(val name: String, val type: DbColumnType) {
 
 internal fun InformationType<*>.toDbColumnHeader(): DbColumnHeader {
     return DbColumnHeader(this.code, this.toDbColumnType())
-}
-
-
-internal fun StateType<*>.getCode(): String {
-    return this.objectName + "_" + this.stateName
 }
