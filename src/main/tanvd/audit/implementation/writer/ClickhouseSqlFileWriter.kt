@@ -7,7 +7,7 @@ import java.io.PrintWriter
 
 internal class ClickhouseSqlFileWriter : AuditReserveWriter {
 
-    val writer: PrintWriter
+    private val writer: PrintWriter
 
     constructor(filePath: String) {
         writer = PrintWriter(filePath)

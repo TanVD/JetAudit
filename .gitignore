@@ -4,6 +4,7 @@ out
 .gradle
 /build/
 *.txt
+classes*
 
 # Cause we follow NDA
 **/jetprofile/**/*

@@ -56,7 +56,7 @@ import javax.sql.DataSource
  *      #Reserving config
  *      MaxGeneration          (default 15 gen)
  *      ReservePath            (default reserve.txt or ReserveLogger)
- *      ReserveWriter          (default File) (may be File|Log)
+ *      ReserveWriter          (default File) (may be File|Log|S3)
  *
  *      #Clickouse scheme config
  *      AuditTable             (default Audit),

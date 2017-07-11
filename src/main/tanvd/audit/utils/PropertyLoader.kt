@@ -1,6 +1,8 @@
 package tanvd.audit.utils
 
 import org.slf4j.LoggerFactory
+import tanvd.audit.AuditAPI
+import tanvd.audit.model.external.properties.Config
 import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -15,11 +17,17 @@ import java.util.*
  */
 internal object PropertyLoader {
 
+    private var config: Config? = null
+
     private var properties: Properties = Properties()
 
     private const val propertyFilePath = "audit.config"
 
     private val logger = LoggerFactory.getLogger(PropertyLoader::class.java)
+
+    fun setConfig(config: Config) {
+        this.config = config
+    }
 
     /**
      * Loads property from file located on given path
@@ -27,15 +35,18 @@ internal object PropertyLoader {
      * If property not found will reload SystemProperty with file path and file
      */
     fun loadProperty(propertyName: String): String? {
-        if (!properties.containsKey(propertyName)) {
-            reloadProperties()
+        if (config != null) {
+            return config?.getProperty(propertyName)
+        } else {
+            if (!properties.containsKey(propertyName)) {
+                reloadProperties()
+            }
+            val property = properties.getProperty(propertyName)
+            if (property == null) {
+                logger.info("Property $propertyName not found. Using default value.")
+            }
+            return property
         }
-        val property = properties.getProperty(propertyName)
-        if (property == null) {
-            logger.info("Property $propertyName not found. Using default value.")
-        }
-        return property
-
     }
 
     private fun reloadProperties() {
