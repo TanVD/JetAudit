@@ -17,6 +17,7 @@ import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
+import utils.DbUtils
 import utils.TestClassString
 import utils.TestClassStringPresenter
 import utils.TypeUtils
@@ -48,7 +49,7 @@ internal class AddType : PowerMockTestCase() {
                 return ArrayList()
             }
         }
-        auditApi = AuditAPI(auditDao!!, auditExecutor!!, auditQueueInternal!!, auditRecordsNotCommitted!!)
+        auditApi = AuditAPI(auditDao!!, auditExecutor!!, auditQueueInternal!!, auditRecordsNotCommitted!!, DbUtils.getProperties())
     }
 
     @AfterMethod

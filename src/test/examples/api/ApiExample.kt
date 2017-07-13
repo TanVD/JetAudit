@@ -4,7 +4,6 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import tanvd.audit.AuditAPI
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-import tanvd.audit.model.external.db.DbType
 import tanvd.audit.model.external.presenters.TimeStampPresenter
 import tanvd.audit.model.external.queries.*
 import tanvd.audit.model.external.queries.QueryParameters.OrderByParameters.Order.DESC
@@ -67,7 +66,7 @@ internal class AuditApiExample {
 
     @BeforeMethod
     fun addTypes() {
-        auditApi = AuditAPI(DbType.Clickhouse, DbUtils.getDbProperties())
+        auditApi = AuditAPI(DbUtils.getProperties())
         auditApi!!.addObjectType(ObjectType(Order::class, OrderPresenter))
         auditApi!!.addObjectType(ObjectType(Account::class, AccountPresenter))
 

@@ -10,12 +10,12 @@ import tanvd.audit.utils.RandomGenerator
 
 internal class ClickhouseSqlS3Writer() : AuditReserveWriter {
 
-    private val bucketName = PropertyLoader.loadProperty("S3BucketFailover")
+    private val bucketName by lazy { PropertyLoader.loadProperty("S3BucketFailover") }
 
     private val buffer = ArrayList<String>()
 
     //Get rights from IAM role
-    val s3Client  = AmazonS3ClientBuilder.standard().withCredentials(InstanceProfileCredentialsProvider(false)).build()!!
+    val s3Client = AmazonS3ClientBuilder.standard().withCredentials(InstanceProfileCredentialsProvider(false)).build()!!
 
     override fun write(record: AuditRecordInternal) {
         val row = ClickhouseRecordSerializer.serialize(record)

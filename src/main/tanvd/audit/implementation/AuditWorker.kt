@@ -36,9 +36,9 @@ internal class AuditWorker {
     }
 
     companion object Config {
-        val capacityOfWorkerBuffer = PropertyLoader.loadProperty("CapacityOfWorkerBuffer")?.toInt() ?: 5000
-        val waitingQueueTime = PropertyLoader.loadProperty("WaitingQueueTime")?.toLong() ?: 10
-        val maxGeneration = PropertyLoader.loadProperty("MaxGeneration")?.toInt() ?: 15
+        val capacityOfWorkerBuffer by lazy { PropertyLoader.loadProperty("CapacityOfWorkerBuffer")?.toInt() ?: 5000 }
+        val waitingQueueTime by lazy { PropertyLoader.loadProperty("WaitingQueueTime")?.toLong() ?: 10 }
+        val maxGeneration by lazy { PropertyLoader.loadProperty("MaxGeneration")?.toInt() ?: 15 }
     }
 
     val auditQueueInternal: BlockingQueue<AuditRecordInternal>

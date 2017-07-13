@@ -48,7 +48,7 @@ internal class CommitAudit : PowerMockTestCase() {
                 return ArrayList()
             }
         }
-        auditApi = AuditAPI(auditDao!!, auditExecutor!!, auditQueueInternal!!, auditRecordsNotCommitted!!)
+        auditApi = AuditAPI(auditDao!!, auditExecutor!!, auditQueueInternal!!, auditRecordsNotCommitted!!, DbUtils.getProperties())
     }
 
     @AfterMethod

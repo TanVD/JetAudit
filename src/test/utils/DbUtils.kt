@@ -1,13 +1,18 @@
 package utils
 
-import tanvd.audit.model.external.db.DbProperties
+import tanvd.audit.model.internal.db.DbCredentials
+import java.util.*
 
 object DbUtils {
-    fun getDbProperties(): DbProperties {
-        val dbProperties = DbProperties()
-        dbProperties.user = "default"
-        dbProperties.password = ""
-        dbProperties.connectionUrl = "jdbc:clickhouse://localhost:8123/example"
-        return dbProperties
+    fun getProperties(): Properties {
+        val properties = Properties()
+        properties.setProperty("Username", "default")
+        properties.setProperty("Password", "")
+        properties.setProperty("Url", "jdbc:clickhouse://localhost:8123/example")
+        return properties
+    }
+
+    fun getCredentials(): DbCredentials {
+        return DbCredentials("default", "", "jdbc:clickhouse://localhost:8123/example")
     }
 }

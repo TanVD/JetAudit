@@ -1,11 +1,12 @@
 package Clickhouse.AuditDao
 
+import Clickhouse.AuditDao.Loading.Information.InformationBoolean
 import org.testng.Assert
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-import tanvd.audit.model.external.db.DbType
+import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.presenters.IdPresenter
 import tanvd.audit.model.external.presenters.TimeStampPresenter
 import tanvd.audit.model.external.queries.QueryParameters
@@ -31,7 +32,8 @@ internal class AddInformationTypeTest {
         TypeUtils.addAuditTypesPrimitive()
         TypeUtils.addInformationTypesPrimitive()
 
-        auditDao = DbType.Clickhouse.getDao(DbUtils.getDbProperties()) as AuditDaoClickhouseImpl
+        AuditDao.credentials = DbUtils.getCredentials()
+        auditDao = AuditDao.getDao() as AuditDaoClickhouseImpl
 
         TypeUtils.addAuditTypePrimitive(auditDao!!)
     }

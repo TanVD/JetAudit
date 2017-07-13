@@ -7,8 +7,6 @@ import tanvd.audit.exceptions.AuditQueueFullException
 import tanvd.audit.exceptions.UnknownObjectTypeException
 import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.dao.AuditDao
-import tanvd.audit.model.external.db.DbProperties
-import tanvd.audit.model.external.db.DbType
 import tanvd.audit.model.external.presenters.*
 import tanvd.audit.model.external.queries.QueryExpression
 import tanvd.audit.model.external.queries.QueryParameters
@@ -20,9 +18,12 @@ import tanvd.audit.model.external.types.InnerType
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
+import tanvd.audit.model.internal.db.DbCredentials
 import tanvd.audit.utils.PropertyLoader
+import java.util.*
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
+import javax.sql.DataSource
 
 /**
  * Asynchronous saving of entities.
@@ -39,9 +40,16 @@ import java.util.concurrent.BlockingQueue
  *
  * You can configure AuditApi and Clickhouse scheme using properties file.
  *
- * Use audit.config system property to specify path to file (relative or absolute)
+ * Or use properties object
  *
  * Configuration may include:
+ *      #Clickhouse config
+ *      Url                    (REQUIRED)
+ *      Username               (REQUIRED)
+ *      Password               (REQUIRED)
+ *      UseDefaultDDL          (default false)
+ *      Timeout                (default 10s)
+ *
  *      #AuditApi config
  *      CapacityOfQueue        (default 20000 records),
  *      NumberOfWorkers        (default 5 threads),
@@ -92,13 +100,16 @@ class AuditAPI {
     internal val auditRecordsNotCommitted: ThreadLocal<ArrayList<AuditRecordInternal>>
 
     internal companion object Config {
-        val capacityOfQueue = PropertyLoader.loadProperty("CapacityOfQueue")?.toInt() ?: 20000
+        val capacityOfQueue by lazy { PropertyLoader.loadProperty("CapacityOfQueue")?.toInt() ?: 20000 }
     }
 
     /**
      * Create AuditApi with default dataSource
      */
-    constructor(dbType: DbType, dbProperties: DbProperties) {
+    constructor(configPath: String, dataSource: DataSource? = null) {
+
+        PropertyLoader.setPropertyFilePath(configPath)
+
         auditQueueInternal = ArrayBlockingQueue(capacityOfQueue)
         auditRecordsNotCommitted = object : ThreadLocal<ArrayList<AuditRecordInternal>>() {
             override fun initialValue(): ArrayList<AuditRecordInternal>? {
@@ -107,7 +118,34 @@ class AuditAPI {
         }
 
         addServiceInformation()
-        AuditDao.setConfig(dbType, dbProperties)
+        if (dataSource != null) {
+            AuditDao.dataSource = dataSource
+        } else {
+            AuditDao.credentials = DbCredentials()
+        }
+        auditDao = AuditDao.getDao()
+
+        executor = AuditExecutor(auditQueueInternal)
+
+        addPrimitiveTypes()
+    }
+
+    constructor(properties: Properties, dataSource: DataSource? = null) {
+        PropertyLoader.setProperties(properties)
+
+        auditQueueInternal = ArrayBlockingQueue(capacityOfQueue)
+        auditRecordsNotCommitted = object : ThreadLocal<ArrayList<AuditRecordInternal>>() {
+            override fun initialValue(): ArrayList<AuditRecordInternal>? {
+                return ArrayList()
+            }
+        }
+
+        addServiceInformation()
+        if (dataSource != null) {
+            AuditDao.dataSource = dataSource
+        } else {
+            AuditDao.credentials = DbCredentials()
+        }
         auditDao = AuditDao.getDao()
 
         executor = AuditExecutor(auditQueueInternal)
@@ -121,7 +159,11 @@ class AuditAPI {
      */
     internal constructor(auditDao: AuditDao, executor: AuditExecutor,
                          auditQueueInternal: BlockingQueue<AuditRecordInternal>,
-                         auditRecordsNotCommitted: ThreadLocal<ArrayList<AuditRecordInternal>>) {
+                         auditRecordsNotCommitted: ThreadLocal<ArrayList<AuditRecordInternal>>,
+                         properties: Properties) {
+
+        PropertyLoader.setProperties(properties)
+
         this.auditRecordsNotCommitted = auditRecordsNotCommitted
         this.auditQueueInternal = auditQueueInternal
         this.auditDao = auditDao
@@ -133,14 +175,10 @@ class AuditAPI {
      */
     @Suppress("UNCHECKED_CAST")
     internal fun addServiceInformation() {
-        InformationType.addType(InformationType(IdPresenter,
-                InnerType.Long) as InformationType<Any>)
-        InformationType.addType(InformationType(VersionPresenter,
-                InnerType.ULong) as InformationType<Any>)
-        InformationType.addType(InformationType(TimeStampPresenter,
-                InnerType.Long) as InformationType<Any>)
-        InformationType.addType(InformationType(DatePresenter,
-                InnerType.Date) as InformationType<Any>)
+        InformationType.addType(InformationType(IdPresenter, InnerType.Long) as InformationType<Any>)
+        InformationType.addType(InformationType(VersionPresenter, InnerType.ULong) as InformationType<Any>)
+        InformationType.addType(InformationType(TimeStampPresenter, InnerType.Long) as InformationType<Any>)
+        InformationType.addType(InformationType(DatePresenter, InnerType.Date) as InformationType<Any>)
     }
 
     /**

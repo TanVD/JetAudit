@@ -1,15 +1,19 @@
 package tanvd.audit.implementation.dao
 
+import ru.yandex.clickhouse.ClickHouseDataSource
+import ru.yandex.clickhouse.settings.ClickHouseProperties
 import tanvd.audit.exceptions.UninitializedException
 import tanvd.audit.exceptions.UnknownObjectTypeException
+import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.exceptions.BasicDbException
-import tanvd.audit.model.external.db.DbProperties
-import tanvd.audit.model.external.db.DbType
 import tanvd.audit.model.external.queries.QueryExpression
 import tanvd.audit.model.external.queries.QueryParameters
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
+import tanvd.audit.model.internal.db.DbCredentials
+import tanvd.audit.utils.PropertyLoader
+import javax.sql.DataSource
 
 
 internal interface AuditDao {
@@ -73,21 +77,23 @@ internal interface AuditDao {
 
     companion object AuditDaoFactory {
 
-        private var dbProperties: DbProperties? = null
+        var credentials: DbCredentials? = null
 
-        private var dbType: DbType = DbType.Clickhouse
+        var dataSource: DataSource? = null
 
-        fun setConfig(dbType: DbType, dbProperties: DbProperties) {
-            this.dbType = dbType
-            this.dbProperties = dbProperties
-        }
 
         @Throws(UninitializedException::class)
         fun getDao(): AuditDao {
-            if (dbProperties != null) {
-                return dbType.getDao(dbProperties!!)
+            if (dataSource != null) {
+                return AuditDaoClickhouseImpl(dataSource!!)
+            } else if (credentials != null) {
+                val properties = ClickHouseProperties()
+                properties.user = credentials!!.username
+                properties.password = credentials!!.password
+                properties.connectionTimeout = (PropertyLoader["Timeout"]?.toInt() ?: 10000)
+                return AuditDaoClickhouseImpl(ClickHouseDataSource(credentials!!.url, properties))
             }
-            throw UninitializedException("DbProperties not initialized")
+            throw UninitializedException("Nor credentials nor datasource set in DbProperties")
         }
 
     }

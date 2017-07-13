@@ -42,9 +42,11 @@ data class InformationType<T>(val presenter: InformationPresenter<T>, val type: 
         }
 
         internal fun addType(type: InformationType<Any>) {
-            informationTypes.add(type)
-            informationTypesByCode.put(type.code, type)
-            informationTypesByPresenter.put(type.presenter, type)
+            synchronized(this) {
+                informationTypes.add(type)
+                informationTypesByCode.put(type.code, type)
+                informationTypesByPresenter.put(type.presenter, type)
+            }
         }
 
         internal fun getTypes(): Set<InformationType<Any>> {
@@ -52,9 +54,11 @@ data class InformationType<T>(val presenter: InformationPresenter<T>, val type: 
         }
 
         internal fun clearTypes() {
-            informationTypes.clear()
-            informationTypesByCode.clear()
-            informationTypesByPresenter.clear()
+            synchronized(this) {
+                informationTypes.clear()
+                informationTypesByCode.clear()
+                informationTypesByPresenter.clear()
+            }
         }
     }
 }

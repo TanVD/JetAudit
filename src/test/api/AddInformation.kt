@@ -19,6 +19,7 @@ import tanvd.audit.model.external.types.InnerType
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.internal.AuditRecordInternal
 import utils.BooleanInfPresenter
+import utils.DbUtils
 import utils.TypeUtils
 import java.util.concurrent.BlockingQueue
 
@@ -48,7 +49,7 @@ internal class AddInformation : PowerMockTestCase() {
                 return ArrayList()
             }
         }
-        auditApi = AuditAPI(auditDao!!, auditExecutor!!, auditQueueInternal!!, auditRecordsNotCommitted!!)
+        auditApi = AuditAPI(auditDao!!, auditExecutor!!, auditQueueInternal!!, auditRecordsNotCommitted!!, DbUtils.getProperties())
     }
 
     @AfterMethod

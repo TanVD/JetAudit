@@ -5,7 +5,7 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-import tanvd.audit.model.external.db.DbType
+import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.queries.*
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.InnerType
@@ -26,7 +26,8 @@ internal class InformationBoolean {
         TypeUtils.addAuditTypesPrimitive()
         TypeUtils.addInformationTypesPrimitive()
 
-        auditDao = DbType.Clickhouse.getDao(DbUtils.getDbProperties()) as AuditDaoClickhouseImpl
+        AuditDao.credentials = DbUtils.getCredentials()
+        auditDao = AuditDao.getDao() as AuditDaoClickhouseImpl
 
         TypeUtils.addAuditTypePrimitive(auditDao!!)
 

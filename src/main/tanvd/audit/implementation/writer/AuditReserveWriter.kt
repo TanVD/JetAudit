@@ -21,23 +21,21 @@ internal interface AuditReserveWriter {
 
         private val logger = LoggerFactory.getLogger(AuditReserveWriterFactory::class.java)
 
-        private val reserveWriterType: String = PropertyLoader.loadProperty("ReserveWriter") ?: "File"
+        private val reserveWriterType: String by lazy { PropertyLoader.loadProperty("ReserveWriter") ?: "File" }
 
-        private var internalWriter: AuditReserveWriter
-
-        init {
+        private val internalWriter: AuditReserveWriter by lazy {
             if (reserveWriterType == "File") {
                 val reservePath = PropertyLoader.loadProperty("ReservePath") ?: "reserve.txt"
-                internalWriter = ClickhouseSqlFileWriter(reservePath)
+                ClickhouseSqlFileWriter(reservePath)
             } else if (reserveWriterType == "Log") {
                 val reservePath = PropertyLoader.loadProperty("ReservePath") ?: "ReserveLogger"
-                internalWriter = ClickhouseSqlLogWriter(reservePath)
+                ClickhouseSqlLogWriter(reservePath)
             } else if (reserveWriterType == "S3") {
-                internalWriter = ClickhouseSqlS3Writer()
+                ClickhouseSqlS3Writer()
             } else {
                 logger.error("Unknown option for reserve writing. Fallback to File.")
                 val reservePath = PropertyLoader.loadProperty("ReservePath") ?: "reserve.txt"
-                internalWriter = ClickhouseSqlFileWriter(reservePath)
+                ClickhouseSqlFileWriter(reservePath)
             }
         }
 

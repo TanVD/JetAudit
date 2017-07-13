@@ -3,7 +3,6 @@ package tanvd.audit.implementation.clickhouse
 import tanvd.audit.implementation.clickhouse.model.*
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.implementation.exceptions.BasicDbException
-import tanvd.audit.model.external.db.DbProperties
 import tanvd.audit.model.external.presenters.DatePresenter
 import tanvd.audit.model.external.presenters.IdPresenter
 import tanvd.audit.model.external.presenters.TimeStampPresenter
@@ -19,15 +18,15 @@ import javax.sql.DataSource
 /**
  * Dao to Clickhouse DB.
  */
-internal class AuditDaoClickhouseImpl(dataSource: DataSource, val dbProperties: DbProperties) : AuditDao {
+internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
 
     /**
      * Predefined scheme for clickhouse base.
      */
     companion object Scheme {
-        val auditTable = PropertyLoader.loadProperty("AuditTable") ?: "AuditTable"
+        val auditTable by lazy { PropertyLoader.loadProperty("AuditTable") ?: "AuditTable" }
 
-        val descriptionColumn = PropertyLoader.loadProperty("DescriptionColumn") ?: "Description"
+        val descriptionColumn by lazy { PropertyLoader.loadProperty("DescriptionColumn") ?: "Description" }
 
         /**
          * Mandatory columns for audit. Should be presented in every insert. Treated specifically rather than
@@ -53,6 +52,8 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource, val dbProperties: 
 
     private val clickhouseConnection = JdbcClickhouseConnection(dataSource)
 
+    private val useDefaultDDL by lazy { PropertyLoader.loadProperty("UseDefaultDDL")?.toBoolean() ?: true }
+
     init {
         initTables()
     }
@@ -63,7 +64,7 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource, val dbProperties: 
      * @throws BasicDbException
      */
     private fun initTables() {
-        if (dbProperties.useDefaultDDL) {
+        if (useDefaultDDL) {
             val columnsHeader = arrayListOf(*mandatoryColumns, *getInformationColumns(), *getTypesColumns())
             clickhouseConnection.createTable(auditTable, DbTableHeader(columnsHeader),
                     listOf(InformationType.resolveType(DatePresenter).code,
@@ -103,7 +104,7 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource, val dbProperties: 
      * @throws BasicDbException
      */
     override fun <T : Any> addTypeInDbModel(type: ObjectType<T>) {
-        if (dbProperties.useDefaultDDL) {
+        if (useDefaultDDL) {
             for (stateType in type.state) {
                 clickhouseConnection.addColumn(auditTable, DbColumnHeader(stateType.getCode(), stateType.toDbColumnType()))
             }
@@ -112,7 +113,7 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource, val dbProperties: 
 
 
     override fun <T> addInformationInDbModel(information: InformationType<T>) {
-        if (dbProperties.useDefaultDDL) {
+        if (useDefaultDDL) {
             clickhouseConnection.addColumn(auditTable, information.toDbColumnHeader())
         }
     }

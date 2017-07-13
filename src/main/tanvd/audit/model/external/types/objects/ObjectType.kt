@@ -45,9 +45,11 @@ data class ObjectType<T : Any>(val klass: KClass<T>, val objectPresenter: Object
         }
 
         internal fun addType(type: ObjectType<Any>) {
-            types.add(type)
-            typesByClass.put(type.klass, type)
-            typesByEntityName.put(type.entityName, type)
+            synchronized(this) {
+                types.add(type)
+                typesByClass.put(type.klass, type)
+                typesByEntityName.put(type.entityName, type)
+            }
         }
 
         internal fun getTypes(): Set<ObjectType<Any>> {
@@ -55,9 +57,11 @@ data class ObjectType<T : Any>(val klass: KClass<T>, val objectPresenter: Object
         }
 
         internal fun clearTypes() {
-            types.clear()
-            typesByClass.clear()
-            typesByEntityName.clear()
+            synchronized(this) {
+                types.clear()
+                typesByClass.clear()
+                typesByEntityName.clear()
+            }
         }
     }
 }

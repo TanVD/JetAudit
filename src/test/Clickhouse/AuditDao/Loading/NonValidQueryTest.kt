@@ -1,19 +1,20 @@
 package Clickhouse.AuditDao.Loading
 
+import Clickhouse.AuditDao.Loading.Information.InformationBoolean
 import org.testng.Assert
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-import tanvd.audit.model.external.db.DbType
+import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.presenters.StringPresenter
 import tanvd.audit.model.external.queries.QueryParameters
 import tanvd.audit.model.external.queries.equal
-import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.InnerType
 import tanvd.audit.model.external.types.information.InformationType
-import utils.*
-import utils.SamplesGenerator.getRecordInternal
+import utils.DbUtils
+import utils.StringInfPresenter
+import utils.TypeUtils
 
 internal class NonValidQueryTest {
 
@@ -29,7 +30,8 @@ internal class NonValidQueryTest {
         TypeUtils.addAuditTypesPrimitive()
         TypeUtils.addInformationTypesPrimitive()
 
-        auditDao = DbType.Clickhouse.getDao(DbUtils.getDbProperties()) as AuditDaoClickhouseImpl
+        AuditDao.credentials = DbUtils.getCredentials()
+        auditDao = AuditDao.getDao() as AuditDaoClickhouseImpl
 
         @Suppress("UNCHECKED_CAST")
         val type = InformationType(StringInfPresenter, InnerType.String) as InformationType<Any>

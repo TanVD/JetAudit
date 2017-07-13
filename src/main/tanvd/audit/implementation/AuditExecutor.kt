@@ -15,7 +15,7 @@ import java.util.concurrent.Executors
 internal class AuditExecutor(val auditQueueInternal: BlockingQueue<AuditRecordInternal>) {
 
     companion object Config {
-        val numberOfWorkers = PropertyLoader.loadProperty("NumberOfWorkers")?.toInt() ?: 5
+        val numberOfWorkers by lazy { PropertyLoader.loadProperty("NumberOfWorkers")?.toInt() ?: 5 }
     }
 
     val workers: List<AuditWorker>

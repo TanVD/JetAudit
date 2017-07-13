@@ -1,8 +1,6 @@
 package tanvd.audit.utils
 
 import org.slf4j.LoggerFactory
-import tanvd.audit.AuditAPI
-import tanvd.audit.model.external.properties.Config
 import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -15,18 +13,20 @@ import java.util.*
  *
  * If property not found default values will be used.
  */
-internal object PropertyLoader {
-
-    private var config: Config? = null
+object PropertyLoader {
 
     private var properties: Properties = Properties()
 
-    private const val propertyFilePath = "audit.config"
+    private var propertyFilePath: String? = null
 
     private val logger = LoggerFactory.getLogger(PropertyLoader::class.java)
 
-    fun setConfig(config: Config) {
-        this.config = config
+    fun setPropertyFilePath(filePath: String) {
+        propertyFilePath = filePath
+    }
+
+    fun setProperties(properties: Properties) {
+        this.properties = properties
     }
 
     /**
@@ -35,28 +35,26 @@ internal object PropertyLoader {
      * If property not found will reload SystemProperty with file path and file
      */
     fun loadProperty(propertyName: String): String? {
-        if (config != null) {
-            return config?.getProperty(propertyName)
-        } else {
-            if (!properties.containsKey(propertyName)) {
-                reloadProperties()
-            }
-            val property = properties.getProperty(propertyName)
-            if (property == null) {
-                logger.info("Property $propertyName not found. Using default value.")
-            }
-            return property
+        if (!properties.containsKey(propertyName)) {
+            reloadProperties()
         }
+        val property = properties.getProperty(propertyName)
+        if (property == null) {
+            logger.info("Property $propertyName not found. Using default value.")
+        }
+        return property
+    }
+
+    operator fun get(propertyName: String): String? {
+        return this.loadProperty(propertyName)
     }
 
     private fun reloadProperties() {
-        val propertiesSystem = System.getProperties()
-        val fileName = propertiesSystem.getProperty(propertyFilePath)
-        if (fileName == null) {
-            logger.info("System property with path to properties file not found. Using default values.")
+        if (propertyFilePath == null) {
+            logger.info("Path to properties file is null. Using default values.")
             properties.clear()
         } else {
-            loadPropertiesFromFile(fileName)
+            loadPropertiesFromFile(propertyFilePath!!)
         }
     }
 

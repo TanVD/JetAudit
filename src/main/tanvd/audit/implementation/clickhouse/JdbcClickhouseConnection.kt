@@ -8,7 +8,6 @@ import tanvd.audit.model.external.presenters.IdPresenter
 import tanvd.audit.model.external.presenters.VersionPresenter
 import tanvd.audit.model.external.queries.*
 import tanvd.audit.model.external.queries.QueryParameters.OrderByParameters.Order
-import tanvd.audit.model.external.types.InnerType
 import tanvd.audit.model.external.types.information.InformationType
 import java.sql.Connection
 import java.sql.PreparedStatement
