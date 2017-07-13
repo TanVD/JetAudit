@@ -10,7 +10,7 @@ import tanvd.audit.utils.RandomGenerator
 
 internal class ClickhouseSqlS3Writer() : AuditReserveWriter {
 
-    private val bucketName by lazy { PropertyLoader.loadProperty("S3BucketFailover") }
+    private val bucketName by lazy { PropertyLoader["S3BucketFailover"] }
 
     private val buffer = ArrayList<String>()
 

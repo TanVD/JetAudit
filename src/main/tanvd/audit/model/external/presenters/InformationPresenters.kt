@@ -8,7 +8,7 @@ import java.util.*
 
 object TimeStampPresenter : InformationLongPresenter() {
 
-    override val code by lazy { PropertyLoader.loadProperty("TimeStampColumn") ?: "TimeStampColumn" }
+    override val code by lazy { PropertyLoader["TimeStampColumn"] ?: "TimeStampColumn" }
 
     override fun getDefault(): Long {
         return System.currentTimeMillis()
@@ -17,7 +17,7 @@ object TimeStampPresenter : InformationLongPresenter() {
 
 object VersionPresenter : InformationLongPresenter() {
 
-    override val code by lazy { PropertyLoader.loadProperty("VersionColumn") ?: "VersionColumn" }
+    override val code by lazy { PropertyLoader["VersionColumn"] ?: "VersionColumn" }
 
     override fun getDefault(): Long {
         return 0
@@ -26,7 +26,7 @@ object VersionPresenter : InformationLongPresenter() {
 
 object IdPresenter : InformationLongPresenter() {
 
-    override val code by lazy { PropertyLoader.loadProperty("IdColumn") ?: "IdColumn" }
+    override val code by lazy { PropertyLoader["IdColumn"] ?: "IdColumn" }
 
     override fun getDefault(): Long {
         return RandomGenerator.next()
@@ -35,7 +35,7 @@ object IdPresenter : InformationLongPresenter() {
 
 object DatePresenter : InformationDatePresenter() {
 
-    override val code by lazy { PropertyLoader.loadProperty("DateColumn") ?: "DateColumn" }
+    override val code by lazy { PropertyLoader["DateColumn"] ?: "DateColumn" }
 
     override fun getDefault(): Date {
         return Date()

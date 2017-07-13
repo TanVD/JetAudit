@@ -5,8 +5,8 @@ import tanvd.audit.model.external.records.ObjectState
 interface ObjectSerializer<T> {
 
     /**
-     * You can set false to use deserialization in case if you do not want to use
-     * deserialization. AuditObjects will have null instead of object. State will be returned/
+     * You can set false to useDeserialization field in case if you do not want to use
+     * deserialization. AuditObjects will have null instead of object. State will be returned.
      */
     val useDeserialization: Boolean
 

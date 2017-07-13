@@ -1,7 +1,6 @@
 package tanvd.audit.implementation
 
 import tanvd.audit.implementation.dao.AuditDao
-import tanvd.audit.implementation.exceptions.BasicDbException
 import tanvd.audit.implementation.writer.AuditReserveWriter
 import tanvd.audit.model.internal.AuditRecordInternal
 import tanvd.audit.utils.PropertyLoader
@@ -11,15 +10,15 @@ import java.util.concurrent.TimeUnit
 /**
  * Saves audits in DB.
  *
- * Implements strategy of audits recovering.
- * In case of Db failure worker will be trying to save failed records until succeed.
+ * In case of Db failure worker will be trying to save failed for some time and then save will save
+ * records to failover.
  */
 internal class AuditWorker {
 
     constructor(auditQueueInternal: BlockingQueue<AuditRecordInternal>) {
         this.auditQueueInternal = auditQueueInternal
-        buffer = ArrayList()
-        reserveBuffer = ArrayList()
+        buffer = ArrayList<AuditRecordInternal>()
+        reserveBuffer = ArrayList<AuditRecordInternal>()
         this.auditDao = AuditDao.getDao()
         this.auditReserveWriter = AuditReserveWriter.getWriter()
     }
@@ -36,9 +35,9 @@ internal class AuditWorker {
     }
 
     companion object Config {
-        val capacityOfWorkerBuffer by lazy { PropertyLoader.loadProperty("CapacityOfWorkerBuffer")?.toInt() ?: 5000 }
-        val waitingQueueTime by lazy { PropertyLoader.loadProperty("WaitingQueueTime")?.toLong() ?: 10 }
-        val maxGeneration by lazy { PropertyLoader.loadProperty("MaxGeneration")?.toInt() ?: 15 }
+        val capacityOfWorkerBuffer by lazy { PropertyLoader["CapacityOfWorkerBuffer"]?.toInt() ?: 5000 }
+        val waitingQueueTime by lazy { PropertyLoader["WaitingQueueTime"]?.toLong() ?: 10 }
+        val maxGeneration by lazy { PropertyLoader["MaxGeneration"]?.toInt() ?: 15 }
     }
 
     val auditQueueInternal: BlockingQueue<AuditRecordInternal>
@@ -52,13 +51,15 @@ internal class AuditWorker {
     val auditReserveWriter: AuditReserveWriter
 
     var isWorking: Boolean = true
+        @Synchronized
+        get() = field
 
     var isEnabled = true
 
     fun start() {
         while (true) {
             //while performing cycle worker can not report it's state to executor
-            synchronized(isWorking) {
+            synchronized(this) {
                 //get new record if sure that can save it (reserve buffer not full)
                 if (reserveBuffer.size != capacityOfWorkerBuffer) {
                     processNewRecord()
@@ -106,7 +107,7 @@ internal class AuditWorker {
         val records = buffer.take(batchSize)
         try {
             auditDao.saveRecords(records)
-        } catch (e: BasicDbException) {
+        } catch (e: Throwable) {
             reserveBuffer.addAll(records)
         }
         for (i in 1..batchSize) {
@@ -130,7 +131,7 @@ internal class AuditWorker {
 
             try {
                 auditDao.saveRecord(record)
-            } catch (e: BasicDbException) {
+            } catch (e: Throwable) {
                 record.generation++
                 successSaved = false
             }

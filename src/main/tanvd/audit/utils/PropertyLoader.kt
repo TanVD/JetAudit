@@ -9,9 +9,9 @@ import java.util.*
 /**
  * Util class for property loading.
  *
- * It will load path to file from "config" SystemProperty and then load properties from this file
+ * You should set path to property explicitly before using.
  *
- * If property not found default values will be used.
+ * If property not found null will be returned and default value will be used.
  */
 object PropertyLoader {
 

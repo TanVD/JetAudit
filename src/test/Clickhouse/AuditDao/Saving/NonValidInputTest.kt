@@ -1,6 +1,5 @@
 package Clickhouse.AuditDao.Saving
 
-import Clickhouse.AuditDao.Loading.Information.InformationBoolean
 import org.testng.Assert
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod

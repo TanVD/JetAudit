@@ -44,24 +44,22 @@ data class ObjectType<T : Any>(val klass: KClass<T>, val objectPresenter: Object
             }
         }
 
+        @Synchronized
         internal fun addType(type: ObjectType<Any>) {
-            synchronized(this) {
-                types.add(type)
-                typesByClass.put(type.klass, type)
-                typesByEntityName.put(type.entityName, type)
-            }
+            types.add(type)
+            typesByClass.put(type.klass, type)
+            typesByEntityName.put(type.entityName, type)
         }
 
         internal fun getTypes(): Set<ObjectType<Any>> {
             return ObjectType.TypesResolution.types
         }
 
+        @Synchronized
         internal fun clearTypes() {
-            synchronized(this) {
-                types.clear()
-                typesByClass.clear()
-                typesByEntityName.clear()
-            }
+            types.clear()
+            typesByClass.clear()
+            typesByEntityName.clear()
         }
     }
 }

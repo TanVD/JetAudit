@@ -12,9 +12,8 @@ data class ObjectState(val stateList: Map<StateType<*>, String>) {
     }
 }
 
-
 /**
- * External representation of loaded audit object with rich type informations.
+ * External representation of loaded audit object with rich type information.
  */
 data class AuditObject(val type: ObjectType<*>, val obj: Any?, val state: ObjectState) {
     fun isObjectNotFound(): Boolean {

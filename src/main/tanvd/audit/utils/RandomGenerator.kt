@@ -6,9 +6,7 @@ import java.security.SecureRandom
 object RandomGenerator {
     private val rnd = SecureRandom()
 
-    val length: Int = 16
-
-    fun next(len: Int = length, radix: Int = 10): Long {
+    fun next(len: Int = 10, radix: Int = 10): Long {
         return BigInteger(128, rnd).toString(radix).take(len).toLong()
     }
 }

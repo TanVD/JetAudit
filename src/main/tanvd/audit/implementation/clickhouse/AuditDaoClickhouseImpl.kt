@@ -24,9 +24,9 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
      * Predefined scheme for clickhouse base.
      */
     companion object Scheme {
-        val auditTable by lazy { PropertyLoader.loadProperty("AuditTable") ?: "AuditTable" }
+        val auditTable by lazy { PropertyLoader["AuditTable"] ?: "AuditTable" }
 
-        val descriptionColumn by lazy { PropertyLoader.loadProperty("DescriptionColumn") ?: "Description" }
+        val descriptionColumn by lazy { PropertyLoader["DescriptionColumn"] ?: "Description" }
 
         /**
          * Mandatory columns for audit. Should be presented in every insert. Treated specifically rather than
@@ -52,7 +52,7 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
 
     private val clickhouseConnection = JdbcClickhouseConnection(dataSource)
 
-    private val useDefaultDDL by lazy { PropertyLoader.loadProperty("UseDefaultDDL")?.toBoolean() ?: true }
+    private val useDefaultDDL by lazy { PropertyLoader["UseDefaultDDL"]?.toBoolean() ?: true }
 
     init {
         initTables()
@@ -86,7 +86,7 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
     }
 
     /**
-     * Saves audit records. Makes it faster, than for loop with saveRecord
+     * Saves audit records. Makes it faster, than FOR loop with saveRecord
      *
      * @throws BasicDbException
      */

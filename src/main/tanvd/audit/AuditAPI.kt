@@ -33,8 +33,8 @@ import javax.sql.DataSource
  *
  * Primitive types: String, Long, Int
  *
- * Also it saves informations which saved right to Db primitive types. Use presenters to save specified informations
- * field. Remember, that every audit record contains all informations fields. But some of them can be set to default
+ * Also it saves information which saved right to Db primitive types. Use presenters to save specified informations
+ * field. Remember, that every audit record contains all information fields. But some of them can be set to default
  * values according to getDefault() method of appropriate presenter.
  *
  *
@@ -44,10 +44,10 @@ import javax.sql.DataSource
  *
  * Configuration may include:
  *      #Clickhouse config
- *      Url                    (REQUIRED)
- *      Username               (REQUIRED)
- *      Password               (REQUIRED)
- *      UseDefaultDDL          (default false)
+ *      Url                    (required if datasource not present),
+ *      Username               (required if datasource not present),
+ *      Password               (required if datasource not present),
+ *      UseDefaultDDL          (default true),
  *      Timeout                (default 10s)
  *
  *      #AuditApi config
@@ -57,8 +57,8 @@ import javax.sql.DataSource
  *      WaitingQueueTime       (default 10 ms)
  *
  *      #Reserving config
- *      MaxGeneration          (default 15 gen)
- *      ReservePath            (default reserve.txt or ReserveLogger)
+ *      MaxGeneration          (default 15 gen),
+ *      ReservePath            (default reserve.txt or ReserveLogger),
  *      ReserveWriter          (default File) (may be File|Log|S3)
  *
  *      #Clickouse scheme config
@@ -67,7 +67,7 @@ import javax.sql.DataSource
  *      DateColumn             (default DateColumn),
  *      TimeStampColumn        (default TimeStampColumn),
  *      VersionColumn          (default VersionColumn),
- *      IdColumn               (default IdColumn),
+ *      IdColumn               (default IdColumn)
  *
  * If properties file or some properties not found default values will be used.
  *
@@ -76,9 +76,9 @@ import javax.sql.DataSource
  *
  *
  * Pay attention to used in JetAudit replacing strategy. There is no guarantee that if your query
- * will find only old record and will not find new  old one will not be returned. You can force
- * deleting of old records executing OPTIMIZE FINAL on Clickhouse database directly. In other situations
- * you should change fields only by which records will not be seeked (like service informations).
+ * will find only old record and will not find new ones old one will not be returned. You can force
+ * deleting of old records executing OPTIMIZE FINAL in Clickhouse database directly. In other situations
+ * you should change fields only by which records will not be seeked (like service information).
  *
  *
  * You can either use methods which throw exception (to be confident that audit records was saved),
@@ -100,7 +100,7 @@ class AuditAPI {
     internal val auditRecordsNotCommitted: ThreadLocal<ArrayList<AuditRecordInternal>>
 
     internal companion object Config {
-        val capacityOfQueue by lazy { PropertyLoader.loadProperty("CapacityOfQueue")?.toInt() ?: 20000 }
+        val capacityOfQueue by lazy { PropertyLoader["CapacityOfQueue"]?.toInt() ?: 20000 }
     }
 
     /**
@@ -171,7 +171,7 @@ class AuditAPI {
     }
 
     /**
-     * Add informations types used in table. Perform before initTables() in DAO.
+     * Add information types used in table. Perform before initTables() in DAO.
      */
     @Suppress("UNCHECKED_CAST")
     internal fun addServiceInformation() {
@@ -202,9 +202,7 @@ class AuditAPI {
             throw AddExistingAuditTypeException("Already existing audit type requested to add -- ${type.klass}")
         }
         auditDao.addTypeInDbModel(type)
-        synchronized(ObjectType) {
-            ObjectType.addType(type)
-        }
+        ObjectType.addType(type)
     }
 
     /**
@@ -219,9 +217,7 @@ class AuditAPI {
             throw AddExistingInformationTypeException("Already existing informations type requested to add -- ${type.code}")
         }
         auditDao.addInformationInDbModel(type)
-        synchronized(InformationType) {
-            InformationType.addType(type)
-        }
+        InformationType.addType(type)
     }
 
     /**
