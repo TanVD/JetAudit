@@ -1,5 +1,6 @@
 package tanvd.audit
 
+import org.jetbrains.annotations.TestOnly
 import org.slf4j.LoggerFactory
 import tanvd.audit.exceptions.AddExistingAuditTypeException
 import tanvd.audit.exceptions.AddExistingInformationTypeException
@@ -108,8 +109,10 @@ class AuditAPI {
     /**
      * Create AuditApi with default dataSource
      */
-    constructor(configPath: String, dataSource: DataSource? = null) {
-        PropertyLoader.setPropertyFilePath(configPath)
+    constructor(configPath: String?, dataSource: DataSource? = null) {
+        if (configPath != null) {
+            PropertyLoader.setPropertyFilePath(configPath)
+        }
 
         auditQueueInternal = ArrayBlockingQueue(capacityOfQueue)
         auditRecordsNotCommitted = object : ThreadLocal<ArrayList<AuditRecordInternal>>() {
@@ -131,8 +134,10 @@ class AuditAPI {
         addPrimitiveTypes()
     }
 
-    constructor(properties: Properties, dataSource: DataSource? = null) {
-        PropertyLoader.setProperties(properties)
+    constructor(properties: Properties?, dataSource: DataSource? = null) {
+        if (properties != null) {
+            PropertyLoader.setProperties(properties)
+        }
 
         auditQueueInternal = ArrayBlockingQueue(capacityOfQueue)
         auditRecordsNotCommitted = object : ThreadLocal<ArrayList<AuditRecordInternal>>() {
@@ -370,6 +375,12 @@ class AuditAPI {
      */
     fun stopAudit(timeToWait: Long): Boolean {
         return executor.stopWorkers(timeToWait)
+    }
+
+    /** Use it to reset table. */
+    @TestOnly
+    fun resetTable() {
+        auditDao.resetTable()
     }
 
     /**

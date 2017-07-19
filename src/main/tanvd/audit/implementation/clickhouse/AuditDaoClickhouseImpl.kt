@@ -141,6 +141,12 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
         return resultNumber
     }
 
+    override fun resetTable() {
+        dropTable(Scheme.auditTable)
+        initTables()
+    }
+
+
     /**
      * Drops table with specified name
      *

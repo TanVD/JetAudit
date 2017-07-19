@@ -75,6 +75,12 @@ internal interface AuditDao {
     @Throws(BasicDbException::class)
     fun countRecords(expression: QueryExpression): Long
 
+    /**
+     * Resets audit table
+     */
+    @Throws(BasicDbException::class)
+    fun resetTable()
+
     companion object AuditDaoFactory {
 
         var credentials: DbCredentials? = null

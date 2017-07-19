@@ -7,7 +7,7 @@ import tanvd.audit.model.external.types.objects.StateType
  * External representation of state of AuditObject
  */
 data class ObjectState(val stateList: Map<StateType<*>, String>) {
-    fun getState(stateType: StateType<*>): String? {
+    operator fun get(stateType: StateType<*>): String? {
         return stateList[stateType]
     }
 }
