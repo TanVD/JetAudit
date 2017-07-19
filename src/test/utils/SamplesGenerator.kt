@@ -21,6 +21,6 @@ internal object SamplesGenerator {
     //01/01/2000
     fun getMillenniumStart(): Date {
         //start of year 2000
-        return Date(946674000000L)
+        return getDate("01/01/2000")
     }
 }

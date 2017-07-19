@@ -1,6 +1,7 @@
 package tanvd.audit.implementation.clickhouse
 
 import org.slf4j.LoggerFactory
+import ru.yandex.clickhouse.ClickHouseConnection
 import ru.yandex.clickhouse.except.ClickHouseException
 import tanvd.audit.implementation.clickhouse.model.*
 import tanvd.audit.implementation.exceptions.BasicDbException
@@ -177,7 +178,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             while (resultSet.next()) {
                 val elements = ArrayList<DbColumn>()
                 for (columnHeader in columnsToSelect.columnsHeader) {
-                    elements.add(resultSet.getColumn(columnHeader))
+                    elements.add(resultSet.getColumn(columnHeader, connection as ClickHouseConnection))
                 }
                 rows.add(DbRow(elements))
             }
@@ -342,12 +343,12 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
                         connection.createArrayOf("String", column.elements.toTypedArray()))
             }
             DbColumnType.DbDate -> {
-                this.setDate(dbIndex, java.sql.Date(getDateFormat().parse(column.elements[0]).time))
+                this.setDate(dbIndex, column.elements[0].toSqlDate((connection as ClickHouseConnection).timeZone))
             }
             DbColumnType.DbArrayDate -> {
                 this.setArray(dbIndex,
                         connection.createArrayOf("Date", column.elements.map {
-                            column.elements[0].fromSQLtoDate()
+                            column.elements[0].toSqlDate((connection as ClickHouseConnection).timeZone)
                         }.toTypedArray()))
             }
             DbColumnType.DbLong -> {
@@ -379,16 +380,16 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
         }
     }
 
-    private fun ResultSet.getColumn(column: DbColumnHeader): DbColumn {
+    private fun ResultSet.getColumn(column: DbColumnHeader, connection: ClickHouseConnection): DbColumn {
         when (column.type) {
             DbColumnType.DbDate -> {
-                val dateSerialized = getDateFormat().format(java.util.Date(getDate(column.name).time)).toString()
+                val dateSerialized = getDate(column.name).toStringFromDb(connection.timeZone)
                 return DbColumn(column.name, listOf(dateSerialized), DbColumnType.DbDate)
             }
             DbColumnType.DbArrayDate -> {
                 @Suppress("UNCHECKED_CAST")
                 val resultArray = (getArray(column.name).array as Array<Date>).map {
-                    it.toStringSQL()
+                    getDate(column.name).toStringFromDb(connection.timeZone)
                 }
                 return DbColumn(column.name, resultArray.toList(), DbColumnType.DbArrayDate)
             }

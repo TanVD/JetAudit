@@ -1,5 +1,6 @@
 package tanvd.audit.implementation.clickhouse.model
 
+import ru.yandex.clickhouse.ClickHouseConnection
 import tanvd.audit.model.external.types.information.InformationType
 import java.util.*
 
@@ -167,6 +168,13 @@ internal fun Date.toStringSQL(): String {
     return "'" + getDateFormat().format(java.util.Date(this.time)).toString() + "'"
 }
 
-internal fun String.fromSQLtoDate(): java.sql.Date {
-    return java.sql.Date(getDateFormat().parse(this).time)
+internal fun String.toSqlDate(timeZone: TimeZone): java.sql.Date {
+    val date = getDateFormat().parse(this)
+    val currentServerTime = date.time + timeZone.getOffset(date.time)
+    return java.sql.Date(currentServerTime)
+}
+
+internal fun java.sql.Date.toStringFromDb(timeZone: TimeZone): String {
+    val currentServerTime = this.time - timeZone.getOffset(this.time)
+    return getDateFormat().format(java.util.Date(currentServerTime))
 }

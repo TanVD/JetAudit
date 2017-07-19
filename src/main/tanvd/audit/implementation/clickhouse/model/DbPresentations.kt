@@ -13,7 +13,9 @@ internal fun StateType<*>.getCode(): String {
 }
 
 internal fun getDateFormat(): DateFormat {
-    return SimpleDateFormat("yyyy-MM-dd")
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd")
+    dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+    return dateFormat
 }
 
 internal fun Boolean.toStringSQL(): String {

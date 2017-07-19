@@ -5,5 +5,7 @@ import java.util.*
 
 
 fun getDate(date: String): Date {
-    return SimpleDateFormat("dd/MM/yyyy").parse(date)
+    val dateFormat = SimpleDateFormat("dd/MM/yyyy")
+    dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+    return dateFormat.parse(date)
 }
