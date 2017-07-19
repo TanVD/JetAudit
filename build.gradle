@@ -39,6 +39,10 @@ test {
     useTestNG()
 }
 
+task JetAuditJar(type: Jar) {
+    baseName = 'JetAudit'
+    from sourceSets.main.output
+}
 
 
 dependencies {
