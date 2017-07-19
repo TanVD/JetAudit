@@ -2,6 +2,7 @@ package tanvd.audit.implementation.clickhouse.model
 
 import tanvd.audit.model.external.queries.*
 import tanvd.audit.model.external.types.InnerType
+import java.util.*
 
 fun QueryInformationLeafCondition<*>.toStringSQL(): String {
     return when (this) {
@@ -15,6 +16,9 @@ fun QueryInformationLeafCondition<*>.toStringSQL(): String {
             toStringSQL()
         }
         is QueryListInformationLeaf -> {
+            toStringSQL()
+        }
+        is QueryDateInformationLeaf -> {
             toStringSQL()
         }
     }
@@ -31,23 +35,10 @@ fun QueryEqualityInformationLeaf<*>.toStringSQL(): String {
                     "${presenter.code} == ${(value as String).toSanitizedStringSQL()}"
                 }
                 InnerType.Boolean -> {
-                    "${presenter.code} == ${(value as Boolean).toSqlString()}"
+                    "${presenter.code} == ${(value as Boolean).toStringSQL()}"
                 }
-                else -> {
-                    throw UnsupportedOperationException("Equality queries for information $valueType not supported")
-                }
-            }
-        }
-        EqualityCondition.notEqual -> {
-            when (valueType) {
-                InnerType.Long -> {
-                    "${presenter.code} != $value"
-                }
-                InnerType.String -> {
-                    "${presenter.code} != ${(value as String).toSanitizedStringSQL()}"
-                }
-                InnerType.Boolean -> {
-                    "${presenter.code} != ${(value as Boolean).toSqlString()}"
+                InnerType.Date -> {
+                    "${presenter.code} == ${(value as Date).toStringSQL()}"
                 }
                 else -> {
                     throw UnsupportedOperationException("Equality queries for information $valueType not supported")
@@ -76,6 +67,51 @@ fun QueryStringInformationLeaf<*>.toStringSQL(): String {
                 }
                 else -> {
                     throw UnsupportedOperationException("String queries for type $valueType not supported")
+                }
+            }
+        }
+    }
+}
+
+fun QueryDateInformationLeaf<*>.toStringSQL(): String {
+    return when (condition as DateCondition) {
+        DateCondition.less -> {
+            when (valueType) {
+                InnerType.Date -> {
+                    "${presenter.code} < ${(value as Date).toStringSQL()}"
+                }
+                else -> {
+                    throw UnsupportedOperationException("Date queries for type $valueType not supported")
+                }
+            }
+        }
+        DateCondition.more -> {
+            when (valueType) {
+                InnerType.Date -> {
+                    "${presenter.code} > ${(value as Date).toStringSQL()}"
+                }
+                else -> {
+                    throw UnsupportedOperationException("Date queries for type $valueType not supported")
+                }
+            }
+        }
+        DateCondition.lessOrEqual -> {
+            when (valueType) {
+                InnerType.Date -> {
+                    "${presenter.code} <= ${(value as Date).toStringSQL()}"
+                }
+                else -> {
+                    throw UnsupportedOperationException("Date queries for type $valueType not supported")
+                }
+            }
+        }
+        DateCondition.moreOrEqual -> {
+            when (valueType) {
+                InnerType.Date -> {
+                    "${presenter.code} >= ${(value as Date).toStringSQL()}"
+                }
+                else -> {
+                    throw UnsupportedOperationException("Date queries for type $valueType not supported")
                 }
             }
         }
@@ -121,21 +157,8 @@ fun QueryListInformationLeaf<*>.toStringSQL(): String {
                 InnerType.Boolean -> {
                     "${presenter.code} in ${(value as List<Any>).toSanitizedSetSQL(valueType)}"
                 }
-                else -> {
-                    throw UnsupportedOperationException("List queries for type $valueType not supported")
-                }
-            }
-        }
-        ListCondition.notInList -> {
-            when (valueType) {
-                InnerType.Long -> {
-                    "not (${presenter.code} in ${(value as List<Any>).toSanitizedSetSQL(valueType)})"
-                }
-                InnerType.String -> {
-                    "not (${presenter.code} in ${(value as List<Any>).toSanitizedSetSQL(valueType)})"
-                }
-                InnerType.Boolean -> {
-                    "not (${presenter.code} in ${(value as List<Any>).toSanitizedSetSQL(valueType)})"
+                InnerType.Date -> {
+                    "${presenter.code} in ${(value as List<Any>).toSanitizedSetSQL(valueType)}"
                 }
                 else -> {
                     throw UnsupportedOperationException("List queries for type $valueType not supported")

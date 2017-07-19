@@ -1,4 +1,4 @@
-package examples.api
+package tanvd.audit.test.api
 
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
@@ -23,6 +23,7 @@ import utils.TypeUtils
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.*
+import kotlin.properties.Delegates
 
 internal class AuditApiExample {
 
@@ -62,19 +63,18 @@ internal class AuditApiExample {
         }
     }
 
-    private var auditApi: AuditAPI? = null
+    private var auditApi: AuditAPI by Delegates.notNull<AuditAPI>()
 
     @BeforeMethod
     fun addTypes() {
         auditApi = AuditAPI(DbUtils.getProperties())
-        auditApi!!.addObjectType(ObjectType(Order::class, OrderPresenter))
-        auditApi!!.addObjectType(ObjectType(Account::class, AccountPresenter))
-
+        auditApi.addObjectType(ObjectType(Order::class, OrderPresenter))
+        auditApi.addObjectType(ObjectType(Account::class, AccountPresenter))
     }
 
     @AfterMethod
     fun clear() {
-        (auditApi!!.auditDao as AuditDaoClickhouseImpl).dropTable(AuditDaoClickhouseImpl.auditTable)
+        (auditApi.auditDao as AuditDaoClickhouseImpl).dropTable(AuditDaoClickhouseImpl.auditTable)
         TypeUtils.clearTypes()
     }
 
@@ -88,12 +88,12 @@ internal class AuditApiExample {
 
         val accountFirst = Account("John Doe")
         val order = Order("Cool order")
-        auditApi!!.save(accountFirst, " ordered ", order)
-        auditApi!!.commit()
+        auditApi.save(accountFirst, " ordered ", order)
+        auditApi.commit()
 
         Thread.sleep(5000)
 
-        val records = auditApi!!.load(AccountPresenter.id equal "John Doe", QueryParameters())
+        val records = auditApi.load(AccountPresenter.id equal "John Doe", QueryParameters())
 
         System.out.println("Found ${records.size} records")
 
@@ -117,22 +117,22 @@ internal class AuditApiExample {
     fun usageOfInformationAndOrderBy() {
 
         val typeTitle = InformationType(TitlePresenter, InnerType.Long)
-        auditApi!!.addInformationType(typeTitle)
+        auditApi.addInformationType(typeTitle)
 
         val accountFirst = Account("John Doe")
         val order = Order("Cool order")
         for (i in 1..20000L) {
             val title = InformationObject(i, TitlePresenter)
-            auditApi!!.save(accountFirst, " ordered ", order, information = setOf(title))
+            auditApi.save(accountFirst, " ordered ", order, information = setOf(title))
         }
-        auditApi!!.commit()
+        auditApi.commit()
 
         Thread.sleep(5000)
 
         val parameters = QueryParameters()
         parameters.setInformationOrder(TitlePresenter to DESC)
-        val records = auditApi!!.load((AccountPresenter.id equal "John Doe") and
-                ((TitlePresenter less 15000) and (TitlePresenter more 14995)), parameters)
+        val records = auditApi.load((AccountPresenter.id equal "John Doe") and
+                (TitlePresenter less 15000) and (TitlePresenter more 14995), parameters)
 
         System.out.println("Found ${records.size} records")
 
@@ -162,25 +162,25 @@ internal class AuditApiExample {
 
         //create initial
         val typeTitle = InformationType(TitlePresenter, InnerType.Long)
-        auditApi!!.addInformationType(typeTitle)
+        auditApi.addInformationType(typeTitle)
 
         val accountFirst = Account("John Doe")
         val order = Order("Cool order")
         for (i in 1..20000L) {
             val title = InformationObject(i, TitlePresenter)
-            auditApi!!.save(accountFirst, " ordered ", order, information = setOf(title))
+            auditApi.save(accountFirst, " ordered ", order, information = setOf(title))
         }
-        auditApi!!.commit()
+        auditApi.commit()
 
         Thread.sleep(5000)
 
         val typeIsExternal = InformationType(IsExternalPresenter, InnerType.Boolean)
-        auditApi!!.addInformationType(typeIsExternal)
+        auditApi.addInformationType(typeIsExternal)
 
 
         val parameters = QueryParameters()
         parameters.setInformationOrder(TitlePresenter to DESC)
-        val records = auditApi!!.load((AccountPresenter.id equal "John Doe") and
+        val records = auditApi.load((AccountPresenter.id equal "John Doe") and
                 ((TitlePresenter less 15000) and (TitlePresenter more 14995)), parameters)
 
         //print initial
@@ -206,13 +206,13 @@ internal class AuditApiExample {
             updatedRecords.add(record)
         }
 
-        auditApi!!.replace(updatedRecords)
+        auditApi.replace(updatedRecords)
 
         Thread.sleep(5000)
 
         //print new
 
-        val resultingRecords = auditApi!!.load((AccountPresenter.id equal "John Doe") and
+        val resultingRecords = auditApi.load((AccountPresenter.id equal "John Doe") and
                 ((TitlePresenter less 15000) and (TitlePresenter more 14995)), parameters)
 
         System.out.println("Found ${records.size} records")

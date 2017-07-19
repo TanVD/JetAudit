@@ -228,7 +228,7 @@ internal class CommitAudit : PowerMockTestCase() {
         auditApi!!.addObjectType(type)
     }
 
-    private fun getSampleInformation(timeStamp: Long): MutableSet<InformationObject> {
+    private fun getSampleInformation(timeStamp: Long): MutableSet<InformationObject<*>> {
         return InformationUtils.getPrimitiveInformation(currentId++, timeStamp, 2, SamplesGenerator.getMillenniumStart())
     }
 }

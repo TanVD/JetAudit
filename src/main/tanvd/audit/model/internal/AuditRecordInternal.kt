@@ -10,7 +10,7 @@ import tanvd.audit.model.external.types.objects.ObjectType
  * Internal representation of audit record. Used to transfer objects array to DAO.
  */
 internal data class AuditRecordInternal(val objects: List<Pair<ObjectType<*>, ObjectState>>,
-                                        val information: MutableSet<InformationObject>) {
+                                        val information: MutableSet<InformationObject<*>>) {
     var generation = 1
 
     companion object Factory {

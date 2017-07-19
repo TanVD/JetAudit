@@ -236,15 +236,22 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
 
     private fun serializeExpression(expression: QueryExpression): String {
         return when (expression) {
-            is QueryNode -> {
-                when (expression.queryOperator) {
-                    QueryOperator.and -> {
+            is BinaryQueryNode -> {
+                when (expression.binaryQueryOperator) {
+                    BinaryQueryOperator.and -> {
                         "(${serializeExpression(expression.expressionFirst)}) AND " +
                                 "(${serializeExpression(expression.expressionSecond)})"
                     }
-                    QueryOperator.or -> {
+                    BinaryQueryOperator.or -> {
                         "(${serializeExpression(expression.expressionFirst)}) OR " +
                                 "(${serializeExpression(expression.expressionSecond)})"
+                    }
+                }
+            }
+            is UnaryQueryNode -> {
+                when (expression.unaryQueryOperator) {
+                    UnaryQueryOperator.not -> {
+                        "not(${serializeExpression(expression.expression)})"
                     }
                 }
             }
@@ -291,8 +298,8 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
     }
 
 
-    fun countRows(tableName: String, expression: QueryExpression): Int {
-        var count = 0
+    fun countRows(tableName: String, expression: QueryExpression): Long {
+        var count = 0L
 
         val sqlSelect = StringBuilder()
 
@@ -312,7 +319,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             resultSet = preparedStatement.executeQuery()
 
             if (resultSet.next()) {
-                count = resultSet.getInt(1)
+                count = resultSet.getLong(1)
             }
         } catch (e: Throwable) {
             logger.error("Error inside Clickhouse occurred: ", e)
@@ -340,7 +347,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             DbColumnType.DbArrayDate -> {
                 this.setArray(dbIndex,
                         connection.createArrayOf("Date", column.elements.map {
-                            java.sql.Date(getDateFormat().parse(column.elements[0]).time)
+                            column.elements[0].fromSQLtoDate()
                         }.toTypedArray()))
             }
             DbColumnType.DbLong -> {
@@ -381,7 +388,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             DbColumnType.DbArrayDate -> {
                 @Suppress("UNCHECKED_CAST")
                 val resultArray = (getArray(column.name).array as Array<Date>).map {
-                    getDateFormat().format(java.util.Date(it.time)).toString()
+                    it.toStringSQL()
                 }
                 return DbColumn(column.name, resultArray.toList(), DbColumnType.DbArrayDate)
             }

@@ -49,7 +49,7 @@ abstract class InformationDatePresenter : InformationPresenter<Date>() {
 /**
  * Internal class
  */
-sealed class InformationPresenter<T> : InformationSerializer<T> {
+sealed class InformationPresenter<T : Any> : InformationSerializer<T> {
     abstract val code: String
     abstract fun getDefault(): T
 

@@ -3,7 +3,7 @@ package tanvd.audit.model.external.types.information
 import tanvd.audit.exceptions.UnknownInformationTypeException
 import tanvd.audit.model.external.types.InnerType
 
-data class InformationType<T>(val presenter: InformationPresenter<T>, val type: InnerType) :
+data class InformationType<T : Any>(val presenter: InformationPresenter<T>, val type: InnerType) :
         InformationSerializer<T> by presenter {
 
     val code = presenter.code
@@ -18,12 +18,13 @@ data class InformationType<T>(val presenter: InformationPresenter<T>, val type: 
          *
          * @throws UnknownInformationTypeException
          */
-        fun resolveType(code: String): InformationType<Any> {
+        @Suppress("UNCHECKED_CAST")
+        fun <T : Any> resolveType(code: String): InformationType<T> {
             val informationType = informationTypesByCode[code]
             if (informationType == null) {
                 throw UnknownInformationTypeException("Unknown InformationType requested to resolve by stateName -- $code")
             } else {
-                return informationType
+                return informationType as InformationType<T>
             }
         }
 
@@ -32,12 +33,13 @@ data class InformationType<T>(val presenter: InformationPresenter<T>, val type: 
          *
          * @throws UnknownInformationTypeException
          */
-        fun resolveType(presenter: InformationPresenter<*>): InformationType<Any> {
+        @Suppress("UNCHECKED_CAST")
+        fun <T : Any> resolveType(presenter: InformationPresenter<T>): InformationType<T> {
             val informationType = informationTypesByPresenter[presenter]
             if (informationType == null) {
                 throw UnknownInformationTypeException("Unknown InformationType requested to resolve by presenter -- ${presenter.code}")
             } else {
-                return informationType
+                return informationType as InformationType<T>
             }
         }
 

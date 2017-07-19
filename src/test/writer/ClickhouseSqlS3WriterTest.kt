@@ -1,5 +1,6 @@
 package writer
 
+import com.amazonaws.services.s3.AmazonS3
 import org.mockito.Mockito
 import org.powermock.api.mockito.PowerMockito
 import org.powermock.core.classloader.annotations.PowerMockIgnore
@@ -9,18 +10,16 @@ import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.clickhouse.model.getCode
-import tanvd.audit.implementation.writer.ClickhouseSqlFileWriter
+import tanvd.audit.implementation.writer.ClickhouseSqlS3Writer
 import tanvd.audit.model.external.presenters.*
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.information.InformationType
 import utils.InformationUtils
 import utils.SamplesGenerator
-import utils.SamplesGenerator.getRecordInternal
 import utils.TypeUtils
-import java.io.PrintWriter
 
 @PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*")
-internal class ClickhouseSqlFileWriterTest : PowerMockTestCase() {
+internal class ClickhouseSqlS3WriterTest : PowerMockTestCase() {
 
     @BeforeMethod
     fun init() {
@@ -38,29 +37,22 @@ internal class ClickhouseSqlFileWriterTest : PowerMockTestCase() {
         val id = 0L
         val version = 1L
         val timeStamp = 2L
-        val auditRecord = getRecordInternal(123, 456L, information = getSampleInformation(id, timeStamp, version))
-        val fileWriter = PowerMockito.mock(PrintWriter::class.java)
-        val reserveWriter = ClickhouseSqlFileWriter(fileWriter)
+        val auditRecord = SamplesGenerator.getRecordInternal(123, 456L, information = getSampleInformation(id, timeStamp, version))
+        val s3Client = PowerMockito.mock(AmazonS3::class.java)
+        val reserveWriter = ClickhouseSqlS3Writer(s3Client)
 
         reserveWriter.write(auditRecord)
-
-        Mockito.verify(fileWriter).println("INSERT INTO ${AuditDaoClickhouseImpl.auditTable} (" +
-                "${IntPresenter.value.getCode()}, ${LongPresenter.value.getCode()}, ${AuditDaoClickhouseImpl.descriptionColumn}, " +
-                "${InformationType.resolveType(IdPresenter).code}, " +
-                "${InformationType.resolveType(VersionPresenter).code}, " +
-                "${InformationType.resolveType(TimeStampPresenter).code}, " +
-                "${InformationType.resolveType(DatePresenter).code}) VALUES " +
-                "([123], [456], [Int, Long], 0, 1, 2, 2000-01-01);")
-    }
-
-    @Test
-    fun flush_gotFlush_printWriterFlushed() {
-        val fileWriter = PowerMockito.mock(PrintWriter::class.java)
-        val reserveWriter = ClickhouseSqlFileWriter(fileWriter)
-
         reserveWriter.flush()
 
-        Mockito.verify(fileWriter).flush()
+
+        Mockito.verify(s3Client).putObject(Mockito.eq("ClickhouseFailover"), Mockito.anyString(),
+                Mockito.eq("INSERT INTO ${AuditDaoClickhouseImpl.auditTable} (" +
+                        "${IntPresenter.value.getCode()}, ${LongPresenter.value.getCode()}, ${AuditDaoClickhouseImpl.descriptionColumn}, " +
+                        "${InformationType.resolveType(IdPresenter).code}, " +
+                        "${InformationType.resolveType(VersionPresenter).code}, " +
+                        "${InformationType.resolveType(TimeStampPresenter).code}, " +
+                        "${InformationType.resolveType(DatePresenter).code}) VALUES " +
+                        "([123], [456], [Int, Long], 0, 1, 2, 2000-01-01);"))
     }
 
     private fun getSampleInformation(id: Long, timeStamp: Long, version: Long): MutableSet<InformationObject<*>> {

@@ -9,6 +9,14 @@ enum class NumberCondition : InnerTypeCondition {
     more;
 }
 
+//DateCondition
+enum class DateCondition : InnerTypeCondition {
+    less,
+    lessOrEqual,
+    more,
+    moreOrEqual;
+}
+
 //StringCondition
 
 enum class StringCondition : InnerTypeCondition {
@@ -18,12 +26,10 @@ enum class StringCondition : InnerTypeCondition {
 
 //EqualityCondition
 enum class EqualityCondition : InnerTypeCondition {
-    equal,
-    notEqual;
+    equal
 }
 
 //ListCondition
 enum class ListCondition : InnerTypeCondition {
-    inList,
-    notInList;
+    inList
 }

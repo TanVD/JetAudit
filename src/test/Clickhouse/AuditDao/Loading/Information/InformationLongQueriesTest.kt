@@ -15,7 +15,7 @@ import utils.SamplesGenerator
 import utils.SamplesGenerator.getRecordInternal
 import utils.TypeUtils
 
-internal class InformationLong {
+internal class InformationLongQueriesTest {
 
     companion object {
         var currentId = 0L
@@ -59,26 +59,6 @@ internal class InformationLong {
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
         val recordsLoaded = auditDao!!.loadRecords(TimeStampPresenter equal 0, QueryParameters())
-        Assert.assertEquals(recordsLoaded.size, 0)
-    }
-
-    @Test
-    fun loadRow_LoadByNotEqual_loadedOne() {
-        val auditRecordFirstOriginal = getRecordInternal(information = getSampleInformation(1))
-
-        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
-
-        val recordsLoaded = auditDao!!.loadRecords(TimeStampPresenter notEqual 0, QueryParameters())
-        Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
-    }
-
-    @Test
-    fun loadRow_LoadByNotEqual_loadedNone() {
-        val auditRecordFirstOriginal = getRecordInternal(information = getSampleInformation(1))
-
-        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
-
-        val recordsLoaded = auditDao!!.loadRecords(TimeStampPresenter notEqual 1, QueryParameters())
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
@@ -144,28 +124,8 @@ internal class InformationLong {
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
-    @Test
-    fun loadRow_LoadByNotInList_loadedOne() {
-        val auditRecordFirstOriginal = getRecordInternal(information = getSampleInformation(1))
 
-        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
-
-        val recordsLoaded = auditDao!!.loadRecords(TimeStampPresenter notInList listOf(0), QueryParameters())
-        Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
-    }
-
-    @Test
-    fun loadRow_LoadByNotInList_loadedNone() {
-        val auditRecordFirstOriginal = getRecordInternal(information = getSampleInformation(1))
-
-        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
-
-        val recordsLoaded = auditDao!!.loadRecords(TimeStampPresenter notInList listOf(1), QueryParameters())
-        Assert.assertEquals(recordsLoaded.size, 0)
-    }
-
-
-    private fun getSampleInformation(timeStamp: Long): MutableSet<InformationObject> {
+    private fun getSampleInformation(timeStamp: Long): MutableSet<InformationObject<*>> {
         return InformationUtils.getPrimitiveInformation(currentId++, timeStamp, 2, SamplesGenerator.getMillenniumStart())
     }
 }

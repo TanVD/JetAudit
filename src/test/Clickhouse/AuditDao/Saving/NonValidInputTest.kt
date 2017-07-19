@@ -130,7 +130,7 @@ internal class NonValidInputTest {
         Assert.assertEquals(elements, listOf(auditRecordOriginal))
     }
 
-    private fun getSampleInformation(): MutableSet<InformationObject> {
+    private fun getSampleInformation(): MutableSet<InformationObject<*>> {
         return InformationUtils.getPrimitiveInformation(SavingTest.currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
     }
 

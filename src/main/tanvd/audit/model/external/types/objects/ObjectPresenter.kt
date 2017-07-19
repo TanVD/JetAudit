@@ -2,7 +2,7 @@ package tanvd.audit.model.external.types.objects
 
 import tanvd.audit.model.external.records.ObjectState
 
-abstract class ObjectPresenter<T> : ObjectSerializer<T> {
+abstract class ObjectPresenter<T : Any> : ObjectSerializer<T> {
     abstract val entityName: String
     abstract val fieldSerializers: Map<StateType<*>, (T) -> String>
     abstract val deserializer: (ObjectState) -> T?

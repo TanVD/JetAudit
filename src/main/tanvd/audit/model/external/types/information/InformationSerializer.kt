@@ -1,6 +1,6 @@
 package tanvd.audit.model.external.types.information
 
-interface InformationSerializer<T> {
+interface InformationSerializer<T : Any> {
     /**
      * If it can not find entity null instead will be returned
      */

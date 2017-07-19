@@ -96,8 +96,8 @@ internal object ClickhouseRecordSerializer {
         return objects
     }
 
-    private fun deserializeInformation(row: DbRow): HashSet<InformationObject> {
-        val information = HashSet<InformationObject>()
+    private fun deserializeInformation(row: DbRow): HashSet<InformationObject<*>> {
+        val information = HashSet<InformationObject<*>>()
         for (type in InformationType.getTypes()) {
             val curInformation = row.columns.find { it.name == type.code }
             if (curInformation != null) {

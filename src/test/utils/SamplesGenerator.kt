@@ -7,7 +7,8 @@ import tanvd.audit.model.internal.AuditRecordInternal
 import java.util.*
 
 internal object SamplesGenerator {
-    fun getRecordInternal(vararg obj: Any, information: MutableSet<InformationObject>): AuditRecordInternal {
+
+    fun getRecordInternal(vararg obj: Any, information: MutableSet<InformationObject<*>>): AuditRecordInternal {
         val listObjects = ArrayList<Pair<ObjectType<*>, ObjectState>>()
         for (o in obj) {
             val type = ObjectType.resolveType(o::class)
@@ -15,6 +16,7 @@ internal object SamplesGenerator {
         }
         return AuditRecordInternal(listObjects, information)
     }
+
 
     //01/01/2000
     fun getMillenniumStart(): Date {

@@ -31,23 +31,7 @@ fun QueryEqualityTypeLeaf<*>.toStringSQL(): String {
                     "has(${stateType.getCode()}, ${(value as String).toSanitizedStringSQL()})"
                 }
                 InnerType.Boolean -> {
-                    "has(${stateType.getCode()}, ${(value as Boolean).toSqlString()})"
-                }
-                else -> {
-                    throw UnsupportedOperationException("Equality queries for type $valueType not supported")
-                }
-            }
-        }
-        EqualityCondition.notEqual -> {
-            when (valueType) {
-                InnerType.Long -> {
-                    "not (has(${stateType.getCode()}, $value))"
-                }
-                InnerType.String -> {
-                    "not (has(${stateType.getCode()}, ${(value as String).toSanitizedStringSQL()}))"
-                }
-                InnerType.Boolean -> {
-                    "not (has(${stateType.getCode()}, ${(value as Boolean).toSqlString()}))"
+                    "has(${stateType.getCode()}, ${(value as Boolean).toStringSQL()})"
                 }
                 else -> {
                     throw UnsupportedOperationException("Equality queries for type $valueType not supported")
@@ -120,22 +104,6 @@ fun QueryListTypeLeaf<*>.toStringSQL(): String {
                 }
                 InnerType.Boolean -> {
                     "arrayExists((x) -> x in ${(value as List<Any>).toSanitizedSetSQL(valueType)}, ${stateType.getCode()})"
-                }
-                else -> {
-                    throw UnsupportedOperationException("List queries for type $valueType not supported")
-                }
-            }
-        }
-        ListCondition.notInList -> {
-            when (valueType) {
-                InnerType.Long -> {
-                    "arrayExists((x) -> not (x in ${(value as List<Any>).toSanitizedSetSQL(valueType)}), ${stateType.getCode()})"
-                }
-                InnerType.String -> {
-                    "arrayExists((x) -> not (x in ${(value as List<Any>).toSanitizedSetSQL(valueType)}), ${stateType.getCode()})"
-                }
-                InnerType.Boolean -> {
-                    "arrayExists((x) -> not (x in ${(value as List<Any>).toSanitizedSetSQL(valueType)}), ${stateType.getCode()})"
                 }
                 else -> {
                     throw UnsupportedOperationException("List queries for type $valueType not supported")

@@ -50,7 +50,7 @@ internal interface AuditDao {
      * @throws BasicDbException
      */
     @Throws(BasicDbException::class)
-    fun <T> addInformationInDbModel(information: InformationType<T>)
+    fun <T : Any> addInformationInDbModel(information: InformationType<T>)
 
     /**
      * Load records satisfying expression limited by specified parameters.
@@ -73,7 +73,7 @@ internal interface AuditDao {
      * @throws BasicDbException
      */
     @Throws(BasicDbException::class)
-    fun countRecords(expression: QueryExpression): Int
+    fun countRecords(expression: QueryExpression): Long
 
     companion object AuditDaoFactory {
 

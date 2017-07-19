@@ -1,6 +1,7 @@
 package tanvd.audit.implementation.writer
 
 import com.amazonaws.auth.InstanceProfileCredentialsProvider
+import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.clickhouse.ClickhouseRecordSerializer
@@ -8,14 +9,22 @@ import tanvd.audit.model.internal.AuditRecordInternal
 import tanvd.audit.utils.PropertyLoader
 import tanvd.audit.utils.RandomGenerator
 
-internal class ClickhouseSqlS3Writer() : AuditReserveWriter {
+internal class ClickhouseSqlS3Writer : AuditReserveWriter {
 
-    private val bucketName by lazy { PropertyLoader["S3BucketFailover"] }
+    private val bucketName by lazy { PropertyLoader["S3BucketFailover"] ?: "ClickhouseFailover" }
 
     private val buffer = ArrayList<String>()
 
-    //Get rights from IAM role
-    val s3Client = AmazonS3ClientBuilder.standard().withCredentials(InstanceProfileCredentialsProvider(false)).build()!!
+    val s3Client: AmazonS3
+
+    constructor() {
+        s3Client = AmazonS3ClientBuilder.standard().withCredentials(InstanceProfileCredentialsProvider(true)).build()!!
+    }
+
+    constructor(s3Client: AmazonS3) {
+        this.s3Client = s3Client
+    }
+
 
     override fun write(record: AuditRecordInternal) {
         val row = ClickhouseRecordSerializer.serialize(record)

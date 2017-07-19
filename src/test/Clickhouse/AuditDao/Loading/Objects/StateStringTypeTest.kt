@@ -63,26 +63,6 @@ internal class StateStringTypeTest {
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
-    @Test
-    fun loadRow_LoadByNotEqual_loadedOne() {
-        val auditRecordFirstOriginal = getRecordInternal(TestClassString("string"), information = getSampleInformation())
-
-        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
-
-        val recordsLoaded = auditDao!!.loadRecords(TestClassStringPresenter.id notEqual "bad", QueryParameters())
-        Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
-    }
-
-    @Test
-    fun loadRow_LoadByNotEqual_loadedNone() {
-        val auditRecordFirstOriginal = getRecordInternal(TestClassString("string"), information = getSampleInformation())
-
-        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
-
-        val recordsLoaded = auditDao!!.loadRecords(TestClassStringPresenter.id notEqual "string", QueryParameters())
-        Assert.assertEquals(recordsLoaded.size, 0)
-    }
-
     //List
     @Test
     fun loadRow_LoadByInList_loadedOne() {
@@ -104,26 +84,6 @@ internal class StateStringTypeTest {
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
-    @Test
-    fun loadRow_LoadByNotInList_loadedOne() {
-        val auditRecordFirstOriginal = getRecordInternal(TestClassString("string"), information = getSampleInformation())
-
-        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
-
-        val recordsLoaded = auditDao!!.loadRecords(TestClassStringPresenter.id notInList listOf("bad"), QueryParameters())
-        Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
-    }
-
-    @Test
-    fun loadRow_LoadByNotInList_loadedNone() {
-        val auditRecordFirstOriginal = getRecordInternal(TestClassString("string"), information = getSampleInformation())
-
-        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
-
-        val recordsLoaded = auditDao!!.loadRecords(TestClassStringPresenter.id notInList listOf("string"), QueryParameters())
-        Assert.assertEquals(recordsLoaded.size, 0)
-    }
-
     //String
     @Test
     fun loadRow_LoadByLike_loadedOne() {
@@ -136,7 +96,7 @@ internal class StateStringTypeTest {
     }
 
     @Test
-    fun loadRow_LoadByIsNot_loadedNone() {
+    fun loadRow_LoadByLike_loadedNone() {
         val auditRecordFirstOriginal = getRecordInternal(TestClassString("string"), information = getSampleInformation())
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
@@ -165,7 +125,7 @@ internal class StateStringTypeTest {
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
-    private fun getSampleInformation(): MutableSet<InformationObject> {
+    private fun getSampleInformation(): MutableSet<InformationObject<*>> {
         return InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
     }
 }

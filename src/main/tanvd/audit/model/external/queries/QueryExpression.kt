@@ -8,23 +8,39 @@ interface QueryExpression
 /**
  * Operators for expression to construct tree.
  */
-enum class QueryOperator {
+enum class BinaryQueryOperator {
     and,
     or
 }
 
+enum class UnaryQueryOperator {
+    not
+}
+
 /**
- * Node of an expression tree.
+ * Binary operators of an expression tree.
  */
-class QueryNode(val queryOperator: QueryOperator, val expressionFirst: QueryExpression,
-                val expressionSecond: QueryExpression) : QueryExpression
+class BinaryQueryNode(val binaryQueryOperator: BinaryQueryOperator, val expressionFirst: QueryExpression,
+                      val expressionSecond: QueryExpression) : QueryExpression
 
 
 infix fun QueryExpression.and(expression: QueryExpression): QueryExpression {
-    return QueryNode(QueryOperator.and, this, expression)
+    return BinaryQueryNode(BinaryQueryOperator.and, this, expression)
 }
 
 infix fun QueryExpression.or(expression: QueryExpression): QueryExpression {
-    return QueryNode(QueryOperator.or, this, expression)
+    return BinaryQueryNode(BinaryQueryOperator.or, this, expression)
 }
+
+/**
+ * Unary operators of an expression tree
+ */
+
+class UnaryQueryNode(val unaryQueryOperator: UnaryQueryOperator, val expression: QueryExpression) : QueryExpression
+
+fun not(expression: QueryExpression): QueryExpression {
+    return UnaryQueryNode(UnaryQueryOperator.not, expression)
+}
+
+
 

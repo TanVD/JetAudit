@@ -5,6 +5,7 @@ import tanvd.audit.model.external.types.InnerType
 import tanvd.audit.model.external.types.objects.StateType
 import java.text.DateFormat
 import java.text.SimpleDateFormat
+import java.util.*
 
 
 internal fun StateType<*>.getCode(): String {
@@ -15,7 +16,7 @@ internal fun getDateFormat(): DateFormat {
     return SimpleDateFormat("yyyy-MM-dd")
 }
 
-internal fun Boolean.toSqlString(): String {
+internal fun Boolean.toStringSQL(): String {
     return if (this) {
         "1"
     } else {
@@ -35,10 +36,13 @@ internal fun List<Any>.toSanitizedSetSQL(type: InnerType): String {
     return map {
         when (type) {
             InnerType.String -> {
-                "\'" + ClickHouseUtil.escape(it.toString()) + "\'"
+                (it as String).toSanitizedStringSQL()
+            }
+            InnerType.Date -> {
+                (it as Date).toStringSQL()
             }
             InnerType.Boolean -> {
-                (it as Boolean).toSqlString()
+                (it as Boolean).toStringSQL()
             }
             else -> {
                 it.toString()

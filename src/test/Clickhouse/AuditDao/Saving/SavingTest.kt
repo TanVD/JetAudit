@@ -8,10 +8,8 @@ import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.presenters.IdPresenter
 import tanvd.audit.model.external.presenters.LongPresenter
-import tanvd.audit.model.external.presenters.TimeStampPresenter
 import tanvd.audit.model.external.queries.QueryParameters
 import tanvd.audit.model.external.queries.equal
-import tanvd.audit.model.external.queries.or
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.InnerType
 import tanvd.audit.model.external.types.information.InformationType
@@ -101,25 +99,83 @@ internal class SavingTest {
 
     @Test
     fun saveRecord_LongInformation_loadRecordsReturnSavedRecord() {
-        val auditRecordFirstOriginal = getRecordInternal(information = getSampleInformation(1))
+        @Suppress("UNCHECKED_CAST")
+        val type = InformationType(LongInfPresenter, InnerType.Long) as InformationType<Any>
+        InformationType.addType(type)
+        auditDao!!.addInformationInDbModel(type)
+
+        val information = getSampleInformation(1)
+        information.add(InformationObject(0, LongInfPresenter))
+
+        val auditRecordFirstOriginal = getRecordInternal(information = information)
 
         auditDao!!.saveRecord(auditRecordFirstOriginal)
 
-        val recordsLoaded = auditDao!!.loadRecords(TimeStampPresenter equal 1, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(LongInfPresenter equal 0, QueryParameters())
         Assert.assertEquals(recordsLoaded.toSet(), setOf(auditRecordFirstOriginal))
     }
 
     @Test
     fun saveRecords_LongInformation_loadRecordsReturnSavedRecords() {
-        val auditRecordFirstOriginal = getRecordInternal(information = getSampleInformation(1))
-        val auditRecordSecondOriginal = getRecordInternal(information = getSampleInformation(2))
+        @Suppress("UNCHECKED_CAST")
+        val type = InformationType(LongInfPresenter, InnerType.Long) as InformationType<Any>
+        InformationType.addType(type)
+        auditDao!!.addInformationInDbModel(type)
+
+        val informationFirst = getSampleInformation(1)
+        informationFirst.add(InformationObject(0, LongInfPresenter))
+        val auditRecordFirstOriginal = getRecordInternal(information = informationFirst)
+
+        val informationSecond = getSampleInformation(2)
+        informationSecond.add(InformationObject(0, LongInfPresenter))
+        val auditRecordSecondOriginal = getRecordInternal(information = informationSecond)
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords((TimeStampPresenter equal 1) or (TimeStampPresenter equal 2),
-                QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(LongInfPresenter equal 0, QueryParameters())
         Assert.assertEquals(recordsLoaded.toSet(), setOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
     }
+
+
+    @Test
+    fun saveRecord_DateInformation_loadRecordsReturnSavedRecord() {
+        @Suppress("UNCHECKED_CAST")
+        val type = InformationType(DateInfPresenter, InnerType.Date) as InformationType<Any>
+        InformationType.addType(type)
+        auditDao!!.addInformationInDbModel(type)
+
+        val information = getSampleInformation(1)
+        information.add(InformationObject(getDate("01/01/2000"), DateInfPresenter))
+
+        val auditRecordFirstOriginal = getRecordInternal(information = information)
+
+        auditDao!!.saveRecord(auditRecordFirstOriginal)
+
+        val recordsLoaded = auditDao!!.loadRecords(DateInfPresenter equal getDate("01/01/2000"), QueryParameters())
+        Assert.assertEquals(recordsLoaded.toSet(), setOf(auditRecordFirstOriginal))
+    }
+
+    @Test
+    fun saveRecords_DateInformation_loadRecordsReturnSavedRecords() {
+        @Suppress("UNCHECKED_CAST")
+        val type = InformationType(DateInfPresenter, InnerType.Date) as InformationType<Any>
+        InformationType.addType(type)
+        auditDao!!.addInformationInDbModel(type)
+
+        val informationFirst = getSampleInformation(1)
+        informationFirst.add(InformationObject(getDate("01/01/2000"), DateInfPresenter))
+        val auditRecordFirstOriginal = getRecordInternal(information = informationFirst)
+
+        val informationSecond = getSampleInformation(2)
+        informationSecond.add(InformationObject(getDate("01/01/2000"), DateInfPresenter))
+        val auditRecordSecondOriginal = getRecordInternal(information = informationSecond)
+
+        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
+
+        val recordsLoaded = auditDao!!.loadRecords(DateInfPresenter equal getDate("01/01/2000"), QueryParameters())
+        Assert.assertEquals(recordsLoaded.toSet(), setOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
+    }
+
 
     @Test
     fun saveRecord_BooleanInformation_loadRecordsReturnSavedRecord() {
@@ -211,15 +267,15 @@ internal class SavingTest {
         Assert.assertEquals(recordsLoaded.toSet(), setOf(auditRecordSecondOriginal))
     }
 
-    private fun getSampleInformation(): MutableSet<InformationObject> {
+    private fun getSampleInformation(): MutableSet<InformationObject<*>> {
         return InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
     }
 
-    private fun getSampleInformation(timeStamp: Long): MutableSet<InformationObject> {
+    private fun getSampleInformation(timeStamp: Long): MutableSet<InformationObject<*>> {
         return InformationUtils.getPrimitiveInformation(currentId++, timeStamp, 2, SamplesGenerator.getMillenniumStart())
     }
 
-    private fun getSampleInformation(id: Long, timeStamp: Long, version: Long = 2): MutableSet<InformationObject> {
+    private fun getSampleInformation(id: Long, timeStamp: Long, version: Long = 2): MutableSet<InformationObject<*>> {
         return InformationUtils.getPrimitiveInformation(id, timeStamp, version, SamplesGenerator.getMillenniumStart())
     }
 

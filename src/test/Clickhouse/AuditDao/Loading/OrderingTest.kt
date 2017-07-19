@@ -198,15 +198,15 @@ internal class OrderingTest {
         Assert.assertEquals(recordsLoaded, listOf(auditRecordSecondOriginal, auditRecordFirstOriginal))
     }
 
-    private fun getSampleInformation(): MutableSet<InformationObject> {
+    private fun getSampleInformation(): MutableSet<InformationObject<*>> {
         return InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
     }
 
-    private fun getSampleInformation(timeStamp: Long): MutableSet<InformationObject> {
+    private fun getSampleInformation(timeStamp: Long): MutableSet<InformationObject<*>> {
         return InformationUtils.getPrimitiveInformation(currentId++, timeStamp, 2, SamplesGenerator.getMillenniumStart())
     }
 
-    private fun getSampleInformation(timeStamp: Long, version: Long): MutableSet<InformationObject> {
+    private fun getSampleInformation(timeStamp: Long, version: Long): MutableSet<InformationObject<*>> {
         return InformationUtils.getPrimitiveInformation(currentId++, timeStamp, version, SamplesGenerator.getMillenniumStart())
     }
 

@@ -6,7 +6,9 @@ import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.dao.AuditDao
-import tanvd.audit.model.external.queries.*
+import tanvd.audit.model.external.queries.QueryParameters
+import tanvd.audit.model.external.queries.equal
+import tanvd.audit.model.external.queries.inList
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.objects.ObjectType
 import utils.*
@@ -64,26 +66,6 @@ internal class StateBooleanTypeTest {
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
-    @Test
-    fun loadRow_LoadByNotEqual_loadedOne() {
-        val auditRecordFirstOriginal = getRecordInternal(TestClassBoolean(true), information = getSampleInformation())
-
-        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
-
-        val recordsLoaded = auditDao!!.loadRecords(TestClassBooleanPresenter.id notEqual false, QueryParameters())
-        Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
-    }
-
-    @Test
-    fun loadRow_LoadByNotEqual_loadedNone() {
-        val auditRecordFirstOriginal = getRecordInternal(TestClassBoolean(true), information = getSampleInformation())
-
-        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
-
-        val recordsLoaded = auditDao!!.loadRecords(TestClassBooleanPresenter.id notEqual true, QueryParameters())
-        Assert.assertEquals(recordsLoaded.size, 0)
-    }
-
     //List
     @Test
     fun loadRow_LoadByInList_loadedOne() {
@@ -105,27 +87,7 @@ internal class StateBooleanTypeTest {
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
-    @Test
-    fun loadRow_LoadByNotInList_loadedOne() {
-        val auditRecordFirstOriginal = getRecordInternal(TestClassBoolean(true), information = getSampleInformation())
-
-        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
-
-        val recordsLoaded = auditDao!!.loadRecords(TestClassBooleanPresenter.id notInList listOf(false), QueryParameters())
-        Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
-    }
-
-    @Test
-    fun loadRow_LoadByNotInList_loadedNone() {
-        val auditRecordFirstOriginal = getRecordInternal(TestClassBoolean(true), information = getSampleInformation())
-
-        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
-
-        val recordsLoaded = auditDao!!.loadRecords(TestClassBooleanPresenter.id notInList listOf(true), QueryParameters())
-        Assert.assertEquals(recordsLoaded.size, 0)
-    }
-
-    private fun getSampleInformation(): MutableSet<InformationObject> {
+    private fun getSampleInformation(): MutableSet<InformationObject<*>> {
         return InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
 
     }

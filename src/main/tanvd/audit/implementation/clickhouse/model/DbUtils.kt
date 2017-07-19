@@ -162,3 +162,11 @@ internal data class DbColumnHeader(val name: String, val type: DbColumnType) {
 internal fun InformationType<*>.toDbColumnHeader(): DbColumnHeader {
     return DbColumnHeader(this.code, this.toDbColumnType())
 }
+
+internal fun Date.toStringSQL(): String {
+    return "'" + getDateFormat().format(java.util.Date(this.time)).toString() + "'"
+}
+
+internal fun String.fromSQLtoDate(): java.sql.Date {
+    return java.sql.Date(getDateFormat().parse(this).time)
+}

@@ -124,7 +124,7 @@ internal class AuditRecordInternalSerializationClickhouse {
         Assert.assertEquals(deserializedRecord, record)
     }
 
-    private fun getSampleInformation(): MutableSet<InformationObject> {
+    private fun getSampleInformation(): MutableSet<InformationObject<*>> {
         return InformationUtils.getPrimitiveInformation(0, 1, 2, SamplesGenerator.getMillenniumStart())
     }
 

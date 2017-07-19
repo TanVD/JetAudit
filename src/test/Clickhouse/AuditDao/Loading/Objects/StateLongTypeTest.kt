@@ -63,26 +63,6 @@ internal class StateLongTypeTest {
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
-    @Test
-    fun loadRow_LoadByNotEqual_loadedOne() {
-        val auditRecordFirstOriginal = getRecordInternal(TestClassLong(1), information = getSampleInformation())
-
-        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
-
-        val recordsLoaded = auditDao!!.loadRecords(TestClassLongPresenter.id notEqual 0, QueryParameters())
-        Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
-    }
-
-    @Test
-    fun loadRow_LoadByNotEqual_loadedNone() {
-        val auditRecordFirstOriginal = getRecordInternal(TestClassLong(1), information = getSampleInformation())
-
-        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
-
-        val recordsLoaded = auditDao!!.loadRecords(TestClassLongPresenter.id notEqual 1, QueryParameters())
-        Assert.assertEquals(recordsLoaded.size, 0)
-    }
-
     //List
     @Test
     fun loadRow_LoadByInList_loadedOne() {
@@ -101,26 +81,6 @@ internal class StateLongTypeTest {
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
         val recordsLoaded = auditDao!!.loadRecords(TestClassLongPresenter.id inList listOf(0), QueryParameters())
-        Assert.assertEquals(recordsLoaded.size, 0)
-    }
-
-    @Test
-    fun loadRow_LoadByNotInList_loadedOne() {
-        val auditRecordFirstOriginal = getRecordInternal(TestClassLong(1), information = getSampleInformation())
-
-        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
-
-        val recordsLoaded = auditDao!!.loadRecords(TestClassLongPresenter.id notInList listOf(0), QueryParameters())
-        Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
-    }
-
-    @Test
-    fun loadRow_LoadByNotInList_loadedNone() {
-        val auditRecordFirstOriginal = getRecordInternal(TestClassLong(1), information = getSampleInformation())
-
-        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
-
-        val recordsLoaded = auditDao!!.loadRecords(TestClassLongPresenter.id notInList listOf(1), QueryParameters())
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
@@ -165,7 +125,7 @@ internal class StateLongTypeTest {
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
-    private fun getSampleInformation(): MutableSet<InformationObject> {
+    private fun getSampleInformation(): MutableSet<InformationObject<*>> {
         return InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
     }
 }

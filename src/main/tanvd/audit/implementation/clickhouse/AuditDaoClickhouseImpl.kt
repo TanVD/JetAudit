@@ -112,7 +112,7 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
     }
 
 
-    override fun <T> addInformationInDbModel(information: InformationType<T>) {
+    override fun <T : Any> addInformationInDbModel(information: InformationType<T>) {
         if (useDefaultDDL) {
             clickhouseConnection.addColumn(auditTable, information.toDbColumnHeader())
         }
@@ -136,7 +136,7 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
      *
      * @throws BasicDbException
      */
-    override fun countRecords(expression: QueryExpression): Int {
+    override fun countRecords(expression: QueryExpression): Long {
         val resultNumber = clickhouseConnection.countRows(auditTable, expression)
         return resultNumber
     }

@@ -47,6 +47,8 @@ import javax.sql.DataSource
  *      Url                    (required if datasource not present),
  *      Username               (required if datasource not present),
  *      Password               (required if datasource not present),
+ *
+ *
  *      UseDefaultDDL          (default true),
  *      Timeout                (default 10s)
  *
@@ -107,7 +109,6 @@ class AuditAPI {
      * Create AuditApi with default dataSource
      */
     constructor(configPath: String, dataSource: DataSource? = null) {
-
         PropertyLoader.setPropertyFilePath(configPath)
 
         auditQueueInternal = ArrayBlockingQueue(capacityOfQueue)
@@ -211,7 +212,7 @@ class AuditAPI {
      * In case of InformationType duplicate
      * @throws AddExistingAuditTypeException
      */
-    fun <T> addInformationType(type: InformationType<T>) {
+    fun <T : Any> addInformationType(type: InformationType<T>) {
         @Suppress("UNCHECKED_CAST")
         if (InformationType.getTypes().contains(type as InformationType<Any>)) {
             throw AddExistingInformationTypeException("Already existing informations type requested to add -- ${type.code}")
@@ -226,7 +227,7 @@ class AuditAPI {
      * This method not throwing any exceptions.
      * Unknown types will be ignored and reported with log error.
      */
-    fun save(vararg objects: Any, information: Set<InformationObject> = emptySet()) {
+    fun save(vararg objects: Any, information: Set<InformationObject<*>> = emptySet()) {
         val recordObjects = ArrayList<Pair<ObjectType<Any>, ObjectState>>()
         for (o in objects) {
             try {
@@ -248,7 +249,7 @@ class AuditAPI {
      *
      * @throws UnknownObjectTypeException
      */
-    fun saveWithException(vararg objects: Any, information: MutableSet<InformationObject> = HashSet()) {
+    fun saveWithException(vararg objects: Any, information: MutableSet<InformationObject<*>> = HashSet()) {
         val recordObjects = objects.map { o -> ObjectType.resolveType(o::class).let { it to it.serialize(o) } }
 
         auditRecordsNotCommitted.get().add(AuditRecordInternal(recordObjects, information))
@@ -346,6 +347,13 @@ class AuditAPI {
         }
 
         return resultList
+    }
+
+    /**
+     * Count number of rows satisfying expression.
+     */
+    fun count(expression: QueryExpression): Long {
+        return auditDao.countRecords(expression)
     }
 
 

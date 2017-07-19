@@ -18,7 +18,7 @@ import utils.SamplesGenerator
 import utils.SamplesGenerator.getRecordInternal
 import utils.TypeUtils
 
-internal class QueryOperatorsTest {
+internal class BinaryQueryOperatorsTest {
 
     companion object {
         var currentId = 0L
@@ -115,7 +115,7 @@ internal class QueryOperatorsTest {
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
-    private fun getSampleInformation(): MutableSet<InformationObject> {
+    private fun getSampleInformation(): MutableSet<InformationObject<*>> {
         return InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
     }
 }
