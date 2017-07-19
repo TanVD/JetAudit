@@ -35,7 +35,7 @@ sourceSets {
 }
 
 test {
-    systemProperty "audit.config", "src/main/resources/config.properties"
+    systemProperty "ClickhouseUrl", System.getProperty("ClickhouseUrl")
     useTestNG()
 }
 
