@@ -38,8 +38,13 @@ internal class AuditWorker {
         val capacityOfWorkerBuffer by lazy { PropertyLoader["CapacityOfWorkerBuffer"]?.toInt() ?: 5000 }
         val waitingQueueTime by lazy { PropertyLoader["WaitingQueueTime"]?.toLong() ?: 10 }
         val maxGeneration by lazy { PropertyLoader["MaxGeneration"]?.toInt() ?: 15 }
+
     }
 
+    /**
+     * Why to use wait and notify
+     * @url https://kotlinlang.org/docs/reference/java-interop.html#waitnotify
+     */
     val auditQueueInternal: BlockingQueue<AuditRecordInternal>
 
     val buffer: MutableList<AuditRecordInternal>
@@ -50,16 +55,15 @@ internal class AuditWorker {
 
     val auditReserveWriter: AuditReserveWriter
 
+    @Volatile
     var isWorking: Boolean = true
-        @Synchronized
-        get() = field
+
 
     var isEnabled = true
 
     fun start() {
         while (true) {
             //while performing cycle worker can not report it's state to executor
-            synchronized(this) {
                 //get new record if sure that can save it (reserve buffer not full)
                 if (reserveBuffer.size != capacityOfWorkerBuffer) {
                     processNewRecord()
@@ -69,7 +73,7 @@ internal class AuditWorker {
                     isWorking = true
                     processReserveBuffer()
                 }
-            }
+
 
             //stop if asked
             if (!isEnabled) {

@@ -57,7 +57,6 @@ object PropertyLoader {
         private fun reloadProperties() {
             if (propertyFilePath == null) {
                 logger.info("Path to properties file is null. Using default values.")
-                properties.clear()
             } else {
                 loadPropertiesFromFile(propertyFilePath)
             }

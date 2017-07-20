@@ -2,6 +2,7 @@ out
 **/*.vpp.bak*
 **/*.vpp.lck*
 .gradle
+gradle
 /build/
 *.txt
 classes*
