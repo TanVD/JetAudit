@@ -38,19 +38,19 @@ internal class ClickhouseSqlFileWriterTest : PowerMockTestCase() {
         val id = 0L
         val version = 1L
         val timeStamp = 2L
-        val auditRecord = getRecordInternal(123, 456L, information = getSampleInformation(id, timeStamp, version))
+        val auditRecord = getRecordInternal(123, "456", information = getSampleInformation(id, timeStamp, version))
         val fileWriter = PowerMockito.mock(PrintWriter::class.java)
         val reserveWriter = ClickhouseSqlFileWriter(fileWriter)
 
         reserveWriter.write(auditRecord)
 
         Mockito.verify(fileWriter).println("INSERT INTO ${AuditDaoClickhouseImpl.auditTable} (" +
-                "${IntPresenter.value.getCode()}, ${LongPresenter.value.getCode()}, ${AuditDaoClickhouseImpl.descriptionColumn}, " +
+                "${IntPresenter.value.getCode()}, ${StringPresenter.value.getCode()}, ${AuditDaoClickhouseImpl.descriptionColumn}, " +
                 "${InformationType.resolveType(IdPresenter).code}, " +
                 "${InformationType.resolveType(VersionPresenter).code}, " +
                 "${InformationType.resolveType(TimeStampPresenter).code}, " +
                 "${InformationType.resolveType(DatePresenter).code}) VALUES " +
-                "([123], [456], [Int, Long], 0, 1, 2, 2000-01-01);")
+                "([123], ['456'], ['Int', 'String'], 0, 1, 2, '2000-01-01');")
     }
 
     @Test

@@ -43,8 +43,20 @@ internal data class DbColumn(val name: String, val elements: List<String>, val t
             DbColumnType.DbString -> {
                 "\'" + value + "\'"
             }
+            DbColumnType.DbArrayString -> {
+                "\'" + value + "\'"
+            }
+            DbColumnType.DbArrayBoolean -> {
+                if (value.toBoolean()) "1" else "0"
+            }
             DbColumnType.DbBoolean -> {
                 if (value.toBoolean()) "1" else "0"
+            }
+            DbColumnType.DbDate -> {
+                "\'" + value + "\'"
+            }
+            DbColumnType.DbArrayDate -> {
+                "\'" + value + "\'"
             }
             else -> {
                 value
@@ -170,11 +182,11 @@ internal fun Date.toStringSQL(): String {
 
 internal fun String.toSqlDate(timeZone: TimeZone): java.sql.Date {
     val date = getDateFormat().parse(this)
-    val currentServerTime = date.time + timeZone.getOffset(date.time)
+    val currentServerTime = date.time + timeZone.rawOffset
     return java.sql.Date(currentServerTime)
 }
 
 internal fun java.sql.Date.toStringFromDb(timeZone: TimeZone): String {
-    val currentServerTime = this.time - timeZone.getOffset(this.time)
+    val currentServerTime = this.time - timeZone.rawOffset
     return getDateFormat().format(java.util.Date(currentServerTime))
 }

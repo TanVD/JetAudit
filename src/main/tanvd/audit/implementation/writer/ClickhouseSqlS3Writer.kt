@@ -18,7 +18,11 @@ internal class ClickhouseSqlS3Writer : AuditReserveWriter {
     val s3Client: AmazonS3
 
     constructor() {
-        s3Client = AmazonS3ClientBuilder.standard().withCredentials(InstanceProfileCredentialsProvider(true)).build()!!
+        val builder = AmazonS3ClientBuilder.standard()!!
+        builder.region = "eu-west-1"
+        s3Client = builder.build()!!
+
+//        s3Client = AmazonS3ClientBuilder.standard().withCredentials(InstanceProfileCredentialsProvider(true)).build()!!
     }
 
     constructor(s3Client: AmazonS3) {
