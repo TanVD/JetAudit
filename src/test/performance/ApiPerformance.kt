@@ -76,7 +76,7 @@ internal class AuditApiExample {
         Assert.assertTrue(time < 1000)
     }
 
-    @Test
+//    @Test
     fun thousandInSecond() {
         val records = ArrayList<Array<Any>>()
         val fixedId = 1L
@@ -100,7 +100,7 @@ internal class AuditApiExample {
         Assert.assertTrue(time < 1000)
     }
 
-    @Test
+//    @Test
     fun tenThousandInSecond() {
         val records = ArrayList<Array<Any>>()
         val fixedId = 1L
