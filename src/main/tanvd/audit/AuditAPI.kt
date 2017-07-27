@@ -48,6 +48,9 @@ import javax.sql.DataSource
  *      Url                    (required if datasource not present),
  *      Username               (required if datasource not present),
  *      Password               (required if datasource not present),
+ *      UseSSL                 (default false)
+ *      SSLSertPath            (default empty)
+ *      SSLVerifyMode          (default empty) (may be strict|none)
  *
  *
  *      UseDefaultDDL          (default true),

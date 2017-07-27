@@ -97,6 +97,11 @@ internal interface AuditDao {
                 properties.user = credentials!!.username
                 properties.password = credentials!!.password
                 properties.connectionTimeout = (PropertyLoader["Timeout"]?.toInt() ?: 10000)
+                if (PropertyLoader["UseSSL"]?.toBoolean() ?: false) {
+                    properties.ssl = true
+                    properties.sslRootCertificate = PropertyLoader["SSLSertPath"]
+                    properties.sslMode = PropertyLoader["SSLVerifyMode"]
+                }
                 return AuditDaoClickhouseImpl(ClickHouseDataSource(credentials!!.url, properties))
             }
             throw UninitializedException("Nor credentials nor datasource set in DbProperties")
