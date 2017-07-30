@@ -23,8 +23,7 @@ data class ObjectType<T : Any>(val klass: KClass<T>, val objectPresenter: Object
         fun resolveType(klass: KClass<*>): ObjectType<Any> {
             val auditType = ObjectType.TypesResolution.typesByClass[klass]
             if (auditType == null) {
-                throw UnknownObjectTypeException("Unknown ObjectType requested to resolve by klass --" +
-                        " ${klass.qualifiedName}")
+                throw UnknownObjectTypeException("Unknown ObjectType requested to resolve by klass -- ${klass.qualifiedName}")
             } else {
                 return auditType
             }

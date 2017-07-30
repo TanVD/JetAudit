@@ -51,6 +51,7 @@ import javax.sql.DataSource
  *      UseSSL                 (default false)
  *      SSLSertPath            (default empty)
  *      SSLVerifyMode          (default empty) (may be strict|none)
+ *      ServerTimeZone         (default Zulu) (used to convert java.util.Date from UTC and to UTC)
  *
  *
  *      UseDefaultDDL          (default true),
@@ -92,6 +93,9 @@ import javax.sql.DataSource
  *
  * In case of method with exception JetAudit guarantee that record will be saved or exception will be thrown.
  * In other case JetAudit tries to save record, but not guarantee that it will be saved in exceptional situations.
+ *
+ * Timezone notice: all timestamps will be returned in UTC and should be saved in UTC.
+ * Timezone notice: all java.utils.Date objects assumed to be UTC (as in docs)
  */
 class AuditAPI {
 
@@ -242,7 +246,7 @@ class AuditAPI {
                 val type = ObjectType.resolveType(o::class)
                 recordObjects.add(Pair(type, type.serialize(o)))
             } catch (e: UnknownObjectTypeException) {
-                logger.error("AuditAPI met unknown ObjectType. Object will be ignored")
+                logger.error("AuditAPI met unknown ObjectType. Object will be ignored", e)
             }
         }
 
@@ -320,7 +324,7 @@ class AuditAPI {
         try {
             auditRecords = auditDao.loadRecords(expression, parameters)
         } catch (e: UnknownObjectTypeException) {
-            logger.error("AuditAPI met unknown ObjectType. Empty list will be returned.")
+            logger.error("AuditAPI met unknown ObjectType. Empty list will be returned.", e)
             return emptyList()
         }
 

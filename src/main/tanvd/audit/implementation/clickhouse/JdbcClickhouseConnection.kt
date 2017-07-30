@@ -263,7 +263,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
                 expression.toStringSQL()
             }
             else -> {
-                logger.error("Unknown Query leaf.")
+                logger.error("Unknown Query leaf with class -- ${expression::class.qualifiedName}.")
                 ""
             }
         }
@@ -343,12 +343,20 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
                         connection.createArrayOf("String", column.elements.toTypedArray()))
             }
             DbColumnType.DbDate -> {
-                this.setDate(dbIndex, column.elements[0].toSqlDate((connection as ClickHouseConnection).timeZone))
+                if ((connection as ClickHouseConnection).timeZone != ClickhouseConfig.timeZone) {
+                    logger.error("Got in config timezone ${ClickhouseConfig.timeZone.id}," +
+                            " but connection responds with timezone ${(connection as ClickHouseConnection).timeZone.id}")
+                }
+                this.setDate(dbIndex, column.elements[0].toSqlDate())
             }
             DbColumnType.DbArrayDate -> {
+                if ((connection as ClickHouseConnection).timeZone != ClickhouseConfig.timeZone) {
+                    logger.error("Got in config timezone ${ClickhouseConfig.timeZone.id}," +
+                            " but connection responds with timezone ${(connection as ClickHouseConnection).timeZone.id}")
+                }
                 this.setArray(dbIndex,
                         connection.createArrayOf("Date", column.elements.map {
-                            column.elements[0].toSqlDate((connection as ClickHouseConnection).timeZone)
+                            column.elements[0].toSqlDate()
                         }.toTypedArray()))
             }
             DbColumnType.DbLong -> {
@@ -383,13 +391,21 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
     private fun ResultSet.getColumn(column: DbColumnHeader, connection: ClickHouseConnection): DbColumn {
         when (column.type) {
             DbColumnType.DbDate -> {
-                val dateSerialized = getDate(column.name).toStringFromDb(connection.timeZone)
+                if (connection.timeZone != ClickhouseConfig.timeZone) {
+                    logger.error("Got in config timezone ${ClickhouseConfig.timeZone.id}," +
+                            " but connection responds with timezone ${connection.timeZone.id}")
+                }
+                val dateSerialized = getDate(column.name).toStringFromDb()
                 return DbColumn(column.name, listOf(dateSerialized), DbColumnType.DbDate)
             }
             DbColumnType.DbArrayDate -> {
                 @Suppress("UNCHECKED_CAST")
                 val resultArray = (getArray(column.name).array as Array<Date>).map {
-                    getDate(column.name).toStringFromDb(connection.timeZone)
+                    if (connection.timeZone != ClickhouseConfig.timeZone) {
+                        logger.error("Got in config timezone ${ClickhouseConfig.timeZone.id}," +
+                                " but connection responds with timezone ${connection.timeZone.id}")
+                    }
+                    getDate(column.name).toStringFromDb()
                 }
                 return DbColumn(column.name, resultArray.toList(), DbColumnType.DbArrayDate)
             }

@@ -1,8 +1,8 @@
 package tanvd.audit.implementation.clickhouse.model
 
-import ru.yandex.clickhouse.ClickHouseConnection
 import tanvd.audit.model.external.types.information.InformationType
 import java.util.*
+
 
 /**
  * Row of Clickhouse DB.
@@ -176,17 +176,20 @@ internal fun InformationType<*>.toDbColumnHeader(): DbColumnHeader {
     return DbColumnHeader(this.code, this.toDbColumnType())
 }
 
-internal fun Date.toStringSQL(): String {
-    return "'" + getDateFormat().format(java.util.Date(this.time)).toString() + "'"
-}
-
-internal fun String.toSqlDate(timeZone: TimeZone): java.sql.Date {
+internal fun String.toSqlDate(): java.sql.Date {
     val date = getDateFormat().parse(this)
-    val currentServerTime = date.time + timeZone.rawOffset
+    val currentServerTime = date.time + ClickhouseConfig.timeZone.rawOffset
     return java.sql.Date(currentServerTime)
 }
 
-internal fun java.sql.Date.toStringFromDb(timeZone: TimeZone): String {
-    val currentServerTime = this.time - timeZone.rawOffset
-    return getDateFormat().format(java.util.Date(currentServerTime))
+internal fun java.sql.Date.toStringFromDb(): String {
+    val serverTime = this.time - ClickhouseConfig.timeZone.rawOffset
+    return getDateFormat().format(java.util.Date(serverTime))
+}
+
+internal fun java.util.Date.toStringSQL(): String {
+    val utcTime = this.time
+    val serverTime = utcTime + ClickhouseConfig.timeZone.rawOffset
+    val resultString = "'" + getDateFormat().format(Date(serverTime)) + "'"
+    return resultString
 }

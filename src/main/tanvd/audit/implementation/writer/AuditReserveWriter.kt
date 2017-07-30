@@ -33,7 +33,7 @@ internal interface AuditReserveWriter {
             } else if (reserveWriterType == "S3") {
                 ClickhouseSqlS3Writer()
             } else {
-                logger.error("Unknown option for reserve writing. Fallback to File.")
+                logger.error("Unknown option -- $reserveWriterType for reserve writing. Fallback to File.")
                 val reservePath = PropertyLoader["ReservePath"] ?: "reserve.txt"
                 ClickhouseSqlFileWriter(reservePath)
             }
