@@ -2,6 +2,7 @@ package tanvd.audit.model.external.types.objects
 
 import tanvd.audit.exceptions.UnknownObjectTypeException
 import kotlin.reflect.KClass
+import kotlin.reflect.full.superclasses
 
 data class ObjectType<T : Any>(val klass: KClass<T>, val objectPresenter: ObjectPresenter<T>) :
         ObjectSerializer<T> by objectPresenter {
@@ -21,9 +22,26 @@ data class ObjectType<T : Any>(val klass: KClass<T>, val objectPresenter: Object
          * @throws UnknownObjectTypeException
          */
         fun resolveType(klass: KClass<*>): ObjectType<Any> {
-            val auditType = ObjectType.TypesResolution.typesByClass[klass]
+            val auditType = _resolveType(klass)
             if (auditType == null) {
                 throw UnknownObjectTypeException("Unknown ObjectType requested to resolve by klass -- ${klass.qualifiedName}")
+            } else {
+                return auditType
+            }
+        }
+
+        private fun _resolveType(klass: KClass<*>): ObjectType<Any>? {
+            val auditType = ObjectType.TypesResolution.typesByClass[klass]
+            if (auditType == null) {
+                val superClasses = klass.superclasses
+                for (superKlass in superClasses) {
+                    val superAuditType: ObjectType<Any>? = _resolveType(superKlass)
+
+                    if (superAuditType != null) {
+                        return superAuditType
+                    }
+                }
+                return null
             } else {
                 return auditType
             }
