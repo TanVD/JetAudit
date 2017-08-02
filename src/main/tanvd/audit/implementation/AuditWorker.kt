@@ -1,5 +1,6 @@
 package tanvd.audit.implementation
 
+import org.slf4j.LoggerFactory
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.implementation.writer.AuditReserveWriter
 import tanvd.audit.model.internal.AuditRecordInternal
@@ -55,6 +56,8 @@ internal class AuditWorker {
 
     val auditReserveWriter: AuditReserveWriter
 
+    private val logger = LoggerFactory.getLogger(AuditWorker::class.java)
+
     @Volatile
     var isWorking: Boolean = true
 
@@ -63,7 +66,8 @@ internal class AuditWorker {
 
     fun start() {
         while (true) {
-            //while performing cycle worker can not report it's state to executor
+            try {
+                //while performing cycle worker can not report it's state to executor
                 //get new record if sure that can save it (reserve buffer not full)
                 if (reserveBuffer.size != capacityOfWorkerBuffer) {
                     processNewRecord()
@@ -75,10 +79,13 @@ internal class AuditWorker {
                 }
 
 
-            //stop if asked
-            if (!isEnabled) {
-                auditReserveWriter.close()
-                break
+                //stop if asked
+                if (!isEnabled) {
+                    auditReserveWriter.close()
+                    break
+                }
+            } catch (e: Throwable) {
+                logger.error("Audit worker encountered error", e)
             }
         }
     }

@@ -48,18 +48,19 @@ import javax.sql.DataSource
  *      Url                    (required if datasource not present),
  *      Username               (required if datasource not present),
  *      Password               (required if datasource not present),
- *      UseSSL                 (default false)
- *      SSLSertPath            (default empty)
- *      SSLVerifyMode          (default empty) (may be strict|none)
+ *      UseSSL                 (default false),
+ *      SSLSertPath            (default empty),
+ *      SSLVerifyMode          (default empty) (may be strict|none),
  *      ServerTimeZone         (default Zulu) (used to convert java.util.Date from UTC and to UTC)
  *
  *
  *      UseDefaultDDL          (default true),
- *      Timeout                (default 10s)
+ *      Timeout                (default 10s),
+ *      KeepAliveTimeout       (default 60s)
  *
  *      #AuditApi config
  *      CapacityOfQueue        (default 20000 records),
- *      NumberOfWorkers        (default 5 threads),
+ *      NumberOfWorkers        (default 3 threads),
  *      CapacityOfWorkerBuffer (default 5000 records),
  *      WaitingQueueTime       (default 10 ms)
  *

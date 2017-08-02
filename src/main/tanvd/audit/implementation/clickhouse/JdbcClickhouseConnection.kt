@@ -10,6 +10,7 @@ import tanvd.audit.model.external.presenters.VersionPresenter
 import tanvd.audit.model.external.queries.*
 import tanvd.audit.model.external.queries.QueryParameters.OrderByParameters.Order
 import tanvd.audit.model.external.types.information.InformationType
+import tanvd.audit.utils.PropertyLoader
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
@@ -21,6 +22,17 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
     private val logger = LoggerFactory.getLogger(JdbcClickhouseConnection::class.java)
 
     private val columnAlreadyCreatedExceptionCode = 44
+
+    private val timeout = PropertyLoader["ConnectionTimeout"]?.toInt() ?: 10000
+
+    private var connection: Connection? = null
+
+    private fun getConnection(): Connection {
+        if (connection == null || !(connection?.isValid(timeout) ?: false)) {
+            connection = dataSource.connection
+        }
+        return connection!!
+    }
 
     /**
      * Creates table with specified header (uses ifNotExists modifier by default)
@@ -41,7 +53,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
         var connection: Connection? = null
         var preparedStatement: PreparedStatement? = null
         try {
-            connection = dataSource.connection
+            connection = getConnection()
             preparedStatement = connection.prepareStatement(sqlCreate.toString())
             preparedStatement.executeUpdate()
         } catch (e: Throwable) {
@@ -63,7 +75,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
         var connection: Connection? = null
         var preparedStatement: PreparedStatement? = null
         try {
-            connection = dataSource.connection
+            connection = getConnection()
             preparedStatement = connection.prepareStatement(sqlAlter)
             preparedStatement.executeUpdate()
         } catch (e: Throwable) {
@@ -91,7 +103,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
         var connection: Connection? = null
         var preparedStatement: PreparedStatement? = null
         try {
-            connection = dataSource.connection
+            connection = getConnection()
             preparedStatement = connection.prepareStatement(sqlInsert)
             for ((index, column) in row.columns.withIndex()) {
                 preparedStatement.setColumn(column, index + 1)
@@ -116,7 +128,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
         var connection: Connection? = null
         var preparedStatement: PreparedStatement? = null
         try {
-            connection = dataSource.connection
+            connection = getConnection()
             preparedStatement = connection.prepareStatement("INSERT INTO $tableName (${tableHeader.toDefString()})" +
                     " VALUES (${tableHeader.toPlaceholders()});")
 
@@ -168,7 +180,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
         var preparedStatement: PreparedStatement? = null
         var resultSet: ResultSet? = null
         try {
-            connection = dataSource.connection
+            connection = getConnection()
             preparedStatement = connection.prepareStatement(sqlSelect.toString())
 
             setLimits(parameters.limits, preparedStatement, 1)
@@ -218,7 +230,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
         var connection: Connection? = null
         var preparedStatement: PreparedStatement? = null
         try {
-            connection = dataSource.connection
+            connection = getConnection()
             preparedStatement = connection.prepareStatement(sqlDrop)
             preparedStatement.executeUpdate()
         } catch (e: Throwable) {
@@ -314,7 +326,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
         var preparedStatement: PreparedStatement? = null
         var resultSet: ResultSet? = null
         try {
-            connection = dataSource.connection
+            connection = getConnection()
             preparedStatement = connection.prepareStatement(sqlSelect.toString())
 
             resultSet = preparedStatement.executeQuery()

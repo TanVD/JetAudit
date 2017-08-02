@@ -96,7 +96,8 @@ internal interface AuditDao {
                 val properties = ClickHouseProperties()
                 properties.user = credentials!!.username
                 properties.password = credentials!!.password
-                properties.connectionTimeout = (PropertyLoader["Timeout"]?.toInt() ?: 10000)
+                properties.connectionTimeout = (PropertyLoader["ConnectionTimeout"]?.toInt() ?: 10000)
+                properties.keepAliveTimeout = (PropertyLoader["KeepAliveTimeout"]?.toInt() ?: 60000)
                 if (PropertyLoader["UseSSL"]?.toBoolean() ?: false) {
                     properties.ssl = true
                     properties.sslRootCertificate = PropertyLoader["SSLSertPath"]
