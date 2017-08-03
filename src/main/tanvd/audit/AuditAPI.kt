@@ -55,8 +55,9 @@ import javax.sql.DataSource
  *
  *
  *      UseDefaultDDL          (default true),
- *      Timeout                (default 10s),
- *      KeepAliveTimeout       (default 60s)
+ *      ConnectionTimeout      (default 10s) (timeout of connection to Clickhouse),
+ *      KeepAliveTimeout       (default 240s) (time connection can be safely kept idle),
+ *      TimeToLive             (default 60s) (time to live for one connection in pool unconditionally)
  *
  *      #AuditApi config
  *      CapacityOfQueue        (default 20000 records),
