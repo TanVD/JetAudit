@@ -61,7 +61,6 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             throw BasicDbException("Error inside Clickhouse occurred", e)
         } finally {
             preparedStatement?.close()
-            connection?.close()
         }
     }
 
@@ -87,7 +86,6 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             }
         } finally {
             preparedStatement?.close()
-            connection?.close()
         }
     }
 
@@ -114,7 +112,6 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             throw BasicDbException("Error inside Clickhouse occurred", e)
         } finally {
             preparedStatement?.close()
-            connection?.close()
         }
     }
 
@@ -151,7 +148,6 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             throw BasicDbException("Error inside Clickhouse occurred", e)
         } finally {
             preparedStatement?.close()
-            connection?.close()
         }
     }
 
@@ -200,7 +196,6 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
         } finally {
             resultSet?.close()
             preparedStatement?.close()
-            connection?.close()
         }
 
         val distinctRows = rows.groupBy { (columns) ->
@@ -238,7 +233,6 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             throw BasicDbException("Error inside Clickhouse occurred", e)
         } finally {
             preparedStatement?.close()
-            connection?.close()
         }
     }
 
@@ -340,7 +334,6 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
         } finally {
             resultSet?.close()
             preparedStatement?.close()
-            connection?.close()
         }
 
 
