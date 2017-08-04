@@ -340,6 +340,10 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
         return count
     }
 
+    fun close() {
+        connection?.close()
+    }
+
 
     private fun PreparedStatement.setColumn(column: DbColumn, dbIndex: Int) {
         when (column.type) {

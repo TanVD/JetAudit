@@ -1,6 +1,5 @@
 package tanvd.audit.implementation.writer
 
-import com.amazonaws.auth.InstanceProfileCredentialsProvider
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl

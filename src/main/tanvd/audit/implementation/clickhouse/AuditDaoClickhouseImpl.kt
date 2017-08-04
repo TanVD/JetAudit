@@ -146,6 +146,10 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
         initTables()
     }
 
+    override fun finalize() {
+        clickhouseConnection.close()
+    }
+
 
     /**
      * Drops table with specified name

@@ -76,6 +76,11 @@ internal interface AuditDao {
     fun countRecords(expression: QueryExpression): Long
 
     /**
+     * Closes all connections and prepares for shutdown.
+     */
+    fun finalize()
+
+    /**
      * Resets audit table
      */
     @Throws(BasicDbException::class)
