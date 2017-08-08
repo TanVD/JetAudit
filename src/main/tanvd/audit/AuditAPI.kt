@@ -68,6 +68,7 @@ import javax.sql.DataSource
  *      #Reserving config
  *      MaxGeneration          (default 15 gen),
  *      ReservePath            (default reserve.txt or ReserveLogger),
+ *      S3BucketFailover       (default ClickhouseFailover),
  *      ReserveWriter          (default File) (may be File|Log|S3)
  *
  *      #Clickouse scheme config
