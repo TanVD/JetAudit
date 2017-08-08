@@ -1,5 +1,6 @@
 package tanvd.audit.implementation.writer
 
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
@@ -17,11 +18,7 @@ internal class ClickhouseSqlS3Writer : AuditReserveWriter {
     val s3Client: AmazonS3
 
     constructor() {
-        val builder = AmazonS3ClientBuilder.standard()!!
-        builder.region = "eu-west-1"
-        s3Client = builder.build()!!
-
-//        s3Client = AmazonS3ClientBuilder.standard().withCredentials(InstanceProfileCredentialsProvider(true)).build()!!
+        s3Client = AmazonS3ClientBuilder.standard().withCredentials(DefaultAWSCredentialsProviderChain.getInstance()).build()!!
     }
 
     constructor(s3Client: AmazonS3) {
