@@ -55,7 +55,7 @@ import javax.sql.DataSource
  *
  *
  *      UseDefaultDDL          (default true),
- *      ConnectionTimeout      (default 10000) (ms) (timeout of connection to Clickhouse),
+ *      ConnectionTimeout      (default 2000) (ms) (timeout of connection to Clickhouse),
  *      KeepAliveTimeout       (default 240000) (ms) (time connection can be safely kept idle),
  *      TimeToLive             (default 60000) (ms) (time to live for one connection in pool unconditionally)
  *

@@ -23,7 +23,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
 
     private val columnAlreadyCreatedExceptionCode = 44
 
-    private val timeout = PropertyLoader["ConnectionTimeout"]?.toInt() ?: 10000
+    private val timeout = PropertyLoader["ConnectionTimeout"]?.toInt() ?: 2000
 
     private var connection: Connection? = null
 
@@ -50,7 +50,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
         })
         sqlCreate.append("ENGINE = ReplacingMergeTree($dateKey, (${primaryKey.joinToString()}), 8192, $versionKey);")
 
-        var connection: Connection? = null
+        val connection: Connection?
         var preparedStatement: PreparedStatement? = null
         try {
             connection = getConnection()
@@ -71,7 +71,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
      */
     fun addColumn(tableName: String, columnHeader: DbColumnHeader) {
         val sqlAlter = "ALTER TABLE $tableName ADD COLUMN ${columnHeader.name} ${columnHeader.type} ;"
-        var connection: Connection? = null
+        val connection: Connection?
         var preparedStatement: PreparedStatement? = null
         try {
             connection = getConnection()
@@ -98,7 +98,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
     fun insertRow(tableName: String, row: DbRow) {
         val sqlInsert = "INSERT INTO $tableName (${row.toStringHeader()}) VALUES (${row.toPlaceholders()});"
 
-        var connection: Connection? = null
+        val connection: Connection?
         var preparedStatement: PreparedStatement? = null
         try {
             connection = getConnection()
@@ -122,7 +122,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
      * @throws BasicDbException
      */
     fun insertRows(tableName: String, tableHeader: DbTableHeader, rows: List<DbRow>) {
-        var connection: Connection? = null
+        val connection: Connection?
         var preparedStatement: PreparedStatement? = null
         try {
             connection = getConnection()
@@ -172,7 +172,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
 
         val rows = ArrayList<DbRow>()
 
-        var connection: Connection? = null
+        val connection: Connection?
         var preparedStatement: PreparedStatement? = null
         var resultSet: ResultSet? = null
         try {
@@ -222,7 +222,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
     fun dropTable(tableName: String, ifExists: Boolean) {
         val sqlDrop = "DROP TABLE ${if (ifExists) "IF EXISTS" else ""} $tableName;"
 
-        var connection: Connection? = null
+        val connection: Connection?
         var preparedStatement: PreparedStatement? = null
         try {
             connection = getConnection()
@@ -316,7 +316,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
 
         sqlSelect.append(";")
 
-        var connection: Connection? = null
+        val connection: Connection?
         var preparedStatement: PreparedStatement? = null
         var resultSet: ResultSet? = null
         try {

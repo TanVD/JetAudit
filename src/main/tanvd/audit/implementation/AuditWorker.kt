@@ -134,26 +134,38 @@ internal class AuditWorker {
      * Save AuditWorker reserve buffer to Db one by one record.
      * If record was not saved then generation of record will be incremented.
      * If generation equal to max generation than record will be printed by writer
+     *
+     * If Reserver Buffer is full all records will be printed by writer
      */
     fun processReserveBuffer() {
         val iterator = reserveBuffer.iterator()
+        val reserveBufferFull = reserveBuffer.size == capacityOfWorkerBuffer
+        if (reserveBufferFull) {
+            logger.error("Reserve buffer full. Flushing to reserve writer.")
+        }
         while (iterator.hasNext()) {
             val record = iterator.next()
-            var successSaved = true
-
-            try {
-                auditDao.saveRecord(record)
-            } catch (e: Throwable) {
-                record.generation++
-                successSaved = false
-            }
-
-            if (!successSaved && record.generation == maxGeneration) {
+            if (reserveBufferFull) {
                 auditReserveWriter.write(record)
                 iterator.remove()
-            } else if (successSaved) {
-                iterator.remove()
+            } else {
+                var successSaved = true
+
+                try {
+                    auditDao.saveRecord(record)
+                } catch (e: Throwable) {
+                    record.generation++
+                    successSaved = false
+                }
+
+                if (!successSaved && record.generation == maxGeneration) {
+                    auditReserveWriter.write(record)
+                    iterator.remove()
+                } else if (successSaved) {
+                    iterator.remove()
+                }
             }
+
         }
 
         auditReserveWriter.flush()
