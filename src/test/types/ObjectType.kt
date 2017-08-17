@@ -1,6 +1,5 @@
 package types
 
-import javassist.bytecode.SignatureAttribute
 import org.testng.Assert
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.Test
@@ -12,8 +11,6 @@ import tanvd.audit.model.external.types.objects.StateType
 import utils.TypeUtils
 
 internal class AddInformationTypeTest {
-
-
 
     open class First
 

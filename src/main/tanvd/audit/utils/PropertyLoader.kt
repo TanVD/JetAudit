@@ -33,7 +33,7 @@ object PropertyLoader {
             logger.error("Property loader probably was not initialized. It may affect work of JetAudit")
             instance = PropertyLoaderSingl()
         }
-        return instance!!.loadProperty(propertyName)
+        return PropertiesUtils.resolveEnvVariables(instance!!.loadProperty(propertyName))
     }
 
     private class PropertyLoaderSingl(val propertyFilePath: String? = null, val properties: Properties = Properties()) {
@@ -89,6 +89,17 @@ object PropertyLoader {
 
             }
         }
+    }
+}
+
+object PropertiesUtils {
+
+    private val variable = Regex("\\$\\{(.+)\\}|\\$(.+)")
+
+    fun resolveEnvVariables(str: String?): String? {
+        return str?.replace(variable, { match ->
+            System.getProperty(match.value.drop("\${".length).dropLast("}".length)) ?: match.value
+        })
     }
 }
 
