@@ -26,10 +26,6 @@ internal fun Boolean.toStringSQL(): String {
     }
 }
 
-internal fun booleanFromSqlString(sql: String): Boolean {
-    return sql == "1"
-}
-
 internal fun String.toSanitizedStringSQL(): String {
     return "\'" + ClickHouseUtil.escape(this) + "\'"
 }

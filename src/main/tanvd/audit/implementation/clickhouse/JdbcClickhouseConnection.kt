@@ -28,7 +28,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
     private var connection: Connection? = null
 
     private fun getConnection(): Connection {
-        if (connection == null || !(connection?.isValid(timeout) ?: false)) {
+        if (connection == null || connection?.isValid(timeout) != true) {
             connection = dataSource.connection
         }
         return connection!!

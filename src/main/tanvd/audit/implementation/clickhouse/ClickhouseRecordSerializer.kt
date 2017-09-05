@@ -37,9 +37,8 @@ internal object ClickhouseRecordSerializer {
     private fun serializeObjects(auditRecordInternal: AuditRecordInternal): MutableList<DbColumn> {
         val groupedObjects = auditRecordInternal.objects.flatMap { it.second.stateList.entries }.groupBy { it.key }
                 .mapValues { it.value.map { it.value } }
-        val elements = groupedObjects.map { DbColumn(it.key.getCode(), it.value, it.key.toDbColumnType()) }.toMutableList()
         //Add mandatory columns
-        return elements
+        return groupedObjects.map { DbColumn(it.key.getCode(), it.value, it.key.toDbColumnType()) }.toMutableList()
     }
 
     private fun serializeInformation(auditRecordInternal: AuditRecordInternal, elements: MutableList<DbColumn>) {

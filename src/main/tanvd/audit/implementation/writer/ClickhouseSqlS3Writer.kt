@@ -15,7 +15,7 @@ internal class ClickhouseSqlS3Writer : AuditReserveWriter {
 
     private val buffer = ArrayList<String>()
 
-    val s3Client: AmazonS3
+    private val s3Client: AmazonS3
 
     constructor() {
         s3Client = AmazonS3ClientBuilder.standard().withCredentials(DefaultAWSCredentialsProviderChain.getInstance()).build()!!

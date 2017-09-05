@@ -12,6 +12,7 @@ import org.testng.annotations.Test
 import tanvd.audit.AuditAPI
 import tanvd.audit.exceptions.UnknownObjectTypeException
 import tanvd.audit.implementation.AuditExecutor
+import tanvd.audit.implementation.QueueCommand
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.presenters.StringPresenter
 import tanvd.audit.model.external.queries.QueryExpression
@@ -35,7 +36,7 @@ internal class LoadAudit : PowerMockTestCase() {
 
     private var auditExecutor: AuditExecutor? = null
 
-    private var auditQueueInternal: BlockingQueue<AuditRecordInternal>? = null
+    private var auditQueueInternal: BlockingQueue<QueueCommand>? = null
 
     private var auditRecordsNotCommitted: ThreadLocal<ArrayList<AuditRecordInternal>>? = null
 
@@ -46,7 +47,7 @@ internal class LoadAudit : PowerMockTestCase() {
         auditDao = PowerMockito.mock(AuditDao::class.java)
         auditExecutor = PowerMockito.mock(AuditExecutor::class.java)
         @Suppress("UNCHECKED_CAST")
-        auditQueueInternal = PowerMockito.mock(BlockingQueue::class.java) as BlockingQueue<AuditRecordInternal>
+        auditQueueInternal = PowerMockito.mock(BlockingQueue::class.java) as BlockingQueue<QueueCommand>
         auditRecordsNotCommitted = object : ThreadLocal<ArrayList<AuditRecordInternal>>() {
             override fun initialValue(): ArrayList<AuditRecordInternal>? {
                 return ArrayList()

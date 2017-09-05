@@ -31,20 +31,9 @@ data class ObjectType<T : Any>(val klass: KClass<T>, val objectPresenter: Object
         }
 
         private fun _resolveType(klass: KClass<*>): ObjectType<Any>? {
-            val auditType = ObjectType.TypesResolution.typesByClass[klass]
-            if (auditType == null) {
-                val superClasses = klass.superclasses
-                for (superKlass in superClasses) {
-                    val superAuditType: ObjectType<Any>? = _resolveType(superKlass)
-
-                    if (superAuditType != null) {
-                        return superAuditType
-                    }
-                }
-                return null
-            } else {
-                return auditType
-            }
+            return typesByClass[klass] ?: klass.superclasses
+                    .map { _resolveType(it) }
+                    .firstOrNull { it != null }
         }
 
         /**

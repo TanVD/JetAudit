@@ -44,7 +44,7 @@ internal class AuditApiExample {
             waitUntilRightCount({
                 auditApi!!.count(LongPresenter.value equal fixedId) == totalNumber
             }, 10, 10)
-            while (auditApi!!.executor.isStillWorking()) {
+            while (auditApi!!.executor.stillWorking()) {
                 Thread.sleep(10)
             }
         }
@@ -68,7 +68,7 @@ internal class AuditApiExample {
             waitUntilRightCount({
                 auditApi!!.count(IntPresenter.value equal fixedId) == totalNumber
             }, 10, 10)
-            while (auditApi!!.executor.isStillWorking()) {
+            while (auditApi!!.executor.stillWorking()) {
                 Thread.sleep(10)
             }
         }
@@ -92,7 +92,7 @@ internal class AuditApiExample {
             waitUntilRightCount({
                 auditApi!!.count(IntPresenter.value equal fixedId) == totalNumber
             }, 10, 10)
-            while (auditApi!!.executor.isStillWorking()) {
+            while (auditApi!!.executor.stillWorking()) {
                 Thread.sleep(10)
             }
         }
@@ -116,7 +116,7 @@ internal class AuditApiExample {
             waitUntilRightCount({
                 auditApi!!.count(IntPresenter.value equal fixedId) == totalNumber
             }, 10, 10)
-            while (auditApi!!.executor.isStillWorking()) {
+            while (auditApi!!.executor.stillWorking()) {
                 Thread.sleep(10)
             }
         }

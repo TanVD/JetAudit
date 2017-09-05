@@ -14,6 +14,7 @@ import org.testng.annotations.Test
 import tanvd.audit.AuditAPI
 import tanvd.audit.exceptions.AddExistingAuditTypeException
 import tanvd.audit.implementation.AuditExecutor
+import tanvd.audit.implementation.QueueCommand
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
@@ -32,7 +33,7 @@ internal class AddType : PowerMockTestCase() {
 
     private var auditExecutor: AuditExecutor? = null
 
-    private var auditQueueInternal: BlockingQueue<AuditRecordInternal>? = null
+    private var auditQueueInternal: BlockingQueue<QueueCommand>? = null
 
     private var auditRecordsNotCommitted: ThreadLocal<ArrayList<AuditRecordInternal>>? = null
 
@@ -43,7 +44,7 @@ internal class AddType : PowerMockTestCase() {
         auditDao = mock(AuditDao::class.java)
         auditExecutor = mock(AuditExecutor::class.java)
         @Suppress("UNCHECKED_CAST")
-        auditQueueInternal = mock(BlockingQueue::class.java) as BlockingQueue<AuditRecordInternal>
+        auditQueueInternal = mock(BlockingQueue::class.java) as BlockingQueue<QueueCommand>
         auditRecordsNotCommitted = object : ThreadLocal<ArrayList<AuditRecordInternal>>() {
             override fun initialValue(): ArrayList<AuditRecordInternal>? {
                 return ArrayList()

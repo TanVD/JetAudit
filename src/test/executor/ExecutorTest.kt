@@ -12,7 +12,7 @@ import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.AuditWorker
-import tanvd.audit.model.internal.AuditRecordInternal
+import tanvd.audit.implementation.QueueCommand
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -26,7 +26,7 @@ internal class ExecutorTest : PowerMockTestCase() {
 
     private var executorService: ExecutorService? = null
 
-    private val queue = ArrayBlockingQueue<AuditRecordInternal>(1)
+    private val queue = ArrayBlockingQueue<QueueCommand>(1)
 
 
     @BeforeMethod
@@ -66,59 +66,6 @@ internal class ExecutorTest : PowerMockTestCase() {
         for (worker in auditExecutor.workers) {
             Assert.assertEquals(worker, auditWorker)
         }
-    }
-
-    @Test
-    fun isStillWorking_AllWorking_ReturnTrue() {
-        `when`(auditWorker!!.isWorking).thenReturn(true)
-        val auditExecutor = AuditExecutor(queue)
-
-        Assert.assertEquals(auditExecutor.isStillWorking(), true)
-    }
-
-    @Test
-    fun isStillWorking_NobodyWorking_ReturnFalse() {
-        `when`(auditWorker!!.isWorking).thenReturn(false)
-        val auditExecutor = AuditExecutor(queue)
-
-        Assert.assertEquals(auditExecutor.isStillWorking(), false)
-    }
-
-    @Test
-    fun stopWorkers_AllWorking_ReturnFalse() {
-        `when`(auditWorker!!.isWorking).thenReturn(true)
-        val auditExecutor = AuditExecutor(queue)
-
-        Assert.assertEquals(auditExecutor.stopWorkers(10), false)
-    }
-
-    @Test
-    fun stopWorkers_AllWorking_AreEnabledStill() {
-        `when`(auditWorker!!.isWorking).thenReturn(true)
-        `when`(auditWorker!!.isEnabled).thenReturn(true)
-        val auditExecutor = AuditExecutor(queue)
-
-        auditExecutor.stopWorkers(10)
-
-        Assert.assertTrue(auditWorker!!.isEnabled)
-    }
-
-    @Test
-    fun stopWorkers_NobodyWorking_ReturnTrue() {
-        `when`(auditWorker!!.isWorking).thenReturn(false)
-        val auditExecutor = AuditExecutor(queue)
-
-        Assert.assertEquals(auditExecutor.stopWorkers(10), true)
-    }
-
-    @Test
-    fun stopWorkers_AllWorking_NotEnabled() {
-        `when`(auditWorker!!.isWorking).thenReturn(false)
-        val auditExecutor = AuditExecutor(queue)
-
-        auditExecutor.stopWorkers(10)
-
-        verify(auditWorker, times(AuditExecutor.numberOfWorkers))!!.isEnabled = false
     }
 
 }

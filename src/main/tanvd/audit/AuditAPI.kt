@@ -7,6 +7,8 @@ import tanvd.audit.exceptions.AddExistingInformationTypeException
 import tanvd.audit.exceptions.AuditQueueFullException
 import tanvd.audit.exceptions.UnknownObjectTypeException
 import tanvd.audit.implementation.AuditExecutor
+import tanvd.audit.implementation.QueueCommand
+import tanvd.audit.implementation.SaveRecords
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.presenters.*
 import tanvd.audit.model.external.queries.QueryExpression
@@ -24,6 +26,7 @@ import tanvd.audit.utils.PropertyLoader
 import java.util.*
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
+import java.util.concurrent.TimeUnit
 import javax.sql.DataSource
 
 /**
@@ -102,13 +105,15 @@ import javax.sql.DataSource
  */
 class AuditAPI {
 
+    private var shuttingDown = false
+
     private val logger = LoggerFactory.getLogger(AuditAPI::class.java)
 
     internal val auditDao: AuditDao
 
     internal val executor: AuditExecutor
 
-    internal val auditQueueInternal: BlockingQueue<AuditRecordInternal>
+    internal val auditQueueInternal: BlockingQueue<QueueCommand>
 
     internal val auditRecordsNotCommitted: ThreadLocal<ArrayList<AuditRecordInternal>>
 
@@ -174,7 +179,7 @@ class AuditAPI {
      * Constructor for test needs
      */
     internal constructor(auditDao: AuditDao, executor: AuditExecutor,
-                         auditQueueInternal: BlockingQueue<AuditRecordInternal>,
+                         auditQueueInternal: BlockingQueue<QueueCommand>,
                          auditRecordsNotCommitted: ThreadLocal<ArrayList<AuditRecordInternal>>,
                          properties: Properties) {
 
@@ -241,8 +246,14 @@ class AuditAPI {
      *
      * This method not throwing any exceptions.
      * Unknown types will be ignored and reported with log error.
+     *
+     * In case of shutting down audit all records will be ignored including partly saved, but not committed
      */
     fun save(vararg objects: Any, information: Set<InformationObject<*>> = emptySet()) {
+        if (shuttingDown) {
+            return
+        }
+
         val recordObjects = ArrayList<Pair<ObjectType<Any>, ObjectState>>()
         for (o in objects) {
             try {
@@ -262,9 +273,15 @@ class AuditAPI {
      *
      * This method throws exceptions related to AuditApi. Exceptions of Db are ignored anyway.
      *
+     * In case of shutting down audit all records will be ignored including partly saved, but not committed
+     *
      * @throws UnknownObjectTypeException
      */
     fun saveWithException(vararg objects: Any, information: MutableSet<InformationObject<*>> = HashSet()) {
+        if (shuttingDown) {
+            return
+        }
+
         val recordObjects = objects.map { o -> ObjectType.resolveType(o::class).let { it to it.serialize(o) } }
 
         auditRecordsNotCommitted.get().add(AuditRecordInternal(recordObjects, information))
@@ -281,7 +298,7 @@ class AuditAPI {
             if (listRecords.size > (capacityOfQueue - auditQueueInternal.size)) {
                 logger.error("Audit queue full. Records was not committed.")
             } else {
-                auditQueueInternal += listRecords
+                auditQueueInternal += SaveRecords(listRecords)
                 auditRecordsNotCommitted.remove()
             }
         }
@@ -300,7 +317,7 @@ class AuditAPI {
             if (listRecords.size > (capacityOfQueue - auditQueueInternal.size)) {
                 throw AuditQueueFullException("Audit queue full. Records was not committed.")
             } else {
-                auditQueueInternal += listRecords
+                auditQueueInternal += SaveRecords(listRecords)
                 auditRecordsNotCommitted.remove()
             }
         }
@@ -331,14 +348,11 @@ class AuditAPI {
             return emptyList()
         }
 
-        val resultList: List<AuditRecord>
-        if (useBatching) {
-            resultList = deserializeAuditRecordsWithBatching(auditRecords)
+        return if (useBatching) {
+            deserializeAuditRecordsWithBatching(auditRecords)
         } else {
-            resultList = deserializeAuditRecords(auditRecords)
+            deserializeAuditRecords(auditRecords)
         }
-
-        return resultList
     }
 
     /**
@@ -354,14 +368,11 @@ class AuditAPI {
             List<AuditRecord> {
         val auditRecords: List<AuditRecordInternal> = auditDao.loadRecords(expression, parameters)
 
-        val resultList: List<AuditRecord>
-        if (useBatching) {
-            resultList = deserializeAuditRecordsWithBatching(auditRecords)
+        return if (useBatching) {
+            deserializeAuditRecordsWithBatching(auditRecords)
         } else {
-            resultList = deserializeAuditRecords(auditRecords)
+            deserializeAuditRecords(auditRecords)
         }
-
-        return resultList
     }
 
     /**
@@ -382,9 +393,14 @@ class AuditAPI {
 
     /**
      * Stop audit saving
+     *
+     * Time measured in ms
      */
-    fun stopAudit(timeToWait: Long): Boolean {
-        return executor.stopWorkers(timeToWait)
+    fun stopAudit(timeToWaitWorkers: Long, timeToWaitExecutor: Long = 1000) {
+        shuttingDown = true
+        executor.stopWorkers(timeToWaitWorkers)
+        executor.executorService.shutdownNow()
+        executor.executorService.awaitTermination(timeToWaitExecutor, TimeUnit.MILLISECONDS)
     }
 
     /** Use it to reset table. */
@@ -407,9 +423,8 @@ class AuditAPI {
                 emptyMap()
         }
 
-        val resultList = auditRecords.map { (objects, information) ->
-            AuditRecord(objects.map {
-                (type, state) ->
+        return auditRecords.map { (objects, information) ->
+            AuditRecord(objects.map { (type, state) ->
                 if (deserializedMaps[type]?.get(state) == null) {
                     AuditObject(type, null, state)
                 } else {
@@ -417,8 +432,6 @@ class AuditAPI {
                 }
             }, information)
         }
-
-        return resultList
     }
 
     private fun deserializeAuditRecords(auditRecords: List<AuditRecordInternal>): List<AuditRecord> {

@@ -1,6 +1,6 @@
 package tanvd.audit.implementation
 
-import tanvd.audit.model.internal.AuditRecordInternal
+import org.jetbrains.annotations.TestOnly
 import tanvd.audit.utils.PropertyLoader
 import java.util.*
 import java.util.concurrent.BlockingQueue
@@ -12,7 +12,7 @@ import java.util.concurrent.Executors
  *
  * AuditExecutor can report about workers state (working or not) and stop them, if necessary.
  */
-internal class AuditExecutor(val auditQueueInternal: BlockingQueue<AuditRecordInternal>) {
+internal class AuditExecutor(private val auditQueueInternal: BlockingQueue<QueueCommand>) {
 
     companion object Config {
         val numberOfWorkers by lazy { PropertyLoader["NumberOfWorkers"]?.toInt() ?: 3 }
@@ -34,21 +34,16 @@ internal class AuditExecutor(val auditQueueInternal: BlockingQueue<AuditRecordIn
         workers = workersList
     }
 
-    fun isStillWorking(): Boolean {
-        return workers.any { it.isWorking }
+    /**
+     * Stops all workers. Wait timeout to give them a time to save buffers.
+     */
+    fun stopWorkers(timeToWait: Long) {
+        auditQueueInternal += workers.map { ShutDown() }
+        Thread.sleep(timeToWait)
     }
 
-    /**
-     * Tries to stop workers. If success -- returns true.
-     */
-    fun stopWorkers(timeToWait: Long): Boolean {
-        Thread.sleep(timeToWait)
-        if (!isStillWorking()) {
-            for (worker in workers) {
-                worker.isEnabled = false
-            }
-            return true
-        }
-        return false
+    @TestOnly
+    fun stillWorking() : Boolean {
+        return workers.all { it.buffer.isNotEmpty() } || workers.any { it.reserveBuffer.isNotEmpty() } || auditQueueInternal.isNotEmpty()
     }
 }

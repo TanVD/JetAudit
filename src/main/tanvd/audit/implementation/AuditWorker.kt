@@ -1,5 +1,6 @@
 package tanvd.audit.implementation
 
+import org.jetbrains.annotations.TestOnly
 import org.slf4j.LoggerFactory
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.implementation.writer.AuditReserveWriter
@@ -16,15 +17,15 @@ import java.util.concurrent.TimeUnit
  */
 internal class AuditWorker {
 
-    constructor(auditQueueInternal: BlockingQueue<AuditRecordInternal>) {
+    constructor(auditQueueInternal: BlockingQueue<QueueCommand>) {
         this.auditQueueInternal = auditQueueInternal
-        buffer = ArrayList<AuditRecordInternal>()
-        reserveBuffer = ArrayList<AuditRecordInternal>()
+        buffer = ArrayList()
+        reserveBuffer = ArrayList()
         this.auditDao = AuditDao.getDao()
         this.auditReserveWriter = AuditReserveWriter.getWriter()
     }
 
-    constructor(auditQueueInternal: BlockingQueue<AuditRecordInternal>, buffer: MutableList<AuditRecordInternal>,
+    constructor(auditQueueInternal: BlockingQueue<QueueCommand>, buffer: MutableList<AuditRecordInternal>,
                 reserveBuffer: MutableList<AuditRecordInternal>,
                 auditDao: AuditDao, auditReserveWriter: AuditReserveWriter) {
         this.auditQueueInternal = auditQueueInternal
@@ -42,27 +43,19 @@ internal class AuditWorker {
 
     }
 
-    /**
-     * Why to use wait and notify
-     * @url https://kotlinlang.org/docs/reference/java-interop.html#waitnotify
-     */
-    val auditQueueInternal: BlockingQueue<AuditRecordInternal>
+    private val auditQueueInternal: BlockingQueue<QueueCommand>
 
-    val buffer: MutableList<AuditRecordInternal>
+    internal val buffer: MutableList<AuditRecordInternal>
 
-    val reserveBuffer: MutableList<AuditRecordInternal>
+    internal val reserveBuffer: MutableList<AuditRecordInternal>
 
-    val auditDao: AuditDao
+    private val auditDao: AuditDao
 
-    val auditReserveWriter: AuditReserveWriter
+    private val auditReserveWriter: AuditReserveWriter
 
     private val logger = LoggerFactory.getLogger(AuditWorker::class.java)
 
-    @Volatile
-    var isWorking: Boolean = true
-
-
-    var isEnabled = true
+    private var isEnabled = true
 
     fun start() {
         while (true) {
@@ -74,7 +67,6 @@ internal class AuditWorker {
                 }
 
                 if (!reserveBuffer.isEmpty()) {
-                    isWorking = true
                     processReserveBuffer()
                 }
 
@@ -83,7 +75,7 @@ internal class AuditWorker {
                 if (!isEnabled) {
                     auditDao.finalize()
                     auditReserveWriter.close()
-                    break
+                    return
                 }
             } catch (e: Throwable) {
                 logger.error("Audit worker encountered error", e)
@@ -96,14 +88,20 @@ internal class AuditWorker {
         val batchSize = capacityOfWorkerBuffer - reserveBuffer.size
 
         val record = auditQueueInternal.poll(waitingQueueTime, TimeUnit.MILLISECONDS)
-        isWorking = record != null || buffer.isNotEmpty()
-        if (record == null) {
-            saveBuffer(batchSize)
-        } else {
-            if (buffer.size == capacityOfWorkerBuffer) {
+        when (record) {
+            null -> {
                 saveBuffer(batchSize)
             }
-            buffer.add(record)
+            is SaveRecords -> {
+                if (buffer.size == capacityOfWorkerBuffer) {
+                    saveBuffer(batchSize)
+                }
+                buffer += record.recordsInternal
+            }
+            is ShutDown -> {
+                saveBuffer(batchSize)
+                isEnabled = false
+            }
         }
     }
 
@@ -170,5 +168,11 @@ internal class AuditWorker {
 
         auditReserveWriter.flush()
     }
+
+    @TestOnly
+    fun disable() {
+        isEnabled = false
+    }
+
 }
 

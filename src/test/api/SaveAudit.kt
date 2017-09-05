@@ -13,6 +13,8 @@ import org.testng.annotations.Test
 import tanvd.audit.AuditAPI
 import tanvd.audit.exceptions.UnknownObjectTypeException
 import tanvd.audit.implementation.AuditExecutor
+import tanvd.audit.implementation.QueueCommand
+import tanvd.audit.implementation.SaveRecords
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.objects.ObjectType
@@ -33,7 +35,7 @@ internal class SaveAudit : PowerMockTestCase() {
 
     private var auditExecutor: AuditExecutor? = null
 
-    private var auditQueueInternal: BlockingQueue<AuditRecordInternal>? = null
+    private var auditQueueInternal: BlockingQueue<QueueCommand>? = null
 
     private var auditRecordsNotCommitted: ThreadLocal<ArrayList<AuditRecordInternal>>? = null
 
@@ -44,7 +46,7 @@ internal class SaveAudit : PowerMockTestCase() {
         auditDao = mock(AuditDao::class.java)
         auditExecutor = mock(AuditExecutor::class.java)
         @Suppress("UNCHECKED_CAST")
-        auditQueueInternal = mock(BlockingQueue::class.java) as BlockingQueue<AuditRecordInternal>
+        auditQueueInternal = mock(BlockingQueue::class.java) as BlockingQueue<QueueCommand>
         auditRecordsNotCommitted = object : ThreadLocal<ArrayList<AuditRecordInternal>>() {
             override fun initialValue(): ArrayList<AuditRecordInternal>? {
                 return ArrayList()
@@ -135,7 +137,7 @@ internal class SaveAudit : PowerMockTestCase() {
     }
 
     private fun isQueueFullOnRecord(record: AuditRecordInternal, full: Boolean) {
-        `when`(auditQueueInternal!!.offer(record)).thenReturn(!full)
+        `when`(auditQueueInternal!!.offer(SaveRecords(record))).thenReturn(!full)
     }
 
     private fun getSampleInformation(): MutableSet<InformationObject<*>> {

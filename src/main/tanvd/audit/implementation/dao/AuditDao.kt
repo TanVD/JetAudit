@@ -104,7 +104,7 @@ internal interface AuditDao {
                 properties.connectionTimeout = (PropertyLoader["ConnectionTimeout"]?.toInt() ?: 2000)
                 properties.timeToLiveMillis = (PropertyLoader["TimeToLive"]?.toInt() ?: 240000)
                 properties.keepAliveTimeout = (PropertyLoader["KeepAliveTimeout"]?.toInt() ?: 60000)
-                if (PropertyLoader["UseSSL"]?.toBoolean() ?: false) {
+                if (PropertyLoader["UseSSL"]?.toBoolean() == true) {
                     properties.ssl = true
                     properties.sslRootCertificate = PropertyLoader["SSLSertPath"]
                     properties.sslMode = PropertyLoader["SSLVerifyMode"]

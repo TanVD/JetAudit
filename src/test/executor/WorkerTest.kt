@@ -10,6 +10,9 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.AuditWorker
+import tanvd.audit.implementation.QueueCommand
+import tanvd.audit.implementation.SaveRecords
+import tanvd.audit.implementation.ShutDown
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.implementation.exceptions.BasicDbException
 import tanvd.audit.implementation.writer.AuditReserveWriter
@@ -32,7 +35,7 @@ internal class WorkerTest : PowerMockTestCase() {
 
     private var reserveBuffer: MutableList<AuditRecordInternal> = ArrayList()
 
-    private val queue = ArrayBlockingQueue<AuditRecordInternal>(1)
+    private val queue = ArrayBlockingQueue<QueueCommand>(1)
 
     @BeforeMethod
     fun setMocks() {
@@ -53,7 +56,7 @@ internal class WorkerTest : PowerMockTestCase() {
         val record = simpleAuditRecordInternalFirst()
         buffer.add(record)
         val auditWorker = AuditWorker(queue, buffer, reserveBuffer, auditDao!!, auditWriter!!)
-        auditWorker.isEnabled = false
+        queue.add(ShutDown())
         val spyWorker = PowerMockito.spy(auditWorker)
 
         spyWorker.start()
@@ -66,7 +69,7 @@ internal class WorkerTest : PowerMockTestCase() {
         val record = simpleAuditRecordInternalFirst()
         buffer.add(record)
         val auditWorker = AuditWorker(queue, buffer, reserveBuffer, auditDao!!, auditWriter!!)
-        auditWorker.isEnabled = false
+        queue.add(ShutDown())
         val spyWorker = PowerMockito.spy(auditWorker)
 
         spyWorker.start()
@@ -81,12 +84,13 @@ internal class WorkerTest : PowerMockTestCase() {
             reserveBuffer.add(record)
         }
         val auditWorker = AuditWorker(queue, buffer, reserveBuffer, auditDao!!, auditWriter!!)
-        auditWorker.isEnabled = false
+        auditWorker.disable()
         val spyWorker = PowerMockito.spy(auditWorker)
 
         spyWorker.start()
 
         Mockito.verify(spyWorker, Mockito.never()).processNewRecord()
+
     }
 
     @Test
@@ -94,7 +98,7 @@ internal class WorkerTest : PowerMockTestCase() {
         val record = simpleAuditRecordInternalFirst()
         reserveBuffer.add(record)
         val auditWorker = AuditWorker(queue, buffer, reserveBuffer, auditDao!!, auditWriter!!)
-        auditWorker.isEnabled = false
+        queue.add(ShutDown())
         val spyWorker = PowerMockito.spy(auditWorker)
 
         spyWorker.start()
@@ -177,7 +181,7 @@ internal class WorkerTest : PowerMockTestCase() {
         val recordFirst = simpleAuditRecordInternalFirst()
         buffer.add(recordFirst)
         val recordSecond = simpleAuditRecordInternalSecond()
-        queue.add(recordSecond)
+        queue.add(SaveRecords(recordSecond))
 
         val auditWorker = AuditWorker(queue, buffer, reserveBuffer, auditDao!!, auditWriter!!)
         val spyWorker = PowerMockito.spy(auditWorker)
@@ -195,7 +199,7 @@ internal class WorkerTest : PowerMockTestCase() {
             buffer.add(recordFirst)
         }
         val recordSecond = simpleAuditRecordInternalSecond()
-        queue.add(recordSecond)
+        queue.add(SaveRecords(recordSecond))
 
         val auditWorker = AuditWorker(queue, buffer, reserveBuffer, auditDao!!, auditWriter!!)
         val spyWorker = PowerMockito.spy(auditWorker)
@@ -212,7 +216,7 @@ internal class WorkerTest : PowerMockTestCase() {
             buffer.add(recordFirst)
         }
         val recordSecond = simpleAuditRecordInternalSecond()
-        queue.add(recordSecond)
+        queue.add(SaveRecords(recordSecond))
 
         val auditWorker = AuditWorker(queue, buffer, reserveBuffer, auditDao!!, auditWriter!!)
         val spyWorker = PowerMockito.spy(auditWorker)
@@ -233,7 +237,7 @@ internal class WorkerTest : PowerMockTestCase() {
             reserveBuffer.add(recordFirst)
         }
         val recordSecond = simpleAuditRecordInternalSecond()
-        queue.add(recordSecond)
+        queue.add(SaveRecords(recordSecond))
 
         val auditWorker = AuditWorker(queue, buffer, reserveBuffer, auditDao!!, auditWriter!!)
         val spyWorker = PowerMockito.spy(auditWorker)
@@ -253,7 +257,7 @@ internal class WorkerTest : PowerMockTestCase() {
             reserveBuffer.add(recordFirst)
         }
         val recordSecond = simpleAuditRecordInternalSecond()
-        queue.add(recordSecond)
+        queue.add(SaveRecords(recordSecond))
 
         val auditWorker = AuditWorker(queue, buffer, reserveBuffer, auditDao!!, auditWriter!!)
         val spyWorker = PowerMockito.spy(auditWorker)

@@ -127,8 +127,7 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
         val selectColumns = arrayListOf(*mandatoryColumns, *getInformationColumns(), *getTypesColumns())
 
         val resultList = clickhouseConnection.loadRows(auditTable, DbTableHeader(selectColumns), expression, parameters)
-        val auditRecordList = resultList.map { ClickhouseRecordSerializer.deserialize(it) }
-        return auditRecordList
+        return resultList.map { ClickhouseRecordSerializer.deserialize(it) }
     }
 
     /**
@@ -137,8 +136,7 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
      * @throws BasicDbException
      */
     override fun countRecords(expression: QueryExpression): Long {
-        val resultNumber = clickhouseConnection.countRows(auditTable, expression)
-        return resultNumber
+        return clickhouseConnection.countRows(auditTable, expression)
     }
 
     override fun resetTable() {

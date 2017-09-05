@@ -10,15 +10,15 @@ import java.util.*
 internal data class DbRow(val columns: List<DbColumn> = ArrayList()) {
 
     fun toStringHeader(): String {
-        return columns.map { it.name }.joinToString()
+        return columns.joinToString { it.name }
     }
 
     fun toPlaceholders(): String {
-        return columns.map { "?" }.joinToString()
+        return columns.joinToString { "?" }
     }
 
     fun toValues(): String {
-        return columns.map { it.toValues() }.joinToString()
+        return columns.joinToString { it.toValues() }
     }
 
 }
@@ -32,7 +32,7 @@ internal data class DbColumn(val name: String, val elements: List<String>, val t
 
     fun toValues(): String {
         return if (type.isArray) {
-            elements.map { valueToSQL(it) }.joinToString(prefix = "[", postfix = "]")
+            elements.joinToString(prefix = "[", postfix = "]") { valueToSQL(it) }
         } else {
             valueToSQL(elements[0])
         }
@@ -157,7 +157,7 @@ internal data class DbTableHeader(val columnsHeader: List<DbColumnHeader>) {
     }
 
     fun toPlaceholders(): String {
-        return columnsHeader.map { "?" }.joinToString()
+        return columnsHeader.joinToString { "?" }
     }
 }
 
@@ -190,6 +190,5 @@ internal fun java.sql.Date.toStringFromDb(): String {
 internal fun java.util.Date.toStringSQL(): String {
     val utcTime = this.time
     val serverTime = utcTime + ClickhouseConfig.timeZone.rawOffset
-    val resultString = "'" + getDateFormat().format(Date(serverTime)) + "'"
-    return resultString
+    return "'" + getDateFormat().format(Date(serverTime)) + "'"
 }
