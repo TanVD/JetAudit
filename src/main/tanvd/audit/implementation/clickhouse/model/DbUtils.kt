@@ -181,7 +181,7 @@ internal fun String.toSqlDate(): java.sql.Date {
 }
 
 internal fun java.sql.Date.toStringFromDb(): String {
-    return getDateFormat().format(this)
+    return this.toString()
 }
 
 internal fun java.util.Date.toStringSQL(): String {

@@ -13,9 +13,7 @@ internal fun StateType<*>.getCode(): String {
 }
 
 internal fun getDateFormat(): DateFormat {
-    val dateFormat = SimpleDateFormat("yyyy-MM-dd")
-    dateFormat.timeZone = ClickhouseConfig.timeZone
-    return dateFormat
+    return SimpleDateFormat("yyyy-MM-dd")
 }
 
 internal fun Boolean.toStringSQL(): String {
