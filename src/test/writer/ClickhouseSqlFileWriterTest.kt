@@ -49,8 +49,9 @@ internal class ClickhouseSqlFileWriterTest : PowerMockTestCase() {
                 "${InformationType.resolveType(IdPresenter).code}, " +
                 "${InformationType.resolveType(VersionPresenter).code}, " +
                 "${InformationType.resolveType(TimeStampPresenter).code}, " +
-                "${InformationType.resolveType(DatePresenter).code}) VALUES " +
-                "([123], ['456'], ['Int', 'String'], 0, 1, 2, '2000-01-01');")
+                "${InformationType.resolveType(DatePresenter).code}, " +
+                "${InformationType.resolveType(IsDeletedPresenter).code}) VALUES " +
+                "([123], ['456'], ['Int', 'String'], 0, 1, 2, '2000-01-01', 0);")
     }
 
     @Test

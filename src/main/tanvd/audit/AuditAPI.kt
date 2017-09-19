@@ -54,7 +54,6 @@ import javax.sql.DataSource
  *      UseSSL                 (default false),
  *      SSLSertPath            (default empty),
  *      SSLVerifyMode          (default empty) (may be strict|none),
- *      ServerTimeZone         (default Zulu) (used to convert java.util.Date from UTC and to UTC)
  *
  *
  *      UseDefaultDDL          (default true),
@@ -80,7 +79,8 @@ import javax.sql.DataSource
  *      DateColumn             (default DateColumn),
  *      TimeStampColumn        (default TimeStampColumn),
  *      VersionColumn          (default VersionColumn),
- *      IdColumn               (default IdColumn)
+ *      IdColumn               (default IdColumn),
+ *      IsDeletedColumn        (default IsDeletedColumn)
  *
  * If properties file or some properties not found default values will be used.
  *
@@ -200,6 +200,7 @@ class AuditAPI {
         InformationType.addType(InformationType(VersionPresenter, InnerType.ULong) as InformationType<Any>)
         InformationType.addType(InformationType(TimeStampPresenter, InnerType.Long) as InformationType<Any>)
         InformationType.addType(InformationType(DatePresenter, InnerType.Date) as InformationType<Any>)
+        InformationType.addType(InformationType(IsDeletedPresenter, InnerType.Boolean) as InformationType<Any>)
     }
 
     /**

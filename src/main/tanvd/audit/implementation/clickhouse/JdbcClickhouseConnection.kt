@@ -198,20 +198,57 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             preparedStatement?.close()
         }
 
-        val distinctRows = rows.groupBy { (columns) ->
+
+        return rows.groupBy { (columns) ->
             columns.find { (name) ->
                 name == InformationType.resolveType(IdPresenter).code
             }!!.elements[0].toLong()
-        }.
-                mapValues {
-                    it.value.sortedByDescending { (columns) ->
-                        columns.find { (name) -> name == InformationType.resolveType(VersionPresenter).code }!!.
-                                elements[0].toLong()
-                    }.first()
-                }.values.toList()
+        }.mapValues {
+            it.value.sortedByDescending { (columns) ->
+                columns.find { (name) -> name == InformationType.resolveType(VersionPresenter).code }!!.
+                        elements[0].toLong()
+            }.first()
+        }.values.toList()
+    }
+
+    fun loadRows(sql: String, columnsToSelect: DbTableHeader): List<DbRow> {
+        val rows = ArrayList<DbRow>()
+
+        val connection: Connection?
+        var preparedStatement: PreparedStatement? = null
+        var resultSet: ResultSet? = null
+        try {
+            connection = getConnection()
+            preparedStatement = connection.prepareStatement(sql)
+
+            resultSet = preparedStatement.executeQuery()
+
+            while (resultSet.next()) {
+                val elements = ArrayList<DbColumn>()
+                for (columnHeader in columnsToSelect.columnsHeader) {
+                    elements.add(resultSet.getColumn(columnHeader, connection as ClickHouseConnection))
+                }
+                rows.add(DbRow(elements))
+            }
+        } catch (e: Throwable) {
+            logger.error("Error inside Clickhouse occurred: ", e)
+            throw BasicDbException("Error inside Clickhouse occurred", e)
+        } finally {
+            resultSet?.close()
+            preparedStatement?.close()
+        }
 
 
-        return distinctRows
+        return rows.groupBy { (columns) ->
+            columns.find { (name) ->
+                name == InformationType.resolveType(IdPresenter).code
+            }!!.elements[0].toLong()
+        }.mapValues {
+            it.value.sortedByDescending { (columns) ->
+                columns.find { (name) -> name == InformationType.resolveType(VersionPresenter).code }!!.
+                        elements[0].toLong()
+            }.first()
+        }.values.toList()
     }
 
     /**

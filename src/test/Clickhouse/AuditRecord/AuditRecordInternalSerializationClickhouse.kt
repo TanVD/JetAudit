@@ -133,7 +133,8 @@ internal class AuditRecordInternalSerializationClickhouse {
                 DbColumn(InformationType.resolveType(DatePresenter).toDbColumnHeader(), listOf("2000-01-01")),
                 DbColumn(InformationType.resolveType(VersionPresenter).toDbColumnHeader(), listOf("2")),
                 DbColumn(InformationType.resolveType(TimeStampPresenter).toDbColumnHeader(), listOf("1")),
-                DbColumn(InformationType.resolveType(IdPresenter).toDbColumnHeader(), listOf("0"))
+                DbColumn(InformationType.resolveType(IdPresenter).toDbColumnHeader(), listOf("0")),
+                DbColumn(InformationType.resolveType(IsDeletedPresenter).toDbColumnHeader(), listOf("false"))
         )
     }
 }

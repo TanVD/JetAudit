@@ -89,6 +89,5 @@ internal class StateBooleanTypeTest {
 
     private fun getSampleInformation(): MutableSet<InformationObject<*>> {
         return InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
-
     }
 }

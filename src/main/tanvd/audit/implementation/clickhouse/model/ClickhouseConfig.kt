@@ -5,5 +5,8 @@ import java.util.*
 
 
 object ClickhouseConfig {
-    val timeZone: TimeZone = TimeZone.getTimeZone(PropertyLoader["ServerTimeZone"] ?: "Zulu")
+    val timeZone: TimeZone
+        get() {
+            return TimeZone.getTimeZone(PropertyLoader["ServerTimeZone"] ?: "Zulu")
+        }
 }

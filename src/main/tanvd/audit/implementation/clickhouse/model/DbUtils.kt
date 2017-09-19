@@ -177,18 +177,13 @@ internal fun InformationType<*>.toDbColumnHeader(): DbColumnHeader {
 }
 
 internal fun String.toSqlDate(): java.sql.Date {
-    val date = getDateFormat().parse(this)
-    val currentServerTime = date.time + ClickhouseConfig.timeZone.rawOffset
-    return java.sql.Date(currentServerTime)
+    return java.sql.Date.valueOf(this)
 }
 
 internal fun java.sql.Date.toStringFromDb(): String {
-    val serverTime = this.time - ClickhouseConfig.timeZone.rawOffset
-    return getDateFormat().format(java.util.Date(serverTime))
+    return getDateFormat().format(this)
 }
 
 internal fun java.util.Date.toStringSQL(): String {
-    val utcTime = this.time
-    val serverTime = utcTime + ClickhouseConfig.timeZone.rawOffset
-    return "'" + getDateFormat().format(Date(serverTime)) + "'"
+    return "'" + getDateFormat().format(this) + "'"
 }

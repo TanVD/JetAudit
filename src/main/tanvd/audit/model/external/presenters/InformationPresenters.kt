@@ -1,5 +1,6 @@
 package tanvd.audit.model.external.presenters
 
+import tanvd.audit.model.external.types.information.InformationBooleanPresenter
 import tanvd.audit.model.external.types.information.InformationDatePresenter
 import tanvd.audit.model.external.types.information.InformationLongPresenter
 import tanvd.audit.utils.PropertyLoader
@@ -39,5 +40,13 @@ object DatePresenter : InformationDatePresenter() {
 
     override fun getDefault(): Date {
         return Date()
+    }
+}
+
+object IsDeletedPresenter : InformationBooleanPresenter() {
+    override val code: String by lazy { PropertyLoader["IsDeletedColumn"] ?: "IsDeletedColumn" }
+
+    override fun getDefault(): Boolean {
+        return false
     }
 }

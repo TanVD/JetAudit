@@ -14,7 +14,7 @@ internal fun StateType<*>.getCode(): String {
 
 internal fun getDateFormat(): DateFormat {
     val dateFormat = SimpleDateFormat("yyyy-MM-dd")
-    dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+    dateFormat.timeZone = ClickhouseConfig.timeZone
     return dateFormat
 }
 

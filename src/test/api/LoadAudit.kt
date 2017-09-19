@@ -209,7 +209,7 @@ internal class LoadAudit : PowerMockTestCase() {
         auditApi!!.addObjectType(type)
     }
 
-    private fun getSampleInformation(timeStamp: Long, id: Long): MutableSet<InformationObject<*>> {
-        return InformationUtils.getPrimitiveInformation(id, timeStamp, 2, SamplesGenerator.getMillenniumStart())
+    private fun getSampleInformation(timeStamp: Long, id: Long, isDeleted: Boolean = false): MutableSet<InformationObject<*>> {
+        return InformationUtils.getPrimitiveInformation(id, timeStamp, 2, SamplesGenerator.getMillenniumStart(), isDeleted)
     }
 }

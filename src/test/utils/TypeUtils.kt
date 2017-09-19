@@ -32,5 +32,6 @@ object TypeUtils {
         InformationType.addType(InformationType(VersionPresenter, InnerType.ULong) as InformationType<Any>)
         InformationType.addType(InformationType(TimeStampPresenter, InnerType.Long) as InformationType<Any>)
         InformationType.addType(InformationType(DatePresenter, InnerType.Date) as InformationType<Any>)
+        InformationType.addType(InformationType(IsDeletedPresenter, InnerType.Boolean) as InformationType<Any>)
     }
 }

@@ -1,6 +1,5 @@
 package Clickhouse.AuditDao
 
-import Clickhouse.AuditDao.Saving.SavingTest
 import org.testng.Assert
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
@@ -15,7 +14,7 @@ import utils.InformationUtils
 import utils.SamplesGenerator
 import utils.TypeUtils
 
-internal class SavingTest {
+internal class CountTest {
 
     companion object {
         var auditDao: AuditDaoClickhouseImpl? = null
@@ -76,7 +75,19 @@ internal class SavingTest {
 
     }
 
-    private fun getSampleInformation(): MutableSet<InformationObject<*>> {
-        return InformationUtils.getPrimitiveInformation(SavingTest.currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
+    @Test
+    fun countRecords_deletedRecord_countOne() {
+        val auditRecordFirst = SamplesGenerator.getRecordInternal(123L, "string", information = getSampleInformation(true))
+        val auditRecordSecond = SamplesGenerator.getRecordInternal(123L, "string1", information = getSampleInformation(false))
+
+
+        auditDao!!.saveRecords(listOf(auditRecordFirst, auditRecordSecond))
+
+        val numberRecords = auditDao!!.countRecords(LongPresenter.value equal 123)
+        Assert.assertEquals(numberRecords, 1)
+    }
+
+    private fun getSampleInformation(isDeleted: Boolean = false): MutableSet<InformationObject<*>> {
+        return InformationUtils.getPrimitiveInformation(CountTest.currentId++, 1, 2, SamplesGenerator.getMillenniumStart(), isDeleted)
     }
 }

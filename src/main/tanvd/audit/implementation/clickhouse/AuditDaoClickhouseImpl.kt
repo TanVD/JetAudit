@@ -3,12 +3,11 @@ package tanvd.audit.implementation.clickhouse
 import tanvd.audit.implementation.clickhouse.model.*
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.implementation.exceptions.BasicDbException
-import tanvd.audit.model.external.presenters.DatePresenter
-import tanvd.audit.model.external.presenters.IdPresenter
-import tanvd.audit.model.external.presenters.TimeStampPresenter
-import tanvd.audit.model.external.presenters.VersionPresenter
+import tanvd.audit.model.external.presenters.*
 import tanvd.audit.model.external.queries.QueryExpression
 import tanvd.audit.model.external.queries.QueryParameters
+import tanvd.audit.model.external.queries.and
+import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
@@ -69,7 +68,8 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
             clickhouseConnection.createTable(auditTable, DbTableHeader(columnsHeader),
                     listOf(InformationType.resolveType(DatePresenter).code,
                             InformationType.resolveType(TimeStampPresenter).code,
-                            InformationType.resolveType(IdPresenter).code),
+                            InformationType.resolveType(IdPresenter).code,
+                            InformationType.resolveType(IsDeletedPresenter).code),
                     InformationType.resolveType(DatePresenter).code,
                     InformationType.resolveType(VersionPresenter).code)
         }
@@ -119,24 +119,25 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
     }
 
     /**
-     * Loads all auditRecords with specified object
+     * Loads all auditRecords with specified object except Deleted
      *
      * @throws BasicDbException
      */
     override fun loadRecords(expression: QueryExpression, parameters: QueryParameters): List<AuditRecordInternal> {
         val selectColumns = arrayListOf(*mandatoryColumns, *getInformationColumns(), *getTypesColumns())
 
-        val resultList = clickhouseConnection.loadRows(auditTable, DbTableHeader(selectColumns), expression, parameters)
+        val resultList = clickhouseConnection.loadRows(auditTable, DbTableHeader(selectColumns),
+                expression and (IsDeletedPresenter equal false), parameters)
         return resultList.map { ClickhouseRecordSerializer.deserialize(it) }
     }
 
     /**
-     * Return total count of records satisfying condition
+     * Return total count of records satisfying condition except Deleted
      *
      * @throws BasicDbException
      */
     override fun countRecords(expression: QueryExpression): Long {
-        return clickhouseConnection.countRows(auditTable, expression)
+        return clickhouseConnection.countRows(auditTable, expression and (IsDeletedPresenter equal false))
     }
 
     override fun resetTable() {
