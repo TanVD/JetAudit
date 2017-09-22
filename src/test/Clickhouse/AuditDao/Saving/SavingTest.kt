@@ -145,13 +145,13 @@ internal class SavingTest {
         auditDao!!.addInformationInDbModel(type)
 
         val information = getSampleInformation(1)
-        information.add(InformationObject(getDate("01/01/2000"), DateInfPresenter))
+        information.add(InformationObject(getDate("2000-01-01"), DateInfPresenter))
 
         val auditRecordFirstOriginal = getRecordInternal(information = information)
 
         auditDao!!.saveRecord(auditRecordFirstOriginal)
 
-        val recordsLoaded = auditDao!!.loadRecords(DateInfPresenter equal getDate("01/01/2000"), QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(DateInfPresenter equal getDate("2000-01-01"), QueryParameters())
         Assert.assertEquals(recordsLoaded.toSet(), setOf(auditRecordFirstOriginal))
     }
 
@@ -163,16 +163,56 @@ internal class SavingTest {
         auditDao!!.addInformationInDbModel(type)
 
         val informationFirst = getSampleInformation(1)
-        informationFirst.add(InformationObject(getDate("01/01/2000"), DateInfPresenter))
+        informationFirst.add(InformationObject(getDate("2000-01-01"), DateInfPresenter))
         val auditRecordFirstOriginal = getRecordInternal(information = informationFirst)
 
         val informationSecond = getSampleInformation(2)
-        informationSecond.add(InformationObject(getDate("01/01/2000"), DateInfPresenter))
+        informationSecond.add(InformationObject(getDate("2000-01-01"), DateInfPresenter))
         val auditRecordSecondOriginal = getRecordInternal(information = informationSecond)
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(DateInfPresenter equal getDate("01/01/2000"), QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(DateInfPresenter equal getDate("2000-01-01"), QueryParameters())
+        Assert.assertEquals(recordsLoaded.toSet(), setOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
+    }
+
+
+    @Test
+    fun saveRecord_DateTimeInformation_loadRecordsReturnSavedRecord() {
+        @Suppress("UNCHECKED_CAST")
+        val type = InformationType(DateTimeInfPresenter, InnerType.DateTime) as InformationType<Any>
+        InformationType.addType(type)
+        auditDao!!.addInformationInDbModel(type)
+
+        val information = getSampleInformation(1)
+        information.add(InformationObject(getDateTime("2000-01-01 12:00:00"), DateTimeInfPresenter))
+
+        val auditRecordFirstOriginal = getRecordInternal(information = information)
+
+        auditDao!!.saveRecord(auditRecordFirstOriginal)
+
+        val recordsLoaded = auditDao!!.loadRecords(DateTimeInfPresenter equal getDateTime("2000-01-01 12:00:00"), QueryParameters())
+        Assert.assertEquals(recordsLoaded.toSet(), setOf(auditRecordFirstOriginal))
+    }
+
+    @Test
+    fun saveRecords_DateTimeInformation_loadRecordsReturnSavedRecords() {
+        @Suppress("UNCHECKED_CAST")
+        val type = InformationType(DateTimeInfPresenter, InnerType.DateTime) as InformationType<Any>
+        InformationType.addType(type)
+        auditDao!!.addInformationInDbModel(type)
+
+        val informationFirst = getSampleInformation(1)
+        informationFirst.add(InformationObject(getDateTime("2000-01-01 12:00:00"), DateTimeInfPresenter))
+        val auditRecordFirstOriginal = getRecordInternal(information = informationFirst)
+
+        val informationSecond = getSampleInformation(2)
+        informationSecond.add(InformationObject(getDateTime("2000-01-01 12:00:00"), DateTimeInfPresenter))
+        val auditRecordSecondOriginal = getRecordInternal(information = informationSecond)
+
+        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
+
+        val recordsLoaded = auditDao!!.loadRecords(DateTimeInfPresenter equal getDateTime("2000-01-01 12:00:00"), QueryParameters())
         Assert.assertEquals(recordsLoaded.toSet(), setOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
     }
 

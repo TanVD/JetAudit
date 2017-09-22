@@ -1,5 +1,6 @@
 package tanvd.audit.model.external.queries
 
+import org.joda.time.DateTime
 import tanvd.audit.model.external.types.InnerType
 import tanvd.audit.model.external.types.information.*
 import java.util.*
@@ -9,7 +10,7 @@ sealed class QueryInformationLeafCondition<T : Any>(val condition: InnerTypeCond
                                                     val presenter: InformationPresenter<T>) : QueryExpression
 
 
-//Equality interface: Long, Date, Boolean, String
+//Equality interface: Long, Date, DateTime Boolean, String
 class QueryEqualityInformationLeaf<T : Any>(condition: EqualityCondition, value: T, valueType: InnerType,
                                             presenter: InformationPresenter<T>) :
         QueryInformationLeafCondition<T>(condition, value, valueType, presenter)
@@ -28,6 +29,10 @@ infix fun InformationBooleanPresenter.equal(value: Boolean): QueryEqualityInform
 
 infix fun InformationStringPresenter.equal(value: String): QueryEqualityInformationLeaf<String> {
     return QueryEqualityInformationLeaf(EqualityCondition.equal, value, InnerType.String, this)
+}
+
+infix fun InformationDateTimePresenter.equal(value: DateTime): QueryEqualityInformationLeaf<DateTime> {
+    return QueryEqualityInformationLeaf(EqualityCondition.equal, value, InnerType.DateTime, this)
 }
 
 //String interface: String
@@ -56,28 +61,44 @@ infix fun InformationLongPresenter.more(value: Long): QueryNumberInformationLeaf
     return QueryNumberInformationLeaf(NumberCondition.more, value, InnerType.Long, this)
 }
 
-//Date interface: Date
-class QueryDateInformationLeaf<T : Any>(condition: DateCondition, value: T, valueType: InnerType,
+//Time interface: Date, DateTime
+class QueryTimeInformationLeaf<T : Any>(condition: TimeCondition, value: T, valueType: InnerType,
                                         presenter: InformationPresenter<T>) :
         QueryInformationLeafCondition<T>(condition, value, valueType, presenter)
 
-infix fun InformationDatePresenter.less(value: Date): QueryDateInformationLeaf<Date> {
-    return QueryDateInformationLeaf(DateCondition.less, value, InnerType.Date, this)
+infix fun InformationDatePresenter.less(value: Date): QueryTimeInformationLeaf<Date> {
+    return QueryTimeInformationLeaf(TimeCondition.less, value, InnerType.Date, this)
 }
 
-infix fun InformationDatePresenter.lessOrEqual(value: Date): QueryDateInformationLeaf<Date> {
-    return QueryDateInformationLeaf(DateCondition.lessOrEqual, value, InnerType.Date, this)
+infix fun InformationDatePresenter.lessOrEqual(value: Date): QueryTimeInformationLeaf<Date> {
+    return QueryTimeInformationLeaf(TimeCondition.lessOrEqual, value, InnerType.Date, this)
 }
 
-infix fun InformationDatePresenter.more(value: Date): QueryDateInformationLeaf<Date> {
-    return QueryDateInformationLeaf(DateCondition.more, value, InnerType.Date, this)
+infix fun InformationDatePresenter.more(value: Date): QueryTimeInformationLeaf<Date> {
+    return QueryTimeInformationLeaf(TimeCondition.more, value, InnerType.Date, this)
 }
 
-infix fun InformationDatePresenter.moreOrEqual(value: Date): QueryDateInformationLeaf<Date> {
-    return QueryDateInformationLeaf(DateCondition.moreOrEqual, value, InnerType.Date, this)
+infix fun InformationDatePresenter.moreOrEqual(value: Date): QueryTimeInformationLeaf<Date> {
+    return QueryTimeInformationLeaf(TimeCondition.moreOrEqual, value, InnerType.Date, this)
 }
 
-//List interface: Long, Date, Boolean, String
+infix fun InformationDateTimePresenter.less(value: DateTime): QueryTimeInformationLeaf<DateTime> {
+    return QueryTimeInformationLeaf(TimeCondition.less, value, InnerType.DateTime, this)
+}
+
+infix fun InformationDateTimePresenter.lessOrEqual(value: DateTime): QueryTimeInformationLeaf<DateTime> {
+    return QueryTimeInformationLeaf(TimeCondition.lessOrEqual, value, InnerType.DateTime, this)
+}
+
+infix fun InformationDateTimePresenter.more(value: DateTime): QueryTimeInformationLeaf<DateTime> {
+    return QueryTimeInformationLeaf(TimeCondition.more, value, InnerType.DateTime, this)
+}
+
+infix fun InformationDateTimePresenter.moreOrEqual(value: DateTime): QueryTimeInformationLeaf<DateTime> {
+    return QueryTimeInformationLeaf(TimeCondition.moreOrEqual, value, InnerType.DateTime, this)
+}
+
+//List interface: Long, Date, DateTime, Boolean, String
 
 class QueryListInformationLeaf<T : Any>(condition: ListCondition, value: List<T>, valueType: InnerType,
                                         presenter: InformationPresenter<T>) :
@@ -89,6 +110,10 @@ infix fun InformationLongPresenter.inList(value: List<Long>): QueryListInformati
 
 infix fun InformationDatePresenter.inList(value: List<Date>): QueryListInformationLeaf<Date> {
     return QueryListInformationLeaf(ListCondition.inList, value, InnerType.Date, this)
+}
+
+infix fun InformationDateTimePresenter.inList(value: List<DateTime>): QueryListInformationLeaf<DateTime> {
+    return QueryListInformationLeaf(ListCondition.inList, value, InnerType.DateTime, this)
 }
 
 infix fun InformationBooleanPresenter.inList(value: List<Boolean>): QueryListInformationLeaf<Boolean> {

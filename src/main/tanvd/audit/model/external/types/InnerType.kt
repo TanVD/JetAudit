@@ -6,5 +6,6 @@ enum class InnerType {
     ULong,
     String,
     Boolean,
-    Date;
+    Date,
+    DateTime
 }

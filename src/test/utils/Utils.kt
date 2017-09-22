@@ -1,12 +1,17 @@
 package utils
 
-import java.text.SimpleDateFormat
+import org.joda.time.DateTime
+import tanvd.audit.implementation.clickhouse.model.getDateFormat
+import tanvd.audit.implementation.clickhouse.model.getDateTimeFormat
 import java.util.*
 
 
 fun getDate(date: String): Date {
-    val dateFormat = SimpleDateFormat("dd/MM/yyyy")
-    return dateFormat.parse(date)
+    return getDateFormat().parse(date)
+}
+
+fun getDateTime(dateTime: String): DateTime {
+    return getDateTimeFormat().parseDateTime(dateTime)
 }
 
 fun measureTime(func: () -> Unit) : Long {

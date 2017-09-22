@@ -1,5 +1,6 @@
 package tanvd.audit.implementation.clickhouse.model
 
+import org.joda.time.DateTime
 import tanvd.audit.model.external.queries.*
 import tanvd.audit.model.external.types.InnerType
 import java.util.*
@@ -18,7 +19,7 @@ fun QueryInformationLeafCondition<*>.toStringSQL(): String {
         is QueryListInformationLeaf -> {
             toStringSQL()
         }
-        is QueryDateInformationLeaf -> {
+        is QueryTimeInformationLeaf -> {
             toStringSQL()
         }
     }
@@ -39,6 +40,9 @@ fun QueryEqualityInformationLeaf<*>.toStringSQL(): String {
                 }
                 InnerType.Date -> {
                     "${presenter.code} == ${(value as Date).toStringSQL()}"
+                }
+                InnerType.DateTime -> {
+                    "${presenter.code} == ${(value as DateTime).toStringSQL()}"
                 }
                 else -> {
                     throw UnsupportedOperationException("Equality queries for information $valueType not supported")
@@ -73,45 +77,57 @@ fun QueryStringInformationLeaf<*>.toStringSQL(): String {
     }
 }
 
-fun QueryDateInformationLeaf<*>.toStringSQL(): String {
-    return when (condition as DateCondition) {
-        DateCondition.less -> {
+fun QueryTimeInformationLeaf<*>.toStringSQL(): String {
+    return when (condition as TimeCondition) {
+        TimeCondition.less -> {
             when (valueType) {
                 InnerType.Date -> {
                     "${presenter.code} < ${(value as Date).toStringSQL()}"
                 }
+                InnerType.DateTime -> {
+                    "${presenter.code} < ${(value as DateTime).toStringSQL()}"
+                }
                 else -> {
                     throw UnsupportedOperationException("Date queries for type $valueType not supported")
                 }
             }
         }
-        DateCondition.more -> {
+        TimeCondition.more -> {
             when (valueType) {
                 InnerType.Date -> {
                     "${presenter.code} > ${(value as Date).toStringSQL()}"
                 }
+                InnerType.DateTime -> {
+                    "${presenter.code} > ${(value as DateTime).toStringSQL()}"
+                }
                 else -> {
-                    throw UnsupportedOperationException("Date queries for type $valueType not supported")
+                    throw UnsupportedOperationException("Time queries for type $valueType not supported")
                 }
             }
         }
-        DateCondition.lessOrEqual -> {
+        TimeCondition.lessOrEqual -> {
             when (valueType) {
                 InnerType.Date -> {
                     "${presenter.code} <= ${(value as Date).toStringSQL()}"
                 }
+                InnerType.DateTime -> {
+                    "${presenter.code} <= ${(value as DateTime).toStringSQL()}"
+                }
                 else -> {
-                    throw UnsupportedOperationException("Date queries for type $valueType not supported")
+                    throw UnsupportedOperationException("Time queries for type $valueType not supported")
                 }
             }
         }
-        DateCondition.moreOrEqual -> {
+        TimeCondition.moreOrEqual -> {
             when (valueType) {
                 InnerType.Date -> {
                     "${presenter.code} >= ${(value as Date).toStringSQL()}"
                 }
+                InnerType.DateTime -> {
+                    "${presenter.code} >= ${(value as DateTime).toStringSQL()}"
+                }
                 else -> {
-                    throw UnsupportedOperationException("Date queries for type $valueType not supported")
+                    throw UnsupportedOperationException("Time queries for type $valueType not supported")
                 }
             }
         }
@@ -158,6 +174,9 @@ fun QueryListInformationLeaf<*>.toStringSQL(): String {
                     "${presenter.code} in ${(value as List<Any>).toSanitizedSetSQL(valueType)}"
                 }
                 InnerType.Date -> {
+                    "${presenter.code} in ${(value as List<Any>).toSanitizedSetSQL(valueType)}"
+                }
+                InnerType.DateTime -> {
                     "${presenter.code} in ${(value as List<Any>).toSanitizedSetSQL(valueType)}"
                 }
                 else -> {

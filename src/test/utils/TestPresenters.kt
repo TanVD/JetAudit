@@ -1,9 +1,7 @@
 package utils
 
-import tanvd.audit.model.external.types.information.InformationBooleanPresenter
-import tanvd.audit.model.external.types.information.InformationDatePresenter
-import tanvd.audit.model.external.types.information.InformationLongPresenter
-import tanvd.audit.model.external.types.information.InformationStringPresenter
+import org.joda.time.DateTime
+import tanvd.audit.model.external.types.information.*
 import java.util.*
 
 internal object LongInfPresenter : InformationLongPresenter() {
@@ -34,7 +32,15 @@ internal object DateInfPresenter : InformationDatePresenter() {
     override val code: String = "DateInfColumn"
 
     override fun getDefault(): Date {
-        return getDate("01/01/2000")
+        return getDate("2000-01-01")
+    }
+}
+
+internal object DateTimeInfPresenter : InformationDateTimePresenter() {
+    override val code: String = "DateTimeInfColumn"
+
+    override fun getDefault(): DateTime {
+        return getDateTime("2000-01-01 12:00:00")
     }
 }
 

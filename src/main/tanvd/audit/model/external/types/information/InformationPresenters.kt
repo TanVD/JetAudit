@@ -1,6 +1,8 @@
 package tanvd.audit.model.external.types.information
 
+import org.joda.time.DateTime
 import tanvd.audit.implementation.clickhouse.model.getDateFormat
+import tanvd.audit.implementation.clickhouse.model.getDateTimeFormat
 import java.util.*
 
 /**
@@ -43,6 +45,16 @@ abstract class InformationDatePresenter : InformationPresenter<Date>() {
 
     override fun serialize(entity: Date): String {
         return getDateFormat().format(entity)
+    }
+}
+
+abstract class InformationDateTimePresenter : InformationPresenter<DateTime>() {
+    override fun deserialize(serialized: String): DateTime {
+        return getDateTimeFormat().parseDateTime(serialized)
+    }
+
+    override fun serialize(entity: DateTime): String {
+        return getDateTimeFormat().print(entity)
     }
 }
 

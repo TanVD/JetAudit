@@ -384,10 +384,6 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
 
     private fun PreparedStatement.setColumn(column: DbColumn, dbIndex: Int) {
         when (column.type) {
-            DbColumnType.DbArrayString -> {
-                this.setArray(dbIndex,
-                        connection.createArrayOf("String", column.elements.toTypedArray()))
-            }
             DbColumnType.DbDate -> {
                 this.setDate(dbIndex, column.elements[0].toSqlDate())
             }
@@ -397,21 +393,31 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
                             column.elements[0].toSqlDate()
                         }.toTypedArray()))
             }
+            DbColumnType.DbDateTime -> {
+                this.setTimestamp(dbIndex, column.elements[0].toSqlTimestamp())
+            }
+            DbColumnType.DbArrayDateTime -> {
+                this.setArray(dbIndex,
+                        connection.createArrayOf("DateTime", column.elements.map {
+                            column.elements[0].toSqlTimestamp()
+                        }.toTypedArray()))
+            }
             DbColumnType.DbLong -> {
                 this.setLong(dbIndex, column.elements[0].toLong())
+            }
+            DbColumnType.DbArrayLong -> {
+                this.setArray(dbIndex,
+                        connection.createArrayOf("Int64", column.elements.map { it.toLong() }.toTypedArray()))
             }
             DbColumnType.DbULong -> {
                 this.setLong(dbIndex, column.elements[0].toLong())
             }
-            DbColumnType.DbBoolean -> {
-                this.setInt(dbIndex, if (column.elements[0].toBoolean()) 1 else 0)
-            }
-            DbColumnType.DbString -> {
-                this.setString(dbIndex, column.elements[0])
-            }
             DbColumnType.DbArrayULong -> {
                 this.setArray(dbIndex,
                         connection.createArrayOf("UInt64", column.elements.map { it.toLong() }.toTypedArray()))
+            }
+            DbColumnType.DbBoolean -> {
+                this.setInt(dbIndex, if (column.elements[0].toBoolean()) 1 else 0)
             }
             DbColumnType.DbArrayBoolean -> {
                 this.setArray(dbIndex,
@@ -419,9 +425,12 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
                             if (it.toBoolean()) 1 else 0
                         }.toTypedArray()))
             }
-            DbColumnType.DbArrayLong -> {
+            DbColumnType.DbString -> {
+                this.setString(dbIndex, column.elements[0])
+            }
+            DbColumnType.DbArrayString -> {
                 this.setArray(dbIndex,
-                        connection.createArrayOf("Int64", column.elements.map { it.toLong() }.toTypedArray()))
+                        connection.createArrayOf("String", column.elements.toTypedArray()))
             }
         }
     }
@@ -438,6 +447,17 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
                     getDate(column.name).toStringFromDb()
                 }
                 return DbColumn(column.name, resultArray.toList(), DbColumnType.DbArrayDate)
+            }
+            DbColumnType.DbDateTime -> {
+                val dateSerialized = getTimestamp(column.name).toStringFromDb()
+                return DbColumn(column.name, listOf(dateSerialized), DbColumnType.DbDateTime)
+            }
+            DbColumnType.DbArrayDateTime -> {
+                @Suppress("UNCHECKED_CAST")
+                val resultArray = (getArray(column.name).array as Array<Date>).map {
+                    getTimestamp(column.name).toStringFromDb()
+                }
+                return DbColumn(column.name, resultArray.toList(), DbColumnType.DbArrayDateTime)
             }
             DbColumnType.DbLong -> {
                 val result = getLong(column.name)
@@ -480,7 +500,6 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
                 val resultArray = getArray(column.name).array as Array<String>
                 return DbColumn(column.name, resultArray.toList(), DbColumnType.DbArrayString)
             }
-
         }
     }
 

@@ -10,7 +10,7 @@ enum class NumberCondition : InnerTypeCondition {
 }
 
 //DateCondition
-enum class DateCondition : InnerTypeCondition {
+enum class TimeCondition : InnerTypeCondition {
     less,
     lessOrEqual,
     more,

@@ -21,6 +21,9 @@ internal fun InformationType<*>.toDbColumnType(): DbColumnType {
         InnerType.Date -> {
             DbColumnType.DbDate
         }
+        InnerType.DateTime -> {
+            DbColumnType.DbDateTime
+        }
     }
 }
 
@@ -40,6 +43,9 @@ internal fun StateType<*>.toDbColumnType(): DbColumnType {
         }
         InnerType.Date -> {
             DbColumnType.DbArrayDate
+        }
+        InnerType.DateTime -> {
+            DbColumnType.DbArrayDateTime
         }
     }
 }

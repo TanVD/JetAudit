@@ -2,7 +2,7 @@ group 'tanvd'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.1.4'
+    ext.kotlin_version = '1.1.50'
 
     repositories {
         mavenCentral()
@@ -52,7 +52,8 @@ dependencies {
     compile "org.slf4j:slf4j-api:1.7.25"
     compile "ch.qos.logback:logback-classic:1.2.2"
     compile "com.google.guava:guava:19.0"
-    compile 'com.amazonaws:aws-java-sdk-s3:1.11.160'
+    compile "com.amazonaws:aws-java-sdk-s3:1.11.160"
+    compile "joda-time:joda-time:2.9.9"
     testCompile "org.testng:testng:6.11"
     testCompile "org.mockito:mockito-all:1.10.19"
     //need it for kotlin object mocking purposes (mocking static members)

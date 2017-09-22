@@ -1,5 +1,8 @@
 package tanvd.audit.implementation.clickhouse.model
 
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
+import org.joda.time.format.DateTimeFormatter
 import ru.yandex.clickhouse.ClickHouseUtil
 import tanvd.audit.model.external.types.InnerType
 import tanvd.audit.model.external.types.objects.StateType
@@ -14,6 +17,10 @@ internal fun StateType<*>.getCode(): String {
 
 internal fun getDateFormat(): DateFormat {
     return SimpleDateFormat("yyyy-MM-dd")
+}
+
+internal fun getDateTimeFormat() : DateTimeFormatter {
+    return DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")
 }
 
 internal fun Boolean.toStringSQL(): String {
@@ -36,6 +43,9 @@ internal fun List<Any>.toSanitizedSetSQL(type: InnerType): String {
             }
             InnerType.Date -> {
                 (it as Date).toStringSQL()
+            }
+            InnerType.DateTime -> {
+                (it as DateTime).toStringSQL()
             }
             InnerType.Boolean -> {
                 (it as Boolean).toStringSQL()

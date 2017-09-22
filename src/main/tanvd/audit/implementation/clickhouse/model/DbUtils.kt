@@ -1,6 +1,8 @@
 package tanvd.audit.implementation.clickhouse.model
 
+import org.joda.time.DateTime
 import tanvd.audit.model.external.types.information.InformationType
+import java.sql.Timestamp
 import java.util.*
 
 
@@ -83,6 +85,20 @@ internal enum class DbColumnType {
 
         override fun toString(): String {
             return "Array(Date)"
+        }
+    },
+    DbDateTime {
+        override val isArray = false
+
+        override fun toString(): String {
+            return "DateTime"
+        }
+    },
+    DbArrayDateTime {
+        override val isArray = true
+
+        override fun toString(): String {
+            return "Array(DateTime)"
         }
     },
     DbULong {
@@ -176,6 +192,9 @@ internal fun InformationType<*>.toDbColumnHeader(): DbColumnHeader {
     return DbColumnHeader(this.code, this.toDbColumnType())
 }
 
+/**
+ * Date's in Clickhouse
+ */
 internal fun String.toSqlDate(): java.sql.Date {
     return java.sql.Date.valueOf(this)
 }
@@ -186,4 +205,19 @@ internal fun java.sql.Date.toStringFromDb(): String {
 
 internal fun java.util.Date.toStringSQL(): String {
     return "'" + getDateFormat().format(this) + "'"
+}
+
+/**
+ * Datetime in Clickhouse
+ */
+internal fun String.toSqlTimestamp(): Timestamp {
+    return Timestamp(getDateTimeFormat().parseDateTime(this).millis)
+}
+
+internal fun java.sql.Timestamp.toStringFromDb(): String {
+    return getDateTimeFormat().print(this.time)
+}
+
+internal fun DateTime.toStringSQL(): String {
+    return "'" + getDateTimeFormat().print(this) + "'"
 }
