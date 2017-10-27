@@ -25,13 +25,13 @@ fun QueryEqualityTypeLeaf<*>.toStringSQL(): String {
         EqualityCondition.equal -> {
             when (valueType) {
                 InnerType.Long -> {
-                    "has(${stateType.getCode()}, $value)"
+                    "has(${stateType.getCode()}, ?)"
                 }
                 InnerType.String -> {
-                    "has(${stateType.getCode()}, ${(value as String).toSanitizedStringSQL()})"
+                    "has(${stateType.getCode()}, ?)"
                 }
                 InnerType.Boolean -> {
-                    "has(${stateType.getCode()}, ${(value as Boolean).toStringSQL()})"
+                    "has(${stateType.getCode()}, ?)"
                 }
                 else -> {
                     throw UnsupportedOperationException("Equality queries for type $valueType not supported")
@@ -46,7 +46,7 @@ fun QueryStringTypeLeaf<*>.toStringSQL(): String {
         StringCondition.like -> {
             when (valueType) {
                 InnerType.String -> {
-                    "arrayExists((x) -> like(x, ${(value as String).toSanitizedStringSQL()}), ${stateType.getCode()})"
+                    "arrayExists((x) -> like(x, ?), ${stateType.getCode()})"
                 }
                 else -> {
                     throw UnsupportedOperationException("String queries for type $valueType not supported")
@@ -56,7 +56,7 @@ fun QueryStringTypeLeaf<*>.toStringSQL(): String {
         StringCondition.regexp -> {
             when (valueType) {
                 InnerType.String -> {
-                    "arrayExists((x) -> match(x, ${(value as String).toSanitizedStringSQL()}), ${stateType.getCode()})"
+                    "arrayExists((x) -> match(x, ?), ${stateType.getCode()})"
                 }
                 else -> {
                     throw UnsupportedOperationException("String queries for type $valueType not supported")
@@ -71,7 +71,7 @@ fun QueryNumberTypeLeaf<*>.toStringSQL(): String {
         NumberCondition.less -> {
             when (valueType) {
                 InnerType.Long -> {
-                    "arrayExists((x) -> x < $value, ${stateType.getCode()})"
+                    "arrayExists((x) -> x < ?, ${stateType.getCode()})"
                 }
                 else -> {
                     throw UnsupportedOperationException("Number queries for type $valueType not supported")
@@ -81,7 +81,7 @@ fun QueryNumberTypeLeaf<*>.toStringSQL(): String {
         NumberCondition.more -> {
             when (valueType) {
                 InnerType.Long -> {
-                    "arrayExists((x) -> x > $value, ${stateType.getCode()})"
+                    "arrayExists((x) -> x > ?, ${stateType.getCode()})"
                 }
                 else -> {
                     throw UnsupportedOperationException("Number queries for type $valueType not supported")
@@ -97,13 +97,13 @@ fun QueryListTypeLeaf<*>.toStringSQL(): String {
         ListCondition.inList -> {
             when (valueType) {
                 InnerType.Long -> {
-                    "arrayExists((x) -> x in ${(value as List<Any>).toSanitizedSetSQL(valueType)}, ${stateType.getCode()})"
+                    "arrayExists((x) -> x in (${(value as List<*>).joinToString { "?" }}), ${stateType.getCode()})"
                 }
                 InnerType.String -> {
-                    "arrayExists((x) -> x in ${(value as List<Any>).toSanitizedSetSQL(valueType)}, ${stateType.getCode()})"
+                    "arrayExists((x) -> x in (${(value as List<*>).joinToString { "?" }}), ${stateType.getCode()})"
                 }
                 InnerType.Boolean -> {
-                    "arrayExists((x) -> x in ${(value as List<Any>).toSanitizedSetSQL(valueType)}, ${stateType.getCode()})"
+                    "arrayExists((x) -> x in (${(value as List<*>).joinToString { "?" }}), ${stateType.getCode()})"
                 }
                 else -> {
                     throw UnsupportedOperationException("List queries for type $valueType not supported")

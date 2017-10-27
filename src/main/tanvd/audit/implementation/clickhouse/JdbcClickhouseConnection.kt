@@ -1,14 +1,13 @@
 package tanvd.audit.implementation.clickhouse
 
 import org.slf4j.LoggerFactory
-import ru.yandex.clickhouse.ClickHouseConnection
 import ru.yandex.clickhouse.except.ClickHouseException
+import tanvd.audit.implementation.clickhouse.jdbc.PreparedCHStatement
 import tanvd.audit.implementation.clickhouse.model.*
 import tanvd.audit.implementation.exceptions.BasicDbException
 import tanvd.audit.model.external.presenters.IdPresenter
 import tanvd.audit.model.external.presenters.VersionPresenter
 import tanvd.audit.model.external.queries.*
-import tanvd.audit.model.external.queries.QueryParameters.OrderByParameters.Order
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.utils.PropertyLoader
 import java.sql.Connection
@@ -159,17 +158,6 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
      */
     fun loadRows(tableName: String, columnsToSelect: DbTableHeader, expression: QueryExpression,
                  parameters: QueryParameters): List<DbRow> {
-        val sqlSelect = StringBuilder()
-        sqlSelect.append("SELECT ${columnsToSelect.toDefString()} FROM $tableName PREWHERE ")
-
-        addExpression(expression, sqlSelect)
-
-        addOrderBy(parameters.orderBy, sqlSelect)
-
-        addLimitPlaceholders(parameters.limits, sqlSelect)
-
-        sqlSelect.append(";")
-
         val rows = ArrayList<DbRow>()
 
         val connection: Connection?
@@ -177,16 +165,17 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
         var resultSet: ResultSet? = null
         try {
             connection = getConnection()
-            preparedStatement = connection.prepareStatement(sqlSelect.toString())
-
-            setLimits(parameters.limits, preparedStatement, 1)
-
+            preparedStatement = PreparedCHStatement(connection,
+                    " SELECT ${columnsToSelect.toDefString()} ",
+                    " FROM $tableName ",
+                    prewhereSection = expression,
+                    parametersSection = parameters).prepare()
             resultSet = preparedStatement.executeQuery()
 
             while (resultSet.next()) {
                 val elements = ArrayList<DbColumn>()
                 for (columnHeader in columnsToSelect.columnsHeader) {
-                    elements.add(resultSet.getColumn(columnHeader, connection as ClickHouseConnection))
+                    elements.add(resultSet.getColumn(columnHeader))
                 }
                 rows.add(DbRow(elements))
             }
@@ -226,7 +215,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             while (resultSet.next()) {
                 val elements = ArrayList<DbColumn>()
                 for (columnHeader in columnsToSelect.columnsHeader) {
-                    elements.add(resultSet.getColumn(columnHeader, connection as ClickHouseConnection))
+                    elements.add(resultSet.getColumn(columnHeader))
                 }
                 rows.add(DbRow(elements))
             }
@@ -273,92 +262,20 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
         }
     }
 
-    private fun addExpression(expression: QueryExpression, sqlSelect: StringBuilder) {
-        sqlSelect.append(serializeExpression(expression))
-        sqlSelect.append(" ")
-    }
 
-    private fun serializeExpression(expression: QueryExpression): String {
-        return when (expression) {
-            is BinaryQueryNode -> {
-                when (expression.binaryQueryOperator) {
-                    BinaryQueryOperator.and -> {
-                        "(${serializeExpression(expression.expressionFirst)}) AND " +
-                                "(${serializeExpression(expression.expressionSecond)})"
-                    }
-                    BinaryQueryOperator.or -> {
-                        "(${serializeExpression(expression.expressionFirst)}) OR " +
-                                "(${serializeExpression(expression.expressionSecond)})"
-                    }
-                }
-            }
-            is UnaryQueryNode -> {
-                when (expression.unaryQueryOperator) {
-                    UnaryQueryOperator.not -> {
-                        "not(${serializeExpression(expression.expression)})"
-                    }
-                }
-            }
-            is QueryTypeLeafCondition<*> -> {
-                expression.toStringSQL()
-            }
-            is QueryInformationLeafCondition<*> -> {
-                expression.toStringSQL()
-            }
-            else -> {
-                logger.error("Unknown Query leaf with class -- ${expression::class.qualifiedName}.")
-                ""
-            }
-        }
-    }
-
-    /**
-     * Every append required to end by space to construct right expression with this function
-     */
-    private fun addLimitPlaceholders(limits: QueryParameters.LimitParameters, sqlSelect: StringBuilder) {
-        if (limits.isLimited) {
-            sqlSelect.append("LIMIT ?, ? ")
-        }
-    }
-
-    private fun setLimits(limits: QueryParameters.LimitParameters, preparedStatement: PreparedStatement?, dbIndex: Int): Int {
-        if (limits.isLimited && preparedStatement != null) {
-            preparedStatement.setInt(dbIndex, limits.limitStart)
-            preparedStatement.setInt(dbIndex + 1, limits.limitLength)
-            return dbIndex + 2
-        }
-        return dbIndex
-    }
-
-    /**
-     * Every append required to end by space to construct right expression with this function
-     */
-    private fun addOrderBy(orderBy: QueryParameters.OrderByParameters, sqlExpression: StringBuilder) {
-        val allOrder = orderBy.codesState.map { it.key.getCode() to it.value }.toMutableList()
-        allOrder.addAll(orderBy.codesInformation.map { it.key.code to it.value })
-        if (orderBy.isOrdered) {
-            sqlExpression.append("ORDER BY ${allOrder.joinToString { "${it.first} ${it.second.toStringSQL()}" }} ")
-        }
-    }
 
 
     fun countRows(tableName: String, expression: QueryExpression): Long {
         var count = 0L
-
-        val sqlSelect = StringBuilder()
-
-        sqlSelect.append("SELECT COUNT(*) FROM $tableName PREWHERE ")
-
-        addExpression(expression, sqlSelect)
-
-        sqlSelect.append(";")
-
         val connection: Connection?
         var preparedStatement: PreparedStatement? = null
         var resultSet: ResultSet? = null
         try {
             connection = getConnection()
-            preparedStatement = connection.prepareStatement(sqlSelect.toString())
+            preparedStatement = PreparedCHStatement(connection,
+                    " SELECT COUNT(*) ",
+                    " FROM $tableName ",
+                    prewhereSection = expression).prepare()
 
             resultSet = preparedStatement.executeQuery()
 
@@ -435,7 +352,7 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
         }
     }
 
-    private fun ResultSet.getColumn(column: DbColumnHeader, connection: ClickHouseConnection): DbColumn {
+    private fun ResultSet.getColumn(column: DbColumnHeader): DbColumn {
         when (column.type) {
             DbColumnType.DbDate -> {
                 val dateSerialized = getDate(column.name).toStringFromDb()
@@ -502,18 +419,4 @@ internal class JdbcClickhouseConnection(val dataSource: DataSource) {
             }
         }
     }
-
-
-    private fun Order.toStringSQL(): String {
-        return when (this) {
-            Order.ASC -> {
-                "ASC "
-            }
-            Order.DESC -> {
-                "DESC "
-            }
-        }
-    }
-
-
 }

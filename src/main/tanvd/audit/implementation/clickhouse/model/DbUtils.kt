@@ -195,6 +195,10 @@ internal fun InformationType<*>.toDbColumnHeader(): DbColumnHeader {
 /**
  * Date's in Clickhouse
  */
+internal fun java.util.Date.toSqlDate(): java.sql.Date {
+    return java.sql.Date(this.time)
+}
+
 internal fun String.toSqlDate(): java.sql.Date {
     return java.sql.Date.valueOf(this)
 }
@@ -210,6 +214,10 @@ internal fun java.util.Date.toStringSQL(): String {
 /**
  * Datetime in Clickhouse
  */
+internal fun DateTime.toSqlTimestamp(): Timestamp {
+    return Timestamp(this.millis)
+}
+
 internal fun String.toSqlTimestamp(): Timestamp {
     return Timestamp(getDateTimeFormat().parseDateTime(this).millis)
 }

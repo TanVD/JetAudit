@@ -30,19 +30,19 @@ fun QueryEqualityInformationLeaf<*>.toStringSQL(): String {
         EqualityCondition.equal -> {
             when (valueType) {
                 InnerType.Long -> {
-                    "${presenter.code} == $value"
+                    "${presenter.code} == ?"
                 }
                 InnerType.String -> {
-                    "${presenter.code} == ${(value as String).toSanitizedStringSQL()}"
+                    "${presenter.code} == ?"
                 }
                 InnerType.Boolean -> {
-                    "${presenter.code} == ${(value as Boolean).toStringSQL()}"
+                    "${presenter.code} == ?"
                 }
                 InnerType.Date -> {
-                    "${presenter.code} == ${(value as Date).toStringSQL()}"
+                    "${presenter.code} == ?"
                 }
                 InnerType.DateTime -> {
-                    "${presenter.code} == ${(value as DateTime).toStringSQL()}"
+                    "${presenter.code} == ?"
                 }
                 else -> {
                     throw UnsupportedOperationException("Equality queries for information $valueType not supported")
@@ -57,7 +57,7 @@ fun QueryStringInformationLeaf<*>.toStringSQL(): String {
         StringCondition.like -> {
             when (valueType) {
                 InnerType.String -> {
-                    "like(${presenter.code}, ${(value as String).toSanitizedStringSQL()})"
+                    "like(${presenter.code}, ?)"
                 }
                 else -> {
                     throw UnsupportedOperationException("String queries for type $valueType not supported")
@@ -67,7 +67,7 @@ fun QueryStringInformationLeaf<*>.toStringSQL(): String {
         StringCondition.regexp -> {
             when (valueType) {
                 InnerType.String -> {
-                    "match(${presenter.code}, ${(value as String).toSanitizedStringSQL()})"
+                    "match(${presenter.code}, ?)"
                 }
                 else -> {
                     throw UnsupportedOperationException("String queries for type $valueType not supported")
@@ -82,10 +82,10 @@ fun QueryTimeInformationLeaf<*>.toStringSQL(): String {
         TimeCondition.less -> {
             when (valueType) {
                 InnerType.Date -> {
-                    "${presenter.code} < ${(value as Date).toStringSQL()}"
+                    "${presenter.code} < ?"
                 }
                 InnerType.DateTime -> {
-                    "${presenter.code} < ${(value as DateTime).toStringSQL()}"
+                    "${presenter.code} < ?"
                 }
                 else -> {
                     throw UnsupportedOperationException("Date queries for type $valueType not supported")
@@ -95,10 +95,10 @@ fun QueryTimeInformationLeaf<*>.toStringSQL(): String {
         TimeCondition.more -> {
             when (valueType) {
                 InnerType.Date -> {
-                    "${presenter.code} > ${(value as Date).toStringSQL()}"
+                    "${presenter.code} > ?"
                 }
                 InnerType.DateTime -> {
-                    "${presenter.code} > ${(value as DateTime).toStringSQL()}"
+                    "${presenter.code} > ?"
                 }
                 else -> {
                     throw UnsupportedOperationException("Time queries for type $valueType not supported")
@@ -108,10 +108,10 @@ fun QueryTimeInformationLeaf<*>.toStringSQL(): String {
         TimeCondition.lessOrEqual -> {
             when (valueType) {
                 InnerType.Date -> {
-                    "${presenter.code} <= ${(value as Date).toStringSQL()}"
+                    "${presenter.code} <= ?"
                 }
                 InnerType.DateTime -> {
-                    "${presenter.code} <= ${(value as DateTime).toStringSQL()}"
+                    "${presenter.code} <= ?"
                 }
                 else -> {
                     throw UnsupportedOperationException("Time queries for type $valueType not supported")
@@ -121,10 +121,10 @@ fun QueryTimeInformationLeaf<*>.toStringSQL(): String {
         TimeCondition.moreOrEqual -> {
             when (valueType) {
                 InnerType.Date -> {
-                    "${presenter.code} >= ${(value as Date).toStringSQL()}"
+                    "${presenter.code} >= ?"
                 }
                 InnerType.DateTime -> {
-                    "${presenter.code} >= ${(value as DateTime).toStringSQL()}"
+                    "${presenter.code} >= ?"
                 }
                 else -> {
                     throw UnsupportedOperationException("Time queries for type $valueType not supported")
@@ -139,7 +139,7 @@ fun QueryNumberInformationLeaf<*>.toStringSQL(): String {
         NumberCondition.less -> {
             when (valueType) {
                 InnerType.Long -> {
-                    "${presenter.code} < $value"
+                    "${presenter.code} < ?"
                 }
                 else -> {
                     throw UnsupportedOperationException("Number queries for type $valueType not supported")
@@ -149,7 +149,7 @@ fun QueryNumberInformationLeaf<*>.toStringSQL(): String {
         NumberCondition.more -> {
             when (valueType) {
                 InnerType.Long -> {
-                    "${presenter.code} > $value"
+                    "${presenter.code} > ?"
                 }
                 else -> {
                     throw UnsupportedOperationException("Number queries for type $valueType not supported")
@@ -165,19 +165,19 @@ fun QueryListInformationLeaf<*>.toStringSQL(): String {
         ListCondition.inList -> {
             when (valueType) {
                 InnerType.Long -> {
-                    "${presenter.code} in ${(value as List<Any>).toSanitizedSetSQL(valueType)}"
+                    "${presenter.code} in (${(value as List<*>).joinToString { "?" }})"
                 }
                 InnerType.String -> {
-                    "${presenter.code} in ${(value as List<Any>).toSanitizedSetSQL(valueType)}"
+                    "${presenter.code} in (${(value as List<*>).joinToString { "?" }})"
                 }
                 InnerType.Boolean -> {
-                    "${presenter.code} in ${(value as List<Any>).toSanitizedSetSQL(valueType)}"
+                    "${presenter.code} in (${(value as List<*>).joinToString { "?" }})"
                 }
                 InnerType.Date -> {
-                    "${presenter.code} in ${(value as List<Any>).toSanitizedSetSQL(valueType)}"
+                    "${presenter.code} in (${(value as List<*>).joinToString { "?" }})"
                 }
                 InnerType.DateTime -> {
-                    "${presenter.code} in ${(value as List<Any>).toSanitizedSetSQL(valueType)}"
+                    "${presenter.code} in (${(value as List<*>).joinToString { "?" }})"
                 }
                 else -> {
                     throw UnsupportedOperationException("List queries for type $valueType not supported")
