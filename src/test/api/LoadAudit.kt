@@ -16,8 +16,6 @@ import tanvd.audit.implementation.QueueCommand
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.presenters.StringPresenter
 import tanvd.audit.model.external.queries.QueryExpression
-import tanvd.audit.model.external.queries.QueryParameters
-import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.records.AuditObject
 import tanvd.audit.model.external.records.AuditRecord
 import tanvd.audit.model.external.records.InformationObject

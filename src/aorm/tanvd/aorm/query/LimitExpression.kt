@@ -1,4 +1,4 @@
-package tanvd.aorm.model.query
+package tanvd.aorm.query
 
 class LimitExpression(val limit: Long, val offset: Long)
 

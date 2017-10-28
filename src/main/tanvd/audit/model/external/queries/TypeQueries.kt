@@ -1,74 +1,40 @@
 package tanvd.audit.model.external.queries
 
-import tanvd.audit.model.external.types.InnerType
-import tanvd.audit.model.external.types.objects.StateBooleanType
-import tanvd.audit.model.external.types.objects.StateLongType
-import tanvd.audit.model.external.types.objects.StateStringType
+import tanvd.aorm.query.*
 import tanvd.audit.model.external.types.objects.StateType
 
-sealed class QueryTypeLeafCondition<T : Any>(val condition: InnerTypeCondition, val value: Any,
-                                             val valueType: InnerType, val stateType: StateType<T>) : QueryExpression
-
-//Equality interface
-class QueryEqualityTypeLeaf<T : Any>(condition: EqualityCondition, value: T, valueType: InnerType,
-                                     stateType: StateType<T>) :
-        QueryTypeLeafCondition<T>(condition, value, valueType, stateType)
-
 //Implementations
-infix fun StateLongType.equal(number: Long): QueryEqualityTypeLeaf<Long> {
-    return QueryEqualityTypeLeaf(EqualityCondition.equal, number, InnerType.Long, this)
-}
-
-infix fun StateBooleanType.equal(number: Boolean): QueryEqualityTypeLeaf<Boolean> {
-    return QueryEqualityTypeLeaf(EqualityCondition.equal, number, InnerType.Boolean, this)
-}
-
-infix fun StateStringType.equal(number: String): QueryEqualityTypeLeaf<String> {
-    return QueryEqualityTypeLeaf(EqualityCondition.equal, number, InnerType.String, this)
+infix fun <T: Any>StateType<T>.equal(number: T): QueryExpression {
+    return column exists { x -> x eq number }
 }
 
 //String interface
-class QueryStringTypeLeaf<T : Any>(condition: StringCondition, value: T, valueType: InnerType,
-                                   stateType: StateType<T>) :
-        QueryTypeLeafCondition<T>(condition, value, valueType, stateType)
-
-//Implementations
-infix fun StateStringType.like(value: String): QueryStringTypeLeaf<String> {
-    return QueryStringTypeLeaf(StringCondition.like, value, InnerType.String, this)
+infix fun StateType<String>.like(value: String): QueryExpression {
+    return column exists { x -> x like value}
 }
 
-infix fun StateStringType.regexp(value: String): QueryStringTypeLeaf<String> {
-    return QueryStringTypeLeaf(StringCondition.regexp, value, InnerType.String, this)
+infix fun StateType<String>.regex(pattern: String): QueryExpression {
+    return column exists { x -> x regex pattern }
 }
 
 //Number interface
-class QueryNumberTypeLeaf<T : Any>(condition: NumberCondition, value: T, valueType: InnerType,
-                                   stateType: StateType<T>) :
-        QueryTypeLeafCondition<T>(condition, value, valueType, stateType)
-
-//Implementations
-infix fun StateLongType.less(value: Long): QueryNumberTypeLeaf<Long> {
-    return QueryNumberTypeLeaf(NumberCondition.less, value, InnerType.Long, this)
+infix fun <T: Number>StateType<T>.less(value: T): QueryExpression {
+    return column exists { x -> x less value}
 }
 
-infix fun StateLongType.more(value: Long): QueryNumberTypeLeaf<Long> {
-    return QueryNumberTypeLeaf(NumberCondition.more, value, InnerType.Long, this)
+infix fun <T: Number>StateType<T>.lessOrEq(value: T): QueryExpression {
+    return column exists { x -> x lessOrEq  value}
+}
+
+infix fun <T: Number>StateType<T>.more(value: T): QueryExpression {
+    return column exists { x -> x more value}
+}
+
+infix fun <T: Number>StateType<T>.moreOrEq(value: T): QueryExpression {
+    return column exists { x -> x moreOrEq  value}
 }
 
 //List interface
-class QueryListTypeLeaf<T : Any>(condition: ListCondition, value: List<T>, valueType: InnerType,
-                                 stateType: StateType<T>) :
-        QueryTypeLeafCondition<T>(condition, value, valueType, stateType)
-
-//Implementations
-infix fun StateLongType.inList(value: List<Long>): QueryListTypeLeaf<Long> {
-    return QueryListTypeLeaf(ListCondition.inList, value, InnerType.Long, this)
-}
-
-infix fun StateBooleanType.inList(number: List<Boolean>): QueryListTypeLeaf<Boolean> {
-    return QueryListTypeLeaf(ListCondition.inList, number, InnerType.Boolean, this)
-}
-
-infix fun StateStringType.inList(number: List<String>): QueryListTypeLeaf<String> {
-    return QueryListTypeLeaf(ListCondition.inList, number, InnerType.String, this)
+infix fun <T: Any> StateType<T>.inList(value: List<T>): QueryExpression {
+    return column exists {x -> x inList value}
 }

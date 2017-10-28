@@ -1,6 +1,6 @@
-package tanvd.aorm.model.implementation
+package tanvd.aorm.implementation
 
-import tanvd.aorm.model.InsertExpression
+import tanvd.aorm.InsertExpression
 import java.sql.Connection
 import java.sql.PreparedStatement
 
@@ -16,10 +16,10 @@ object InsertClickhouse {
                 insert.values.joinToString { "(${insert.columns.joinToString { "?" }})" };
         return prepareStatement(sql).use {
             var index = 1
-            for ((values) in insert.values) {
+            for (row in insert.values) {
                 for (column in insert.columns) {
-                    if (values[column] != null) {
-                        column.setValue(index, it, values[column]!!)
+                    if (row[column] != null) {
+                        column.setValue(index, it, row[column]!!)
                     } else {
                         column.setValue(index, it, column.defaultFunction!!())
                     }

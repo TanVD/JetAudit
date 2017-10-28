@@ -47,11 +47,11 @@ internal class ClickhouseSqlLogWriterTest : PowerMockTestCase() {
 
         Mockito.verify(logWriter).error("INSERT INTO ${AuditDaoClickhouseImpl.auditTable} (" +
                 "${IntPresenter.value.getCode()}, ${StringPresenter.value.getCode()}, ${AuditDaoClickhouseImpl.descriptionColumn}, " +
-                "${InformationType.resolveType(IdPresenter).code}, " +
-                "${InformationType.resolveType(VersionPresenter).code}, " +
-                "${InformationType.resolveType(TimeStampPresenter).code}, " +
-                "${InformationType.resolveType(DatePresenter).code}, " +
-                "${InformationType.resolveType(IsDeletedPresenter).code}) VALUES " +
+                "${InformationType.resolveType(IdType).code}, " +
+                "${InformationType.resolveType(VersionType).code}, " +
+                "${InformationType.resolveType(TimeStampType).code}, " +
+                "${InformationType.resolveType(DateType).code}, " +
+                "${InformationType.resolveType(IsDeletedType).code}) VALUES " +
                 "([123], ['456'], ['Int', 'String'], 0, 1, 2, '2000-01-01', 0);")
     }
 

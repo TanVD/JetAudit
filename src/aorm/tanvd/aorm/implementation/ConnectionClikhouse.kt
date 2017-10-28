@@ -1,4 +1,4 @@
-package tanvd.aorm.model.implementation
+package tanvd.aorm.implementation
 
 import ru.yandex.clickhouse.ClickHouseDataSource
 import ru.yandex.clickhouse.settings.ClickHouseProperties

@@ -28,10 +28,10 @@ object TypeUtils {
 
     @Suppress("UNCHECKED_CAST")
     internal fun addInformationTypesPrimitive() {
-        InformationType.addType(InformationType(IdPresenter, InnerType.Long) as InformationType<Any>)
-        InformationType.addType(InformationType(VersionPresenter, InnerType.ULong) as InformationType<Any>)
-        InformationType.addType(InformationType(TimeStampPresenter, InnerType.Long) as InformationType<Any>)
-        InformationType.addType(InformationType(DatePresenter, InnerType.Date) as InformationType<Any>)
-        InformationType.addType(InformationType(IsDeletedPresenter, InnerType.Boolean) as InformationType<Any>)
+        InformationType.addType(InformationType(IdType, InnerType.Long) as InformationType<Any>)
+        InformationType.addType(InformationType(VersionType, InnerType.ULong) as InformationType<Any>)
+        InformationType.addType(InformationType(TimeStampType, InnerType.Long) as InformationType<Any>)
+        InformationType.addType(InformationType(DateType, InnerType.Date) as InformationType<Any>)
+        InformationType.addType(InformationType(IsDeletedType, InnerType.Boolean) as InformationType<Any>)
     }
 }

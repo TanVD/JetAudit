@@ -7,12 +7,10 @@ import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.presenters.StringPresenter
-import tanvd.audit.model.external.presenters.TimeStampPresenter
+import tanvd.audit.model.external.presenters.TimeStampType
 import tanvd.audit.model.external.queries.EqualityCondition
 import tanvd.audit.model.external.queries.QueryEqualityTypeLeaf
-import tanvd.audit.model.external.queries.QueryParameters
 import tanvd.audit.model.external.queries.QueryParameters.OrderByParameters.Order.ASC
-import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.InnerType
 import utils.DbUtils
@@ -55,7 +53,7 @@ internal class PagingTest {
 
         val parameters = QueryParameters()
         parameters.setLimits(0, 1)
-        parameters.setInformationOrder(TimeStampPresenter to ASC)
+        parameters.setInformationOrder(TimeStampType to ASC)
         val recordsLoaded = auditDao!!.loadRecords(StringPresenter.value equal "string", parameters)
 
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
@@ -69,7 +67,7 @@ internal class PagingTest {
 
         val parameters = QueryParameters()
         parameters.setLimits(1, 1)
-        parameters.setInformationOrder(TimeStampPresenter to ASC)
+        parameters.setInformationOrder(TimeStampType to ASC)
         val recordsLoaded = auditDao!!.loadRecords(StringPresenter.value equal "string", parameters)
 
         Assert.assertEquals(recordsLoaded.size, 1)
@@ -84,7 +82,7 @@ internal class PagingTest {
 
         val parameters = QueryParameters()
         parameters.setLimits(0, 2)
-        parameters.setInformationOrder(TimeStampPresenter to ASC)
+        parameters.setInformationOrder(TimeStampType to ASC)
         val recordsLoaded = auditDao!!.loadRecords(StringPresenter.value equal "string", parameters)
 
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))

@@ -1,7 +1,8 @@
-package tanvd.aorm.model.implementation
+package tanvd.aorm.implementation
 
-import tanvd.aorm.model.Column
-import tanvd.aorm.model.Table
+import tanvd.aorm.Column
+import tanvd.aorm.DbType
+import tanvd.aorm.Table
 
 object TableClickhouse {
     fun create(table: Table) {
@@ -14,11 +15,11 @@ object TableClickhouse {
         ConnectionClikhouse.execute("DROP TABLE ${table.name};")
     }
 
-    fun addColumn(table: Table, column: Column<*>) {
+    fun addColumn(table: Table, column: Column<*, DbType<*>>) {
         ConnectionClikhouse.execute("ALTER TABLE ${table.name} ADD COLUMN ${column.toSqlDef()};")
     }
 
-    fun dropColumn(table: Table, column: Column<*>) {
+    fun dropColumn(table: Table, column: Column<*, DbType<*>>) {
         ConnectionClikhouse.execute("ALTER TABLE ${table.name} DROP COLUMN ${column.name};")
     }
 }

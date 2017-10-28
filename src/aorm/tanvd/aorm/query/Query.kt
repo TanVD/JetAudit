@@ -1,12 +1,13 @@
-package tanvd.aorm.model.query
+package tanvd.aorm.query
 
-import tanvd.aorm.model.Column
-import tanvd.aorm.model.Row
-import tanvd.aorm.model.Table
-import tanvd.aorm.model.implementation.QueryClickhouse
+import tanvd.aorm.Column
+import tanvd.aorm.DbType
+import tanvd.aorm.Row
+import tanvd.aorm.Table
+import tanvd.aorm.implementation.QueryClickhouse
 
-class Query(val table: Table, val columns: List<Column<Any>>) {
-    internal var whereSection : QueryExpression? = null
+class Query(val table: Table, var columns: List<QueryFunction>) {
+    var whereSection : QueryExpression? = null
     internal var prewhereSection: QueryExpression? = null
     internal var orderBySection: OrderByExpression? = null
     internal var limitSection: LimitExpression? = null

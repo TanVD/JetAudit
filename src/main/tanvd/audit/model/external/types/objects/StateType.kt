@@ -1,21 +1,12 @@
 package tanvd.audit.model.external.types.objects
 
-import tanvd.audit.model.external.types.InnerType
+import tanvd.aorm.*
+import java.util.*
 
-/**
- * External class for users
- */
-class StateLongType(stateName: String, objectName: String) : StateType<Long>(stateName, objectName, InnerType.Long)
+class StateType<T : Any>(val stateName: String, val objectName: String, type: DbPrimitiveType<T>) {
+    internal val type: DbArrayType<T> = type.toArray()
+    internal val column : Column<List<T>, DbArrayType<T>> = Column("${objectName}_$stateName", this.type)
 
-class StateBooleanType(stateName: String, objectName: String) : StateType<Boolean>(stateName, objectName, InnerType.Boolean)
-
-class StateStringType(stateName: String, objectName: String) : StateType<String>(stateName, objectName, InnerType.String)
-
-
-/**
- * Internal class
- */
-sealed class StateType<T>(val stateName: String, val objectName: String, val type: InnerType) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other?.javaClass != javaClass) return false
@@ -35,4 +26,18 @@ sealed class StateType<T>(val stateName: String, val objectName: String, val typ
         result = 31 * result + type.hashCode()
         return result
     }
+}
+
+//Helper functions
+
+fun <T : Any>ObjectPresenter<T>.date(name: String) : StateType<Date> {
+    return StateType(name, entityName, DbDate())
+}
+
+fun <T : Any>ObjectPresenter<T>.long(name: String) : StateType<Long> {
+    return StateType(name, entityName, DbLong())
+}
+
+fun <T : Any>ObjectPresenter<T>.string(name: String) : StateType<String> {
+    return StateType(name, entityName, DbString())
 }

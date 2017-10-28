@@ -1,6 +1,7 @@
 package tanvd.audit.model.internal
 
-import tanvd.audit.model.external.presenters.VersionPresenter
+import tanvd.audit.implementation.clickhouse.aorm.AuditTable
+import tanvd.audit.model.external.presenters.VersionType
 import tanvd.audit.model.external.records.AuditRecord
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.records.ObjectState
@@ -20,8 +21,8 @@ internal data class AuditRecordInternal(val objects: List<Pair<ObjectType<*>, Ob
                         it.type to it.state
                     },
                     auditRecord.informations.map {
-                        if (it.type.code == VersionPresenter.code)
-                            InformationObject((it.value as Long) + 1, VersionPresenter)
+                        if (it.type.code == AuditTable.version.name)
+                            InformationObject((it.value as Long) + 1, VersionType)
                         else
                             it
                     }.toMutableSet())

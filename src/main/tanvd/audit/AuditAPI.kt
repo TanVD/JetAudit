@@ -2,6 +2,10 @@ package tanvd.audit
 
 import org.jetbrains.annotations.TestOnly
 import org.slf4j.LoggerFactory
+import tanvd.aorm.query.LimitExpression
+import tanvd.aorm.query.OrderByExpression
+import tanvd.aorm.query.Query
+import tanvd.aorm.query.QueryExpression
 import tanvd.audit.exceptions.AddExistingAuditTypeException
 import tanvd.audit.exceptions.AddExistingInformationTypeException
 import tanvd.audit.exceptions.AuditQueueFullException
@@ -10,14 +14,10 @@ import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.QueueCommand
 import tanvd.audit.implementation.SaveRecords
 import tanvd.audit.implementation.dao.AuditDao
-import tanvd.audit.model.external.presenters.*
-import tanvd.audit.model.external.queries.QueryExpression
-import tanvd.audit.model.external.queries.QueryParameters
 import tanvd.audit.model.external.records.AuditObject
 import tanvd.audit.model.external.records.AuditRecord
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.records.ObjectState
-import tanvd.audit.model.external.types.InnerType
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
@@ -136,7 +136,6 @@ class AuditAPI {
             }
         }
 
-        addServiceInformation()
         if (dataSource != null) {
             AuditDao.dataSource = dataSource
         } else {
@@ -161,7 +160,6 @@ class AuditAPI {
             }
         }
 
-        addServiceInformation()
         if (dataSource != null) {
             AuditDao.dataSource = dataSource
         } else {
@@ -192,24 +190,12 @@ class AuditAPI {
     }
 
     /**
-     * Add information types used in table. Perform before initTables() in DAO.
-     */
-    @Suppress("UNCHECKED_CAST")
-    internal fun addServiceInformation() {
-        InformationType.addType(InformationType(IdPresenter, InnerType.Long) as InformationType<Any>)
-        InformationType.addType(InformationType(VersionPresenter, InnerType.ULong) as InformationType<Any>)
-        InformationType.addType(InformationType(TimeStampPresenter, InnerType.Long) as InformationType<Any>)
-        InformationType.addType(InformationType(DatePresenter, InnerType.Date) as InformationType<Any>)
-        InformationType.addType(InformationType(IsDeletedPresenter, InnerType.Boolean) as InformationType<Any>)
-    }
-
-    /**
      * Initializing type system with primitive types
      */
     internal fun addPrimitiveTypes() {
-        addObjectType(ObjectType(String::class, StringPresenter))
-        addObjectType(ObjectType(Int::class, IntPresenter))
-        addObjectType(ObjectType(Long::class, LongPresenter))
+//        addObjectType(ObjectType(String::class, StringPresenter))
+//        addObjectType(ObjectType(Int::class, IntPresenter))
+//        addObjectType(ObjectType(Long::class, LongPresenter))
     }
 
     /**
@@ -340,10 +326,11 @@ class AuditAPI {
      *
      * This method not throwing any exceptions.
      */
-    fun load(expression: QueryExpression, parameters: QueryParameters, useBatching: Boolean = true): List<AuditRecord> {
+    fun load(expression: QueryExpression, limitExpression: LimitExpression, orderByExpression: OrderByExpression,
+             useBatching: Boolean = true): List<AuditRecord> {
         val auditRecords: List<AuditRecordInternal?>
         try {
-            auditRecords = auditDao.loadRecords(expression, parameters)
+            auditRecords = auditDao.loadRecords(expression, limitExpression, orderByExpression)
         } catch (e: UnknownObjectTypeException) {
             logger.error("AuditAPI met unknown ObjectType. Empty list will be returned.", e)
             return emptyList()
@@ -365,9 +352,10 @@ class AuditAPI {
      *
      * @throws UnknownObjectTypeException
      */
-    fun loadAuditWithExceptions(expression: QueryExpression, parameters: QueryParameters, useBatching: Boolean = true):
+    fun loadAuditWithExceptions(expression: QueryExpression, limitExpression: LimitExpression,
+                                orderByExpression: OrderByExpression, useBatching: Boolean = true):
             List<AuditRecord> {
-        val auditRecords: List<AuditRecordInternal> = auditDao.loadRecords(expression, parameters)
+        val auditRecords: List<AuditRecordInternal> = auditDao.loadRecords(expression, limitExpression, orderByExpression)
 
         return if (useBatching) {
             deserializeAuditRecordsWithBatching(auditRecords)

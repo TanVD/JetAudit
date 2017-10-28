@@ -73,7 +73,7 @@ internal class AuditWorker {
 
                 //stop if asked
                 if (!isEnabled) {
-                    auditDao.finalize()
+//                    auditDao.finalize()
                     auditReserveWriter.close()
                     return
                 }

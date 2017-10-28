@@ -3,9 +3,6 @@ package tanvd.audit
 import ru.yandex.clickhouse.ClickHouseDataSource
 import ru.yandex.clickhouse.settings.ClickHouseProperties
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-import tanvd.audit.implementation.clickhouse.JdbcClickhouseConnection
-import tanvd.audit.implementation.clickhouse.model.*
-import tanvd.audit.model.external.presenters.*
 import tanvd.audit.model.external.types.InnerType
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.external.types.objects.ObjectType

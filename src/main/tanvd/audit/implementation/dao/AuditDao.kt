@@ -2,12 +2,13 @@ package tanvd.audit.implementation.dao
 
 import ru.yandex.clickhouse.ClickHouseDataSource
 import ru.yandex.clickhouse.settings.ClickHouseProperties
+import tanvd.aorm.query.LimitExpression
+import tanvd.aorm.query.OrderByExpression
+import tanvd.aorm.query.QueryExpression
 import tanvd.audit.exceptions.UninitializedException
 import tanvd.audit.exceptions.UnknownObjectTypeException
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.exceptions.BasicDbException
-import tanvd.audit.model.external.queries.QueryExpression
-import tanvd.audit.model.external.queries.QueryParameters
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
@@ -62,7 +63,7 @@ internal interface AuditDao {
      * @throws BasicDbException
      */
     @Throws(BasicDbException::class)
-    fun loadRecords(expression: QueryExpression, parameters: QueryParameters): List<AuditRecordInternal>
+    fun loadRecords(expression: QueryExpression, limitExpression: LimitExpression, orderByExpression: OrderByExpression): List<AuditRecordInternal>
 
     /**
      * Return number of records satisfying expression.
@@ -78,7 +79,7 @@ internal interface AuditDao {
     /**
      * Closes all connections and prepares for shutdown.
      */
-    fun finalize()
+//    fun finalize()
 
     /**
      * Resets audit table

@@ -1,10 +1,11 @@
 package tanvd.audit.implementation.clickhouse
 
 import org.slf4j.LoggerFactory
+import tanvd.aorm.Column
+import tanvd.aorm.DbType
+import tanvd.aorm.Row
 import tanvd.audit.exceptions.UnknownObjectTypeException
-import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl.Scheme.descriptionColumn
-import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl.Scheme.getPredefinedAuditTableColumn
-import tanvd.audit.implementation.clickhouse.model.*
+import tanvd.audit.implementation.clickhouse.aorm.AuditTable
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.records.ObjectState
 import tanvd.audit.model.external.types.information.InformationType
@@ -21,37 +22,23 @@ internal object ClickhouseRecordSerializer {
     /**
      * Serialize AuditRecordInternal for Clickhouse
      */
-    fun serialize(auditRecordInternal: AuditRecordInternal): DbRow {
+    fun serialize(auditRecordInternal: AuditRecordInternal): Row {
 
         val description = auditRecordInternal.objects.map { it.first.entityName }
 
         val elements = serializeObjects(auditRecordInternal)
 
-        elements.add(DbColumn(getPredefinedAuditTableColumn(descriptionColumn), description))
+        elements.put(AuditTable.description, description)
 
-        serializeInformation(auditRecordInternal, elements)
-
-        return DbRow(elements)
+        return Row(elements as Map<Column<Any, DbType<Any>>, Any>)
     }
 
-    private fun serializeObjects(auditRecordInternal: AuditRecordInternal): MutableList<DbColumn> {
+    private fun serializeObjects(auditRecordInternal: AuditRecordInternal): MutableMap<Column<*, DbType<*>>, List<Any>> {
         val groupedObjects = auditRecordInternal.objects.flatMap { it.second.stateList.entries }.groupBy { it.key }
                 .mapValues { it.value.map { it.value } }
         //Add mandatory columns
-        return groupedObjects.map { DbColumn(it.key.getCode(), it.value, it.key.toDbColumnType()) }.toMutableList()
+        return groupedObjects.mapKeys { it.key.column }.toMutableMap()
     }
-
-    private fun serializeInformation(auditRecordInternal: AuditRecordInternal, elements: MutableList<DbColumn>) {
-        for (type in InformationType.getTypes()) {
-            val curInformation = auditRecordInternal.information.find { it.type == type }
-            if (curInformation != null) {
-                elements.add(DbColumn(type.toDbColumnHeader(), type.presenter.serialize(curInformation.value)))
-            } else {
-                elements.add(DbColumn(type.toDbColumnHeader(), type.presenter.serialize(type.presenter.getDefault())))
-            }
-        }
-    }
-
 
     /**
      * Deserialize AuditRecordInternal from string representation
@@ -59,34 +46,30 @@ internal object ClickhouseRecordSerializer {
      *
      * @throws UnknownObjectTypeException
      */
-    fun deserialize(row: DbRow): AuditRecordInternal {
+    fun deserialize(row: Row): AuditRecordInternal {
         //mandatory columns
-        val description = row.columns.find { it.name == descriptionColumn }
+        val description = row[AuditTable.description]
         if (description == null) {
-            logger.error("Clickhouse scheme violated. Not found $descriptionColumn column.")
+            logger.error("Clickhouse scheme violated. Not found ${AuditTable.description.name} column.")
             return AuditRecordInternal(emptyList(), HashSet())
         }
 
-        val information = deserializeInformation(row)
-
-        val objects = deserializeObjects(description, row)
-
-        return AuditRecordInternal(objects, information)
+        return AuditRecordInternal(deserializeObjects(description, row), deserializeInformation(row))
     }
 
-    private fun deserializeObjects(description: DbColumn, row: DbRow): ArrayList<Pair<ObjectType<Any>, ObjectState>> {
+    private fun deserializeObjects(description: List<String>, row: Row): ArrayList<Pair<ObjectType<Any>, ObjectState>> {
         val objects = ArrayList<Pair<ObjectType<Any>, ObjectState>>()
         val currentNumberOfType = HashMap<String, Int>()
 
-        for (code in description.elements) {
+        for (code in description) {
             val type = ObjectType.resolveType(code)
-            val stateList = HashMap<StateType<*>, String>()
+            val stateList = HashMap<StateType<*>, Any>()
             for (stateType in type.state) {
-                val pair = row.columns.find { it.name == stateType.getCode() }
-                if (pair != null) {
-                    val index = currentNumberOfType[stateType.getCode()] ?: 0
-                    stateList.put(stateType, pair.elements[index])
-                    currentNumberOfType.put(stateType.getCode(), index + 1)
+                val value = row[stateType.column.name] as List<Any>?
+                if (value != null) {
+                    val index = currentNumberOfType[stateType.column.name] ?: 0
+                    stateList.put(stateType, value[index])
+                    currentNumberOfType.put(stateType.column.name, index + 1)
                 }
             }
             objects.add(Pair(type, ObjectState(stateList)))
@@ -95,12 +78,12 @@ internal object ClickhouseRecordSerializer {
         return objects
     }
 
-    private fun deserializeInformation(row: DbRow): HashSet<InformationObject<*>> {
+    private fun deserializeInformation(row: Row): HashSet<InformationObject<*>> {
         val information = HashSet<InformationObject<*>>()
         for (type in InformationType.getTypes()) {
-            val curInformation = row.columns.find { it.name == type.code }
+            val curInformation = row[type.column]
             if (curInformation != null) {
-                information.add(InformationObject(type.deserialize(curInformation.elements[0]), type))
+                information.add(InformationObject(curInformation, type))
             }
         }
         return information

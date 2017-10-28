@@ -6,11 +6,8 @@ import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.dao.AuditDao
-import tanvd.audit.model.external.presenters.*
-import tanvd.audit.model.external.queries.QueryParameters
 import tanvd.audit.model.external.queries.QueryParameters.OrderByParameters.Order.ASC
 import tanvd.audit.model.external.queries.QueryParameters.OrderByParameters.Order.DESC
-import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.queries.or
 import tanvd.audit.model.external.records.InformationObject
 import utils.DbUtils

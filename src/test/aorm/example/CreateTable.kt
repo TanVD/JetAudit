@@ -1,7 +1,6 @@
 package aorm.example
 
 import org.testng.annotations.Test
-import tanvd.aorm.model.*
 
 class AormTableCreateExample {
     @Test

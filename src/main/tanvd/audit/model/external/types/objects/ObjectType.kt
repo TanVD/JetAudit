@@ -12,7 +12,7 @@ data class ObjectType<T : Any>(val klass: KClass<T>, val objectPresenter: Object
     val entityName = objectPresenter.entityName
 
     companion object TypesResolution {
-        private val types: MutableSet<ObjectType<Any>> = java.util.HashSet()
+        private val types: MutableSet<ObjectType<Any>> = HashSet()
         private val typesByClass: MutableMap<KClass<*>, ObjectType<Any>> = HashMap()
         private val typesByEntityName: MutableMap<String, ObjectType<Any>> = HashMap()
 

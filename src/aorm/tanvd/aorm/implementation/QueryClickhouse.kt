@@ -1,8 +1,8 @@
-package tanvd.aorm.model.implementation
+package tanvd.aorm.implementation
 
-import tanvd.aorm.model.Column
-import tanvd.aorm.model.Row
-import tanvd.aorm.model.query.Query
+import tanvd.aorm.DbType
+import tanvd.aorm.Row
+import tanvd.aorm.query.Query
 import java.sql.Connection
 import java.sql.PreparedStatement
 
@@ -13,7 +13,7 @@ object QueryClickhouse {
             constructQuery(query).use { statement ->
                 val result = statement.executeQuery()
                 while (result.next()) {
-                    rows.add(Row(result, query.columns))
+                    rows.add(Row(result, query.columns.map { it.resultColumn }))
                 }
             }
         }
@@ -21,8 +21,8 @@ object QueryClickhouse {
     }
 
     private fun Connection.constructQuery(query: Query) : PreparedStatement {
-        var sql = "SELECT ${query.columns.joinToString { it.name }} FROM ${query.table.name} "
-        val valuesToSet = ArrayList<Pair<Column<Any>, Any>>()
+        var sql = "SELECT ${query.columns.joinToString { it.toSql() }} FROM ${query.table.name} "
+        val valuesToSet = ArrayList<Pair<DbType<Any>, Any>>()
         if (query.prewhereSection != null) {
             val result = query.prewhereSection!!.toSqlPreparedDef()
             sql += "PREWHERE ${result.sql} "
@@ -43,7 +43,7 @@ object QueryClickhouse {
         return prepare(sql, valuesToSet)
     }
 
-    private fun Connection.prepare(sql: String, values: List<Pair<Column<Any>, Any>>) : PreparedStatement {
+    private fun Connection.prepare(sql: String, values: List<Pair<DbType<Any>, Any>>) : PreparedStatement {
         val statement = prepareStatement(sql)
         for ((index, pair) in values.withIndex()) {
             val column = pair.first

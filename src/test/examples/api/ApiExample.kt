@@ -4,8 +4,7 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import tanvd.audit.AuditAPI
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-import tanvd.audit.model.external.presenters.TimeStampPresenter
-import tanvd.audit.model.external.queries.*
+import tanvd.audit.model.external.presenters.TimeStampType
 import tanvd.audit.model.external.queries.QueryParameters.OrderByParameters.Order.DESC
 import tanvd.audit.model.external.records.AuditRecord
 import tanvd.audit.model.external.records.InformationObject
@@ -101,7 +100,7 @@ internal class AuditApiExample {
 
         System.out.println(records[0].objects.joinToString(separator = " ") { it.obj?.toString() ?: "Unknown entity" })
 
-        System.out.println("Time: ${printTime(records[0].getInformationValue(TimeStampPresenter)!!)}")
+        System.out.println("Time: ${printTime(records[0].getInformationValue(TimeStampType)!!)}")
     }
 
     object TitlePresenter : InformationLongPresenter() {
@@ -142,7 +141,7 @@ internal class AuditApiExample {
             System.out.println(records[i].objects.joinToString(separator = " ") { it.obj?.toString() ?: "Unknown entity" } + " " +
                     "Title: " + records[i].getInformationValue(TitlePresenter))
 
-            System.out.println("Time: ${printTime(records[i].getInformationValue(TimeStampPresenter)!!)}")
+            System.out.println("Time: ${printTime(records[i].getInformationValue(TimeStampType)!!)}")
         }
     }
 
@@ -194,7 +193,7 @@ internal class AuditApiExample {
                     "Title: " + records[i].getInformationValue(TitlePresenter) + " " +
                     "IsExternal: " + records[i].getInformationValue(IsExternalPresenter))
 
-            System.out.println("Time: ${printTime(records[i].getInformationValue(TimeStampPresenter)!!)}")
+            System.out.println("Time: ${printTime(records[i].getInformationValue(TimeStampType)!!)}")
         }
 
         //change is external to true
@@ -224,7 +223,7 @@ internal class AuditApiExample {
                     "Title: " + records[i].getInformationValue(TitlePresenter) + " " +
                     "IsExternal: " + records[i].getInformationValue(IsExternalPresenter))
 
-            System.out.println("Time: ${printTime(resultingRecords[i].getInformationValue(TimeStampPresenter)!!)}")
+            System.out.println("Time: ${printTime(resultingRecords[i].getInformationValue(TimeStampType)!!)}")
         }
     }
 }

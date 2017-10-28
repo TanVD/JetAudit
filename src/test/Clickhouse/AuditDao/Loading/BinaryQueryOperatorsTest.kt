@@ -7,9 +7,7 @@ import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.presenters.StringPresenter
-import tanvd.audit.model.external.queries.QueryParameters
 import tanvd.audit.model.external.queries.and
-import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.queries.or
 import tanvd.audit.model.external.records.InformationObject
 import utils.DbUtils

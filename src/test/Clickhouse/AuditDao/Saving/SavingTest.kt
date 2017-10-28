@@ -6,10 +6,8 @@ import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.dao.AuditDao
-import tanvd.audit.model.external.presenters.IdPresenter
+import tanvd.audit.model.external.presenters.IdType
 import tanvd.audit.model.external.presenters.LongPresenter
-import tanvd.audit.model.external.queries.QueryParameters
-import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.InnerType
 import tanvd.audit.model.external.types.information.InformationType
@@ -303,7 +301,7 @@ internal class SavingTest {
         val auditRecordSecondOriginal = getRecordInternal(123, TestClassString("string"), information = getSampleInformation(0, 1, 1))
         auditDao!!.saveRecord(auditRecordSecondOriginal)
 
-        val recordsLoaded = auditDao!!.loadRecords(IdPresenter equal 0, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(IdType equal 0, QueryParameters())
         Assert.assertEquals(recordsLoaded.toSet(), setOf(auditRecordSecondOriginal))
     }
 

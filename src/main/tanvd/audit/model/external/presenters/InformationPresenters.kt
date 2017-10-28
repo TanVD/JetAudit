@@ -1,51 +1,35 @@
 package tanvd.audit.model.external.presenters
 
-import tanvd.audit.model.external.types.information.InformationBooleanPresenter
-import tanvd.audit.model.external.types.information.InformationDatePresenter
-import tanvd.audit.model.external.types.information.InformationLongPresenter
-import tanvd.audit.utils.PropertyLoader
+import tanvd.audit.implementation.clickhouse.aorm.AuditTable
+import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.utils.RandomGenerator
 import java.util.*
 
-object TimeStampPresenter : InformationLongPresenter() {
-
-    override val code by lazy { PropertyLoader["TimeStampColumn"] ?: "TimeStampColumn" }
-
+object TimeStampType : InformationType<Long>(AuditTable.timestamp) {
     override fun getDefault(): Long {
         return System.currentTimeMillis()
     }
 }
 
-object VersionPresenter : InformationLongPresenter() {
-
-    override val code by lazy { PropertyLoader["VersionColumn"] ?: "VersionColumn" }
-
+object VersionType : InformationType<Long>(AuditTable.version) {
     override fun getDefault(): Long {
         return 0
     }
 }
 
-object IdPresenter : InformationLongPresenter() {
-
-    override val code by lazy { PropertyLoader["IdColumn"] ?: "IdColumn" }
-
+object IdType : InformationType<Long>(AuditTable.id) {
     override fun getDefault(): Long {
         return RandomGenerator.next()
     }
 }
 
-object DatePresenter : InformationDatePresenter() {
-
-    override val code by lazy { PropertyLoader["DateColumn"] ?: "DateColumn" }
-
+object DateType : InformationType<Date>(AuditTable.date) {
     override fun getDefault(): Date {
         return Date()
     }
 }
 
-object IsDeletedPresenter : InformationBooleanPresenter() {
-    override val code: String by lazy { PropertyLoader["IsDeletedColumn"] ?: "IsDeletedColumn" }
-
+object IsDeletedType : InformationType<Boolean>(AuditTable.isDeleted) {
     override fun getDefault(): Boolean {
         return false
     }

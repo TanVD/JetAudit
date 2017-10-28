@@ -130,11 +130,11 @@ internal class AuditRecordInternalSerializationClickhouse {
 
     private fun getSampleInformationColumns(): Array<DbColumn> {
         return arrayOf(
-                DbColumn(InformationType.resolveType(DatePresenter).toDbColumnHeader(), listOf("2000-01-01")),
-                DbColumn(InformationType.resolveType(VersionPresenter).toDbColumnHeader(), listOf("2")),
-                DbColumn(InformationType.resolveType(TimeStampPresenter).toDbColumnHeader(), listOf("1")),
-                DbColumn(InformationType.resolveType(IdPresenter).toDbColumnHeader(), listOf("0")),
-                DbColumn(InformationType.resolveType(IsDeletedPresenter).toDbColumnHeader(), listOf("false"))
+                DbColumn(InformationType.resolveType(DateType).toDbColumnHeader(), listOf("2000-01-01")),
+                DbColumn(InformationType.resolveType(VersionType).toDbColumnHeader(), listOf("2")),
+                DbColumn(InformationType.resolveType(TimeStampType).toDbColumnHeader(), listOf("1")),
+                DbColumn(InformationType.resolveType(IdType).toDbColumnHeader(), listOf("0")),
+                DbColumn(InformationType.resolveType(IsDeletedType).toDbColumnHeader(), listOf("false"))
         )
     }
 }

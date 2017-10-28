@@ -6,10 +6,8 @@ import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.dao.AuditDao
-import tanvd.audit.model.external.presenters.IdPresenter
-import tanvd.audit.model.external.presenters.TimeStampPresenter
-import tanvd.audit.model.external.queries.QueryParameters
-import tanvd.audit.model.external.queries.equal
+import tanvd.audit.model.external.presenters.IdType
+import tanvd.audit.model.external.presenters.TimeStampType
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.InnerType
 import tanvd.audit.model.external.types.information.InformationType
@@ -51,7 +49,7 @@ internal class AddInformationTypeTest {
 
         addStringInformation()
 
-        val recordsLoaded = auditDao!!.loadRecords(TimeStampPresenter equal 1, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TimeStampType equal 1, QueryParameters())
 
         auditRecordOriginal.information.add(InformationObject(StringInfPresenter.getDefault(),
                 InformationType.resolveType(StringInfPresenter)))
@@ -68,7 +66,7 @@ internal class AddInformationTypeTest {
         val auditRecordSecondOriginal = getRecordInternal(information = getSampleWithStringInformation())
         auditDao!!.saveRecord(auditRecordSecondOriginal)
 
-        val recordsLoaded = auditDao!!.loadRecords(IdPresenter equal 0, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(IdType equal 0, QueryParameters())
 
         auditRecordFirstOriginal.information.add(InformationObject(StringInfPresenter.getDefault(),
                 InformationType.resolveType(StringInfPresenter)))
@@ -100,7 +98,7 @@ internal class AddInformationTypeTest {
         val auditRecordSecondOriginal = getRecordInternal(information = getSampleWithStringInformation())
         auditDao!!.saveRecord(auditRecordSecondOriginal)
 
-        val recordsLoaded = auditDao!!.loadRecords(TimeStampPresenter equal 1, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TimeStampType equal 1, QueryParameters())
 
         auditRecordFirstOriginal.information.add(InformationObject(StringInfPresenter.getDefault(),
                 InformationType.resolveType(StringInfPresenter)))
