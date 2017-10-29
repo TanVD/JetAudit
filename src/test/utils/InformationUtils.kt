@@ -8,11 +8,11 @@ import java.util.*
 internal object InformationUtils {
     fun getPrimitiveInformation(id: Long, timeStamp: Long, version: Long, date: Date, isDeleted: Boolean = false): MutableSet<InformationObject<*>> {
         val result = HashSet<InformationObject<*>>()
-        result.add(InformationObject(id, InformationType.TypesResolution.resolveType(IdType)))
-        result.add(InformationObject(timeStamp, InformationType.TypesResolution.resolveType(TimeStampType)))
-        result.add(InformationObject(version, InformationType.TypesResolution.resolveType(VersionType)))
-        result.add(InformationObject(date, InformationType.TypesResolution.resolveType(DateType)))
-        result.add(InformationObject(isDeleted, InformationType.TypesResolution.resolveType(IsDeletedType)))
+        result.add(InformationObject(id, IdType))
+        result.add(InformationObject(timeStamp, TimeStampType))
+        result.add(InformationObject(version, VersionType))
+        result.add(InformationObject(date, DateType))
+        result.add(InformationObject(isDeleted, IsDeletedType))
         return result
     }
 }

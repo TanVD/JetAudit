@@ -5,11 +5,10 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.presenters.IdType
 import tanvd.audit.model.external.presenters.TimeStampType
+import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.records.InformationObject
-import tanvd.audit.model.external.types.InnerType
 import tanvd.audit.model.external.types.information.InformationType
 import utils.*
 import utils.SamplesGenerator.getRecordInternal
@@ -26,19 +25,12 @@ internal class AddInformationTypeTest {
     @BeforeMethod
     @Suppress("UNCHECKED_CAST")
     fun createAll() {
-        TypeUtils.addAuditTypesPrimitive()
-        TypeUtils.addInformationTypesPrimitive()
-
-        AuditDao.credentials = DbUtils.getCredentials()
-        auditDao = AuditDao.getDao() as AuditDaoClickhouseImpl
-
-        TypeUtils.addAuditTypePrimitive(auditDao!!)
+        auditDao = TestUtil.create()
     }
 
     @AfterMethod
     fun clearAll() {
-        auditDao!!.dropTable(AuditDaoClickhouseImpl.auditTable)
-        TypeUtils.clearTypes()
+        TestUtil.drop()
         currentId = 0
     }
 
@@ -49,10 +41,10 @@ internal class AddInformationTypeTest {
 
         addStringInformation()
 
-        val recordsLoaded = auditDao!!.loadRecords(TimeStampType equal 1, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TimeStampType equal 1)
 
-        auditRecordOriginal.information.add(InformationObject(StringInfPresenter.getDefault(),
-                InformationType.resolveType(StringInfPresenter)))
+        auditRecordOriginal.information.add(InformationObject(StringInf.default(),
+                StringInf))
         Assert.assertEquals(recordsLoaded, listOf(auditRecordOriginal))
     }
 
@@ -66,10 +58,10 @@ internal class AddInformationTypeTest {
         val auditRecordSecondOriginal = getRecordInternal(information = getSampleWithStringInformation())
         auditDao!!.saveRecord(auditRecordSecondOriginal)
 
-        val recordsLoaded = auditDao!!.loadRecords(IdType equal 0, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(IdType equal 0)
 
-        auditRecordFirstOriginal.information.add(InformationObject(StringInfPresenter.getDefault(),
-                InformationType.resolveType(StringInfPresenter)))
+        auditRecordFirstOriginal.information.add(InformationObject(StringInf.default(),
+                StringInf))
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
@@ -83,7 +75,7 @@ internal class AddInformationTypeTest {
         val auditRecordSecondOriginal = getRecordInternal(information = getSampleWithStringInformation())
         auditDao!!.saveRecord(auditRecordSecondOriginal)
 
-        val recordsLoaded = auditDao!!.loadRecords(StringInfPresenter equal "string", QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(StringInf equal "string")
 
         Assert.assertEquals(recordsLoaded, listOf(auditRecordSecondOriginal))
     }
@@ -98,10 +90,9 @@ internal class AddInformationTypeTest {
         val auditRecordSecondOriginal = getRecordInternal(information = getSampleWithStringInformation())
         auditDao!!.saveRecord(auditRecordSecondOriginal)
 
-        val recordsLoaded = auditDao!!.loadRecords(TimeStampType equal 1, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TimeStampType equal 1)
 
-        auditRecordFirstOriginal.information.add(InformationObject(StringInfPresenter.getDefault(),
-                InformationType.resolveType(StringInfPresenter)))
+        auditRecordFirstOriginal.information.add(InformationObject(StringInf.default(), StringInf))
         Assert.assertEquals(recordsLoaded.toSet(), setOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
     }
 
@@ -117,9 +108,8 @@ internal class AddInformationTypeTest {
 
     private fun addStringInformation() {
         @Suppress("UNCHECKED_CAST")
-        val type = InformationType(StringInfPresenter, InnerType.String) as InformationType<Any>
-        InformationType.addType(type)
-        auditDao!!.addInformationInDbModel(type)
+        InformationType.addType(StringInf)
+        auditDao!!.addInformationInDbModel(StringInf)
     }
 }
 

@@ -5,9 +5,10 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-import tanvd.audit.implementation.dao.AuditDao
+import tanvd.audit.implementation.clickhouse.aorm.AuditTable
+import tanvd.audit.model.external.queries.equal
+import tanvd.audit.model.external.queries.inList
 import tanvd.audit.model.external.records.InformationObject
-import tanvd.audit.model.external.types.InnerType
 import tanvd.audit.model.external.types.information.InformationType
 import utils.*
 import utils.SamplesGenerator.getRecordInternal
@@ -22,23 +23,15 @@ internal class InformationBooleanQueriesTest {
     @BeforeMethod
     @Suppress("UNCHECKED_CAST")
     fun createAll() {
-        TypeUtils.addAuditTypesPrimitive()
-        TypeUtils.addInformationTypesPrimitive()
+        auditDao = TestUtil.create()
 
-        AuditDao.credentials = DbUtils.getCredentials()
-        auditDao = AuditDao.getDao() as AuditDaoClickhouseImpl
-
-        TypeUtils.addAuditTypePrimitive(auditDao!!)
-
-        val type = InformationType(BooleanInfPresenter, InnerType.Boolean) as InformationType<Any>
-        InformationType.addType(type)
-        auditDao!!.addInformationInDbModel(type)
+        auditDao!!.addInformationInDbModel(BooleanInf)
+        InformationType.addType(BooleanInf)
     }
 
     @AfterMethod
     fun clearAll() {
-        auditDao!!.dropTable(AuditDaoClickhouseImpl.auditTable)
-        TypeUtils.clearTypes()
+        TestUtil.drop()
         currentId = 0
     }
 
@@ -50,7 +43,7 @@ internal class InformationBooleanQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(BooleanInfPresenter equal true, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(BooleanInf equal true)
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
@@ -60,7 +53,7 @@ internal class InformationBooleanQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(BooleanInfPresenter equal false, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(BooleanInf equal false)
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
@@ -72,7 +65,7 @@ internal class InformationBooleanQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(BooleanInfPresenter inList listOf(true), QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(BooleanInf inList listOf(true))
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
@@ -82,13 +75,13 @@ internal class InformationBooleanQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(BooleanInfPresenter inList listOf(false), QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(BooleanInf inList listOf(false))
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
     private fun getSampleInformation(value: Boolean): MutableSet<InformationObject<*>> {
         val information = InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
-        (information).add(InformationObject(value, BooleanInfPresenter))
+        (information).add(InformationObject(value, BooleanInf))
         return information
 
     }

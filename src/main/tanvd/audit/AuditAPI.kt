@@ -4,7 +4,6 @@ import org.jetbrains.annotations.TestOnly
 import org.slf4j.LoggerFactory
 import tanvd.aorm.query.LimitExpression
 import tanvd.aorm.query.OrderByExpression
-import tanvd.aorm.query.Query
 import tanvd.aorm.query.QueryExpression
 import tanvd.audit.exceptions.AddExistingAuditTypeException
 import tanvd.audit.exceptions.AddExistingInformationTypeException
@@ -13,7 +12,11 @@ import tanvd.audit.exceptions.UnknownObjectTypeException
 import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.QueueCommand
 import tanvd.audit.implementation.SaveRecords
+import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.dao.AuditDao
+import tanvd.audit.model.external.presenters.IntPresenter
+import tanvd.audit.model.external.presenters.LongPresenter
+import tanvd.audit.model.external.presenters.StringPresenter
 import tanvd.audit.model.external.records.AuditObject
 import tanvd.audit.model.external.records.AuditRecord
 import tanvd.audit.model.external.records.InformationObject
@@ -21,13 +24,11 @@ import tanvd.audit.model.external.records.ObjectState
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
-import tanvd.audit.model.internal.db.DbCredentials
 import tanvd.audit.utils.PropertyLoader
 import java.util.*
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.TimeUnit
-import javax.sql.DataSource
 
 /**
  * Asynchronous saving of entities.
@@ -124,7 +125,7 @@ class AuditAPI {
     /**
      * Create AuditApi with default dataSource
      */
-    constructor(configPath: String?, dataSource: DataSource? = null) {
+    constructor(configPath: String?) {
         if (configPath != null) {
             PropertyLoader.setPropertyFilePath(configPath)
         }
@@ -136,19 +137,14 @@ class AuditAPI {
             }
         }
 
-        if (dataSource != null) {
-            AuditDao.dataSource = dataSource
-        } else {
-            AuditDao.credentials = DbCredentials()
-        }
-        auditDao = AuditDao.getDao()
+        auditDao = AuditDaoClickhouseImpl()
 
         executor = AuditExecutor(auditQueueInternal)
 
         addPrimitiveTypes()
     }
 
-    constructor(properties: Properties?, dataSource: DataSource? = null) {
+    constructor(properties: Properties?) {
         if (properties != null) {
             PropertyLoader.setProperties(properties)
         }
@@ -160,12 +156,7 @@ class AuditAPI {
             }
         }
 
-        if (dataSource != null) {
-            AuditDao.dataSource = dataSource
-        } else {
-            AuditDao.credentials = DbCredentials()
-        }
-        auditDao = AuditDao.getDao()
+        auditDao = AuditDaoClickhouseImpl()
 
         executor = AuditExecutor(auditQueueInternal)
 
@@ -193,9 +184,9 @@ class AuditAPI {
      * Initializing type system with primitive types
      */
     internal fun addPrimitiveTypes() {
-//        addObjectType(ObjectType(String::class, StringPresenter))
-//        addObjectType(ObjectType(Int::class, IntPresenter))
-//        addObjectType(ObjectType(Long::class, LongPresenter))
+        addObjectType(ObjectType(String::class, StringPresenter))
+        addObjectType(ObjectType(Int::class, IntPresenter))
+        addObjectType(ObjectType(Long::class, LongPresenter))
     }
 
     /**
@@ -326,7 +317,8 @@ class AuditAPI {
      *
      * This method not throwing any exceptions.
      */
-    fun load(expression: QueryExpression, limitExpression: LimitExpression, orderByExpression: OrderByExpression,
+    fun load(expression: QueryExpression, limitExpression: LimitExpression? = null,
+             orderByExpression: OrderByExpression? = null,
              useBatching: Boolean = true): List<AuditRecord> {
         val auditRecords: List<AuditRecordInternal?>
         try {

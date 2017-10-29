@@ -4,17 +4,16 @@ import org.testng.Assert
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
+import tanvd.aorm.query.and
+import tanvd.aorm.query.or
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.presenters.StringPresenter
-import tanvd.audit.model.external.queries.and
-import tanvd.audit.model.external.queries.or
+import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.records.InformationObject
-import utils.DbUtils
 import utils.InformationUtils
 import utils.SamplesGenerator
 import utils.SamplesGenerator.getRecordInternal
-import utils.TypeUtils
+import utils.TestUtil
 
 internal class BinaryQueryOperatorsTest {
 
@@ -27,19 +26,12 @@ internal class BinaryQueryOperatorsTest {
     @BeforeMethod
     @Suppress("UNCHECKED_CAST")
     fun createAll() {
-        TypeUtils.addAuditTypesPrimitive()
-        TypeUtils.addInformationTypesPrimitive()
-
-        AuditDao.credentials = DbUtils.getCredentials()
-        auditDao = AuditDao.getDao() as AuditDaoClickhouseImpl
-
-        TypeUtils.addAuditTypePrimitive(auditDao!!)
+        auditDao = TestUtil.create()
     }
 
     @AfterMethod
     fun clearAll() {
-        auditDao!!.dropTable(AuditDaoClickhouseImpl.auditTable)
-        TypeUtils.clearTypes()
+        TestUtil.drop()
         currentId = 0
     }
 
@@ -50,7 +42,7 @@ internal class BinaryQueryOperatorsTest {
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
         val recordsLoaded = auditDao!!.loadRecords(
-                (StringPresenter.value equal "string1") and (StringPresenter.value equal "string2"), QueryParameters())
+                (StringPresenter.value equal "string1") and (StringPresenter.value equal "string2"))
         Assert.assertEquals(recordsLoaded.toSet(), setOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
     }
@@ -62,7 +54,7 @@ internal class BinaryQueryOperatorsTest {
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
         val recordsLoaded = auditDao!!.loadRecords(
-                (StringPresenter.value equal "string1") and (StringPresenter.value equal "string2"), QueryParameters())
+                (StringPresenter.value equal "string1") and (StringPresenter.value equal "string2"))
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
 
     }
@@ -74,7 +66,7 @@ internal class BinaryQueryOperatorsTest {
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
         val recordsLoaded = auditDao!!.loadRecords(
-                (StringPresenter.value equal "string1") and (StringPresenter.value equal "string2"), QueryParameters())
+                (StringPresenter.value equal "string1") and (StringPresenter.value equal "string2"))
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
@@ -85,7 +77,7 @@ internal class BinaryQueryOperatorsTest {
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
         val recordsLoaded = auditDao!!.loadRecords(
-                (StringPresenter.value equal "string1") or (StringPresenter.value equal "string2"), QueryParameters())
+                (StringPresenter.value equal "string1") or (StringPresenter.value equal "string2"))
         Assert.assertEquals(recordsLoaded.toSet(), setOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
     }
@@ -97,7 +89,7 @@ internal class BinaryQueryOperatorsTest {
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
         val recordsLoaded = auditDao!!.loadRecords(
-                (StringPresenter.value equal "string1") or (StringPresenter.value equal "string2"), QueryParameters())
+                (StringPresenter.value equal "string1") or (StringPresenter.value equal "string2"))
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
 
     }
@@ -109,7 +101,7 @@ internal class BinaryQueryOperatorsTest {
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
         val recordsLoaded = auditDao!!.loadRecords(
-                (StringPresenter.value equal "string1") or (StringPresenter.value equal "string2"), QueryParameters())
+                (StringPresenter.value equal "string1") or (StringPresenter.value equal "string2"))
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 

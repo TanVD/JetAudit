@@ -4,11 +4,9 @@ import tanvd.aorm.Column
 import tanvd.aorm.DbPrimitiveType
 import tanvd.audit.exceptions.UnknownInformationTypeException
 
-abstract class InformationType<T : Any>(val code: String, val type : DbPrimitiveType<T>,
-                                        val column: Column<T, DbPrimitiveType<T>> = Column(code, type)) {
-    constructor(column: Column<T, DbPrimitiveType<T>>): this(column.name, column.type, column)
-
-    abstract fun getDefault(): T
+abstract class InformationType<T : Any>(val code: String, val type : DbPrimitiveType<T>, val default: () -> T,
+                                        val column: Column<T, DbPrimitiveType<T>> = Column(code, type, default)) {
+    constructor(column: Column<T, DbPrimitiveType<T>>): this(column.name, column.type, column.defaultFunction!!)
 
     companion object TypesResolution {
         private val informationTypes: MutableSet<InformationType<Any>> = LinkedHashSet()
@@ -30,8 +28,8 @@ abstract class InformationType<T : Any>(val code: String, val type : DbPrimitive
         }
 
         @Synchronized
-        internal fun addType(type: InformationType<Any>) {
-            informationTypes.add(type)
+        internal fun addType(type: InformationType<*>) {
+            informationTypes.add(type as InformationType<Any>)
             informationTypesByCode.put(type.code, type)
         }
 

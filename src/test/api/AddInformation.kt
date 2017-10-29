@@ -16,12 +16,11 @@ import tanvd.audit.exceptions.AddExistingInformationTypeException
 import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.QueueCommand
 import tanvd.audit.implementation.dao.AuditDao
-import tanvd.audit.model.external.types.InnerType
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.internal.AuditRecordInternal
-import utils.BooleanInfPresenter
+import utils.BooleanInf
 import utils.DbUtils
-import utils.TypeUtils
+import utils.TestUtil
 import java.util.concurrent.BlockingQueue
 
 
@@ -59,44 +58,33 @@ internal class AddInformation : PowerMockTestCase() {
         reset(auditDao)
         reset(auditExecutor)
         reset(auditQueueInternal)
-        TypeUtils.clearTypes()
+        TestUtil.clearTypes()
     }
 
 
     @Test
     fun addInformation_typeAdded_typeToInformationTypesAdded() {
-        val type = createSampleInformationType()
+        auditApi?.addInformationType(BooleanInf)
 
-        auditApi?.addInformationType(type)
-
-        assertEquals(setOf(type), InformationType.getTypes())
+        assertEquals(setOf(BooleanInf), InformationType.getTypes())
     }
 
     @Test
     fun addType_typeAdded_typeToAuditDaoAdded() {
-        val type = createSampleInformationType()
+        auditApi?.addInformationType(BooleanInf)
 
-        auditApi?.addInformationType(type)
-
-        verify(auditDao)?.addInformationInDbModel(type)
+        verify(auditDao)?.addInformationInDbModel(BooleanInf)
     }
 
     @Test
     fun addType_typeExistingAdded_exceptionThrown() {
-        val type = createSampleInformationType()
-
-        auditApi?.addInformationType(type)
+        auditApi?.addInformationType(BooleanInf)
 
         try {
-            auditApi?.addInformationType(type)
+            auditApi?.addInformationType(BooleanInf)
         } catch (e: AddExistingInformationTypeException) {
             return
         }
         Assert.fail()
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun createSampleInformationType(): InformationType<Any> {
-        return InformationType(BooleanInfPresenter, InnerType.Boolean) as InformationType<Any>
     }
 }

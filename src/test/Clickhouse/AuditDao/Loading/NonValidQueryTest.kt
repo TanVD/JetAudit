@@ -5,13 +5,11 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.presenters.StringPresenter
-import tanvd.audit.model.external.types.InnerType
+import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.types.information.InformationType
-import utils.DbUtils
-import utils.StringInfPresenter
-import utils.TypeUtils
+import utils.StringInf
+import utils.TestUtil
 
 internal class NonValidQueryTest {
 
@@ -23,33 +21,23 @@ internal class NonValidQueryTest {
     @BeforeMethod
     @Suppress("UNCHECKED_CAST")
     fun createAll() {
-
-        TypeUtils.addAuditTypesPrimitive()
-        TypeUtils.addInformationTypesPrimitive()
-
-        AuditDao.credentials = DbUtils.getCredentials()
-        auditDao = AuditDao.getDao() as AuditDaoClickhouseImpl
+        auditDao = TestUtil.create()
 
         @Suppress("UNCHECKED_CAST")
-        val type = InformationType(StringInfPresenter, InnerType.String) as InformationType<Any>
-        InformationType.addType(type)
-        auditDao!!.addInformationInDbModel(type)
-
-        TypeUtils.addAuditTypePrimitive(auditDao!!)
-
+        InformationType.addType(StringInf)
+        auditDao!!.addInformationInDbModel(StringInf)
     }
 
     @AfterMethod
     fun clearAll() {
-        auditDao!!.dropTable(AuditDaoClickhouseImpl.auditTable)
-        TypeUtils.clearTypes()
+        TestUtil.drop()
     }
 
     @Test
     fun tryStringSqlInjectionWithQuoteToAuditType_Equal() {
         val stringInjection = "'; Select * from example.Audit; --"
 
-        val elements = auditDao!!.loadRecords(StringPresenter.value equal stringInjection, QueryParameters())
+        val elements = auditDao!!.loadRecords(StringPresenter.value equal stringInjection)
         Assert.assertEquals(elements.size, 0)
     }
 
@@ -57,7 +45,7 @@ internal class NonValidQueryTest {
     fun tryStringSqlInjectionWithBackQuoteToAuditType_Equal() {
         val stringInjection = "`; Select * from example.Audit; --"
 
-        val elements = auditDao!!.loadRecords(StringPresenter.value equal stringInjection, QueryParameters())
+        val elements = auditDao!!.loadRecords(StringPresenter.value equal stringInjection)
         Assert.assertEquals(elements.size, 0)
     }
 
@@ -65,7 +53,7 @@ internal class NonValidQueryTest {
     fun tryStringWithEscapesToAuditType_Equal() {
         val stringInjection = "'`\n\b\t\\--"
 
-        val elements = auditDao!!.loadRecords(StringPresenter.value equal stringInjection, QueryParameters())
+        val elements = auditDao!!.loadRecords(StringPresenter.value equal stringInjection)
         Assert.assertEquals(elements.size, 0)
     }
 

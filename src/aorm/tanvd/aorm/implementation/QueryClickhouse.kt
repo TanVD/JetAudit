@@ -2,14 +2,15 @@ package tanvd.aorm.implementation
 
 import tanvd.aorm.DbType
 import tanvd.aorm.Row
+import tanvd.aorm.Table
 import tanvd.aorm.query.Query
 import java.sql.Connection
 import java.sql.PreparedStatement
 
 object QueryClickhouse {
-    fun getResult(query: Query) : List<Row> {
+    fun getResult(table: Table, query: Query) : List<Row> {
         val rows = ArrayList<Row>()
-        ConnectionClikhouse.withConnection {
+        table.db.withConnection {
             constructQuery(query).use { statement ->
                 val result = statement.executeQuery()
                 while (result.next()) {

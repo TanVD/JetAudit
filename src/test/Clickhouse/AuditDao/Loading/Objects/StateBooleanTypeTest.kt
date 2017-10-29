@@ -4,8 +4,13 @@ import org.testng.Assert
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
+import tanvd.aorm.Column
+import tanvd.aorm.DbType
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
+import tanvd.audit.implementation.clickhouse.aorm.AuditTable
 import tanvd.audit.implementation.dao.AuditDao
+import tanvd.audit.model.external.queries.equal
+import tanvd.audit.model.external.queries.inList
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.objects.ObjectType
 import utils.*
@@ -18,18 +23,13 @@ internal class StateBooleanTypeTest {
         var auditDao: AuditDaoClickhouseImpl? = null
     }
 
+    val type = ObjectType(TestClassBoolean::class, TestClassBooleanPresenter) as ObjectType<Any>
+
     @BeforeMethod
     @Suppress("UNCHECKED_CAST")
     fun createAll() {
-        TypeUtils.addAuditTypesPrimitive()
-        TypeUtils.addInformationTypesPrimitive()
+        auditDao = TestUtil.create()
 
-        AuditDao.credentials = DbUtils.getCredentials()
-        auditDao = AuditDao.getDao() as AuditDaoClickhouseImpl
-
-        TypeUtils.addAuditTypePrimitive(auditDao!!)
-
-        val type = ObjectType(TestClassBoolean::class, TestClassBooleanPresenter) as ObjectType<Any>
         ObjectType.addType(type)
         auditDao!!.addTypeInDbModel(type)
 
@@ -37,8 +37,7 @@ internal class StateBooleanTypeTest {
 
     @AfterMethod
     fun clearAll() {
-        auditDao!!.dropTable(AuditDaoClickhouseImpl.auditTable)
-        TypeUtils.clearTypes()
+        TestUtil.drop()
         currentId = 0
     }
 
@@ -49,7 +48,7 @@ internal class StateBooleanTypeTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(TestClassBooleanPresenter.id equal true, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TestClassBooleanPresenter.id equal true)
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
@@ -59,7 +58,7 @@ internal class StateBooleanTypeTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(TestClassBooleanPresenter.id equal false, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TestClassBooleanPresenter.id equal false)
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
@@ -70,7 +69,7 @@ internal class StateBooleanTypeTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(TestClassBooleanPresenter.id inList listOf(true), QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TestClassBooleanPresenter.id inList listOf(true))
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
@@ -80,7 +79,7 @@ internal class StateBooleanTypeTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(TestClassBooleanPresenter.id inList listOf(false), QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TestClassBooleanPresenter.id inList listOf(false))
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 

@@ -45,7 +45,7 @@ class DbDateTime: DbPrimitiveType<DateTime>() {
     }
 
     override fun getValue(name: String, result: ResultSet): DateTime {
-        return DateTime(result.getTimestamp(name).nanos / 1000)
+        return DateTime(result.getTimestamp(name).time)
     }
 
     override fun setValue(index: Int, statement: PreparedStatement, value: DateTime) {
@@ -184,7 +184,7 @@ class DbArrayLong: DbArrayType<Long>() {
     }
 
     override fun getValue(name: String, result: ResultSet): List<Long> {
-        return (result.getArray(name).array as Array<Long>).toList()
+        return (result.getArray(name).array as LongArray).toList()
     }
 
     override fun setValue(index: Int, statement: PreparedStatement, value: List<Long>) {
@@ -203,7 +203,7 @@ class DbArrayULong: DbArrayType<Long>() {
     }
 
     override fun getValue(name: String, result: ResultSet): List<Long> {
-        return (result.getArray(name).array as Array<Long>).toList()
+        return (result.getArray(name).array as LongArray).toList()
     }
 
     override fun setValue(index: Int, statement: PreparedStatement, value: List<Long>) {
@@ -222,8 +222,8 @@ class DbArrayBoolean: DbArrayType<Boolean>() {
     }
 
     override fun getValue(name: String, result: ResultSet): List<Boolean> {
-        return (result.getArray(name).array as Array<Int>).map {
-            it == 1
+        return (result.getArray(name).array as LongArray).toList().map {
+            it.toInt() == 1
         }.toList()
     }
 

@@ -5,10 +5,8 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.queries.*
 import tanvd.audit.model.external.records.InformationObject
-import tanvd.audit.model.external.types.InnerType
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.internal.AuditRecordInternal
 import utils.*
@@ -24,23 +22,15 @@ internal class InformationStringQueriesTest {
     @BeforeMethod
     @Suppress("UNCHECKED_CAST")
     fun createAll() {
-        TypeUtils.addAuditTypesPrimitive()
-        TypeUtils.addInformationTypesPrimitive()
+        auditDao = TestUtil.create()
 
-        AuditDao.credentials = DbUtils.getCredentials()
-        auditDao = AuditDao.getDao() as AuditDaoClickhouseImpl
-
-        TypeUtils.addAuditTypePrimitive(auditDao!!)
-
-        val type = InformationType(StringInfPresenter, InnerType.String) as InformationType<Any>
-        InformationType.addType(type)
-        auditDao!!.addInformationInDbModel(type)
+        InformationType.addType(StringInf)
+        auditDao!!.addInformationInDbModel(StringInf)
     }
 
     @AfterMethod
     fun clearAll() {
-        auditDao!!.dropTable(AuditDaoClickhouseImpl.auditTable)
-        TypeUtils.clearTypes()
+        TestUtil.drop()
         currentId = 0
     }
 
@@ -51,7 +41,7 @@ internal class InformationStringQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(StringInfPresenter equal "string", QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(StringInf equal "string")
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
@@ -61,7 +51,7 @@ internal class InformationStringQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(StringInfPresenter equal "error", QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(StringInf equal "error")
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
@@ -72,7 +62,7 @@ internal class InformationStringQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(StringInfPresenter like "str%", QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(StringInf like "str%")
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
@@ -82,7 +72,7 @@ internal class InformationStringQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(StringInfPresenter like "s_", QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(StringInf like "s_")
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
@@ -92,7 +82,7 @@ internal class InformationStringQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(StringInfPresenter regexp "st", QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(StringInf regex "st")
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
@@ -102,7 +92,7 @@ internal class InformationStringQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(StringInfPresenter regexp "zo", QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(StringInf regex "zo")
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
@@ -113,7 +103,7 @@ internal class InformationStringQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(StringInfPresenter inList listOf("string"), QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(StringInf inList listOf("string"))
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
@@ -123,14 +113,14 @@ internal class InformationStringQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(StringInfPresenter inList listOf("error"), QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(StringInf inList listOf("error"))
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
 
     private fun getSampleInformation(value: String): MutableSet<InformationObject<*>> {
         val information = InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
-        information.add(InformationObject(value, StringInfPresenter))
+        information.add(InformationObject(value, StringInf))
         return information
 
     }

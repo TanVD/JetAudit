@@ -1,12 +1,13 @@
 package tanvd.aorm.implementation
 
 import tanvd.aorm.InsertExpression
+import tanvd.aorm.Table
 import java.sql.Connection
 import java.sql.PreparedStatement
 
 object InsertClickhouse {
-    fun insert(expression: InsertExpression) {
-        ConnectionClikhouse.withConnection {
+    fun insert(table: Table, expression: InsertExpression) {
+        table.db.withConnection {
             constructInsert(expression).execute()
         }
     }

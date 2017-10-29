@@ -5,7 +5,6 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.presenters.DateType
 import tanvd.audit.model.external.queries.*
 import tanvd.audit.model.external.records.InformationObject
@@ -21,19 +20,12 @@ internal class InformationDateQueriesTest {
     @BeforeMethod
     @Suppress("UNCHECKED_CAST")
     fun createAll() {
-        TypeUtils.addAuditTypesPrimitive()
-        TypeUtils.addInformationTypesPrimitive()
-
-        AuditDao.credentials = DbUtils.getCredentials()
-        auditDao = AuditDao.getDao() as AuditDaoClickhouseImpl
-
-        TypeUtils.addAuditTypePrimitive(auditDao!!)
+        auditDao = TestUtil.create()
     }
 
     @AfterMethod
     fun clearAll() {
-        auditDao!!.dropTable(AuditDaoClickhouseImpl.auditTable)
-        TypeUtils.clearTypes()
+        TestUtil.drop()
         currentId = 0
     }
 
@@ -44,7 +36,7 @@ internal class InformationDateQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(DateType equal getDate("2000-01-01"), QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(DateType equal getDate("2000-01-01"))
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
@@ -54,7 +46,7 @@ internal class InformationDateQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(DateType equal getDate("2000-01-02"), QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(DateType equal getDate("2000-01-02"))
         Assert.assertTrue(recordsLoaded.isEmpty())
     }
 
@@ -65,7 +57,7 @@ internal class InformationDateQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(DateType less getDate("2000-01-02"), QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(DateType less getDate("2000-01-02"))
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
@@ -75,7 +67,7 @@ internal class InformationDateQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(DateType less getDate("2000-01-01"), QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(DateType less getDate("2000-01-01"))
         Assert.assertTrue(recordsLoaded.isEmpty())
     }
 
@@ -85,7 +77,7 @@ internal class InformationDateQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(DateType more getDate("1999-01-01"), QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(DateType more getDate("1999-01-01"))
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
@@ -95,7 +87,7 @@ internal class InformationDateQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(DateType more getDate("2000-01-01"), QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(DateType more getDate("2000-01-01"))
         Assert.assertTrue(recordsLoaded.isEmpty())
     }
 
@@ -105,7 +97,7 @@ internal class InformationDateQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(DateType lessOrEqual getDate("2000-01-01"), QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(DateType lessOrEq getDate("2000-01-01"))
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
@@ -115,7 +107,7 @@ internal class InformationDateQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(DateType lessOrEqual getDate("1999-01-01"), QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(DateType lessOrEq getDate("1999-01-01"))
         Assert.assertTrue(recordsLoaded.isEmpty())
     }
 
@@ -125,7 +117,7 @@ internal class InformationDateQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(DateType moreOrEqual getDate("2000-01-01"), QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(DateType moreOrEq getDate("2000-01-01"))
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
@@ -135,7 +127,7 @@ internal class InformationDateQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(DateType more getDate("2000-01-02"), QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(DateType more getDate("2000-01-02"))
         Assert.assertTrue(recordsLoaded.isEmpty())
     }
 
@@ -146,7 +138,7 @@ internal class InformationDateQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(DateType inList listOf(getDate("2000-01-01")), QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(DateType inList listOf(getDate("2000-01-01")))
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
@@ -156,7 +148,7 @@ internal class InformationDateQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(DateType inList listOf(getDate("2000-01-02")), QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(DateType inList listOf(getDate("2000-01-02")))
         Assert.assertTrue(recordsLoaded.isEmpty())
     }
 

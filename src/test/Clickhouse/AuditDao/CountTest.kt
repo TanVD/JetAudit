@@ -9,10 +9,7 @@ import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.presenters.LongPresenter
 import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.records.InformationObject
-import utils.DbUtils
-import utils.InformationUtils
-import utils.SamplesGenerator
-import utils.TypeUtils
+import utils.*
 
 internal class CountTest {
 
@@ -24,20 +21,12 @@ internal class CountTest {
     @BeforeMethod
     @Suppress("UNCHECKED_CAST")
     fun createAll() {
-
-        TypeUtils.addAuditTypesPrimitive()
-        TypeUtils.addInformationTypesPrimitive()
-
-        AuditDao.credentials = DbUtils.getCredentials()
-        auditDao = AuditDao.getDao() as AuditDaoClickhouseImpl
-
-        TypeUtils.addAuditTypePrimitive(auditDao!!)
+        auditDao = TestUtil.create()
     }
 
     @AfterMethod
     fun clearAll() {
-        auditDao!!.dropTable(AuditDaoClickhouseImpl.auditTable)
-        TypeUtils.clearTypes()
+        TestUtil.drop()
         currentId = 0
     }
 

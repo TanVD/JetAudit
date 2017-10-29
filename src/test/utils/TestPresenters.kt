@@ -1,46 +1,17 @@
 package utils
 
 import org.joda.time.DateTime
+import tanvd.aorm.*
 import tanvd.audit.model.external.types.information.*
 import java.util.*
 
-internal object LongInfPresenter : InformationLongPresenter() {
-    override val code: String = "LongInfColumn"
+internal object LongInf : InformationType<Long>("LongInfColumn", DbLong(), { 0 })
 
-    override fun getDefault(): Long {
-        return 0
-    }
-}
+internal object StringInf : InformationType<String>("StringInfColumn", DbString(), { "" })
 
-internal object StringInfPresenter : InformationStringPresenter() {
-    override val code: String = "StringInfColumn"
+internal object BooleanInf : InformationType<Boolean>("BooleanInfColumn", DbBoolean(), { false })
 
-    override fun getDefault(): String {
-        return ""
-    }
-}
+internal object DateInf : InformationType<Date>("DateInfColumn", DbDate(), { getDate("2000-01-01") })
 
-internal object BooleanInfPresenter : InformationBooleanPresenter() {
-    override val code: String = "BooleanInfColumn"
-
-    override fun getDefault(): Boolean {
-        return false
-    }
-}
-
-internal object DateInfPresenter : InformationDatePresenter() {
-    override val code: String = "DateInfColumn"
-
-    override fun getDefault(): Date {
-        return getDate("2000-01-01")
-    }
-}
-
-internal object DateTimeInfPresenter : InformationDateTimePresenter() {
-    override val code: String = "DateTimeInfColumn"
-
-    override fun getDefault(): DateTime {
-        return getDateTime("2000-01-01 12:00:00")
-    }
-}
+internal object DateTimeInf : InformationType<DateTime>("DateTimeInfColumn", DbDateTime(), { getDateTime("2000-01-01 12:00:00") })
 

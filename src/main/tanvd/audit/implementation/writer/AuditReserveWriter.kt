@@ -23,27 +23,27 @@ internal interface AuditReserveWriter {
 
         private val reserveWriterType: String by lazy { PropertyLoader["ReserveWriter"] ?: "File" }
 
-        private val internalWriter: AuditReserveWriter by lazy {
-            when (reserveWriterType) {
-                "File" -> {
-                    val reservePath = PropertyLoader["ReservePath"] ?: "reserve.txt"
-                    ClickhouseSqlFileWriter(reservePath)
-                }
-                "Log" -> {
-                    val reservePath = PropertyLoader["ReservePath"] ?: "ReserveLogger"
-                    ClickhouseSqlLogWriter(reservePath)
-                }
-                "S3" -> ClickhouseSqlS3Writer()
-                else -> {
-                    logger.error("Unknown option -- $reserveWriterType for reserve writing. Fallback to File.")
-                    val reservePath = PropertyLoader["ReservePath"] ?: "reserve.txt"
-                    ClickhouseSqlFileWriter(reservePath)
-                }
-            }
-        }
+//        private val internalWriter: AuditReserveWriter by lazy {
+//            when (reserveWriterType) {
+//                "File" -> {
+//                    val reservePath = PropertyLoader["ReservePath"] ?: "reserve.txt"
+//                    ClickhouseSqlFileWriter(reservePath)
+//                }
+//                "Log" -> {
+//                    val reservePath = PropertyLoader["ReservePath"] ?: "ReserveLogger"
+//                    ClickhouseSqlLogWriter(reservePath)
+//                }
+//                "S3" -> ClickhouseSqlS3Writer()
+//                else -> {
+//                    logger.error("Unknown option -- $reserveWriterType for reserve writing. Fallback to File.")
+//                    val reservePath = PropertyLoader["ReservePath"] ?: "reserve.txt"
+//                    ClickhouseSqlFileWriter(reservePath)
+//                }
+//            }
+//        }
 
-        fun getWriter(): AuditReserveWriter {
-            return internalWriter
-        }
+//        fun getWriter(): AuditReserveWriter {
+//            return internalWriter
+//        }
     }
 }

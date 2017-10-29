@@ -10,13 +10,13 @@ object TestClassLongPresenter : ObjectPresenter<TestClassLong>() {
 
     override val entityName: String = "TestClassLong"
 
-    val id = StateLongType("Id", entityName)
+    val id = long("Id")
 
-    override val fieldSerializers: Map<StateType<*>, (TestClassLong) -> String> =
-            hashMapOf(id to { (hash) -> hash.toString() })
+    override val fieldSerializers: Map<StateType<*>, (TestClassLong) -> Long> =
+            hashMapOf(id to { (hash) -> hash })
 
     override val deserializer: (ObjectState) -> TestClassLong? = { (stateList) ->
-        if (stateList[id] == null) null else TestClassLong(stateList[id]!!.toLong())
+        if (stateList[id] == null) null else TestClassLong(stateList[id]!! as Long)
     }
 }
 
@@ -27,13 +27,13 @@ object TestClassStringPresenter : ObjectPresenter<TestClassString>() {
 
     override val entityName: String = "TestClassString"
 
-    val id = StateStringType("Id", entityName)
+    val id = string("Id")
 
     override val fieldSerializers: Map<StateType<*>, (TestClassString) -> String> =
             hashMapOf(id to { (hash) -> hash })
 
     override val deserializer: (ObjectState) -> TestClassString? = { (stateList) ->
-        if (stateList[id] == null) null else TestClassString(stateList[id]!!)
+        if (stateList[id] == null) null else TestClassString(stateList[id] as String)
     }
 }
 
@@ -44,12 +44,12 @@ object TestClassBooleanPresenter : ObjectPresenter<TestClassBoolean>() {
 
     override val entityName: String = "TestClassBoolean"
 
-    val id = StateBooleanType("Id", entityName)
+    val id = boolean("Id")
 
-    override val fieldSerializers: Map<StateType<*>, (TestClassBoolean) -> String> =
-            hashMapOf(id to { (hash) -> hash.toString() })
+    override val fieldSerializers: Map<StateType<*>, (TestClassBoolean) -> Boolean> =
+            hashMapOf(id to { (hash) -> hash })
 
     override val deserializer: (ObjectState) -> TestClassBoolean? = { (stateList) ->
-        if (stateList[id] == null) null else TestClassBoolean(stateList[id]!!.toBoolean())
+        if (stateList[id] == null) null else TestClassBoolean(stateList[id] as Boolean)
     }
 }

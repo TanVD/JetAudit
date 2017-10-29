@@ -8,6 +8,8 @@ import tanvd.aorm.query.SimpleColumn
 import java.util.*
 
 abstract class Table(val name: String) {
+    abstract var db: Database
+
     abstract val engine: Engine
 
     val columns: MutableList<Column<Any, DbType<Any>>> = ArrayList()
@@ -83,6 +85,6 @@ abstract class Table(val name: String) {
 
 
     fun insert(expression: InsertExpression) {
-        InsertClickhouse.insert(expression)
+        InsertClickhouse.insert(this, expression)
     }
 }

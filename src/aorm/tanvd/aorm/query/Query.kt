@@ -8,12 +8,12 @@ import tanvd.aorm.implementation.QueryClickhouse
 
 class Query(val table: Table, var columns: List<QueryFunction>) {
     var whereSection : QueryExpression? = null
-    internal var prewhereSection: QueryExpression? = null
-    internal var orderBySection: OrderByExpression? = null
-    internal var limitSection: LimitExpression? = null
+    var prewhereSection: QueryExpression? = null
+    var orderBySection: OrderByExpression? = null
+    var limitSection: LimitExpression? = null
 
     fun toResult(): List<Row> {
-        return QueryClickhouse.getResult(this)
+        return QueryClickhouse.getResult(table, this)
     }
 }
 

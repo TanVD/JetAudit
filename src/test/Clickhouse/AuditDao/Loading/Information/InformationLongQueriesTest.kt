@@ -5,15 +5,11 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.presenters.TimeStampType
 import tanvd.audit.model.external.queries.*
 import tanvd.audit.model.external.records.InformationObject
-import utils.DbUtils
-import utils.InformationUtils
-import utils.SamplesGenerator
+import utils.*
 import utils.SamplesGenerator.getRecordInternal
-import utils.TypeUtils
 
 internal class InformationLongQueriesTest {
 
@@ -25,19 +21,12 @@ internal class InformationLongQueriesTest {
     @BeforeMethod
     @Suppress("UNCHECKED_CAST")
     fun createAll() {
-        TypeUtils.addAuditTypesPrimitive()
-        TypeUtils.addInformationTypesPrimitive()
-
-        AuditDao.credentials = DbUtils.getCredentials()
-        auditDao = AuditDao.getDao() as AuditDaoClickhouseImpl
-
-        TypeUtils.addAuditTypePrimitive(auditDao!!)
+        auditDao = TestUtil.create()
     }
 
     @AfterMethod
     fun clearAll() {
-        auditDao!!.dropTable(AuditDaoClickhouseImpl.auditTable)
-        TypeUtils.clearTypes()
+        TestUtil.drop()
         currentId = 0
     }
 
@@ -48,7 +37,7 @@ internal class InformationLongQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(TimeStampType equal 1, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TimeStampType equal 1)
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
@@ -58,7 +47,7 @@ internal class InformationLongQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(TimeStampType equal 0, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TimeStampType equal 0)
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
@@ -69,7 +58,7 @@ internal class InformationLongQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(TimeStampType less 2, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TimeStampType less 2)
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
@@ -79,7 +68,7 @@ internal class InformationLongQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(TimeStampType less 1, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TimeStampType less 1)
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
@@ -89,7 +78,7 @@ internal class InformationLongQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(TimeStampType more 0, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TimeStampType more 0)
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
@@ -99,7 +88,7 @@ internal class InformationLongQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(TimeStampType more 1, QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TimeStampType more 1)
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
@@ -110,7 +99,7 @@ internal class InformationLongQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(TimeStampType inList listOf(1), QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TimeStampType inList listOf(1L))
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
 
@@ -120,7 +109,7 @@ internal class InformationLongQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(TimeStampType inList listOf(0), QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TimeStampType inList listOf(0L))
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 

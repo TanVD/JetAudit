@@ -12,8 +12,8 @@ object LongPresenter : ObjectPresenter<Long>() {
 
     val value = StateType("Value", entityName, DbLong())
 
-    override val fieldSerializers: Map<StateType<*>, (Long) -> String> =
-            hashMapOf(value to { value -> value.toString() })
+    override val fieldSerializers: Map<StateType<*>, (Long) -> Long> =
+            hashMapOf(value to { value -> value })
 
     override val deserializer: (ObjectState) -> Long? = { (stateList) -> stateList[value] as Long? }
 }

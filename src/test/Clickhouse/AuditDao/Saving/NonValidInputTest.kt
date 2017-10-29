@@ -5,10 +5,9 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.presenters.StringPresenter
+import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.records.InformationObject
-import tanvd.audit.model.external.types.InnerType
 import tanvd.audit.model.external.types.information.InformationType
 import utils.*
 import utils.SamplesGenerator.getRecordInternal
@@ -23,26 +22,16 @@ internal class NonValidInputTest {
     @BeforeMethod
     @Suppress("UNCHECKED_CAST")
     fun createAll() {
-
-        TypeUtils.addAuditTypesPrimitive()
-        TypeUtils.addInformationTypesPrimitive()
-
-        AuditDao.credentials = DbUtils.getCredentials()
-        auditDao = AuditDao.getDao() as AuditDaoClickhouseImpl
+        auditDao = TestUtil.create()
 
         @Suppress("UNCHECKED_CAST")
-        val type = InformationType(StringInfPresenter, InnerType.String) as InformationType<Any>
-        InformationType.addType(type)
-        auditDao!!.addInformationInDbModel(type)
-
-        TypeUtils.addAuditTypePrimitive(auditDao!!)
-
+        InformationType.addType(StringInf)
+        auditDao!!.addInformationInDbModel(StringInf)
     }
 
     @AfterMethod
     fun clearAll() {
-        auditDao!!.dropTable(AuditDaoClickhouseImpl.auditTable)
-        TypeUtils.clearTypes()
+        TestUtil.drop()
     }
 
     @Test
@@ -55,7 +44,7 @@ internal class NonValidInputTest {
 
         auditDao!!.saveRecord(auditRecordOriginal)
 
-        val elements = auditDao!!.loadRecords(StringPresenter.value equal stringInjection, QueryParameters())
+        val elements = auditDao!!.loadRecords(StringPresenter.value equal stringInjection)
         Assert.assertEquals(elements, listOf(auditRecordOriginal))
     }
 
@@ -69,7 +58,7 @@ internal class NonValidInputTest {
 
         auditDao!!.saveRecord(auditRecordOriginal)
 
-        val elements = auditDao!!.loadRecords(StringPresenter.value equal stringInjection, QueryParameters())
+        val elements = auditDao!!.loadRecords(StringPresenter.value equal stringInjection)
         Assert.assertEquals(elements, listOf(auditRecordOriginal))
     }
 
@@ -83,7 +72,7 @@ internal class NonValidInputTest {
 
         auditDao!!.saveRecord(auditRecordOriginal)
 
-        val elements = auditDao!!.loadRecords(StringPresenter.value equal stringInjection, QueryParameters())
+        val elements = auditDao!!.loadRecords(StringPresenter.value equal stringInjection)
         Assert.assertEquals(elements, listOf(auditRecordOriginal))
     }
 
@@ -96,7 +85,7 @@ internal class NonValidInputTest {
 
         auditDao!!.saveRecord(auditRecordOriginal)
 
-        val elements = auditDao!!.loadRecords(StringInfPresenter equal stringInjection, QueryParameters())
+        val elements = auditDao!!.loadRecords(StringInf equal stringInjection)
         Assert.assertEquals(elements, listOf(auditRecordOriginal))
     }
 
@@ -110,7 +99,7 @@ internal class NonValidInputTest {
 
         auditDao!!.saveRecord(auditRecordOriginal)
 
-        val elements = auditDao!!.loadRecords(StringInfPresenter equal stringInjection, QueryParameters())
+        val elements = auditDao!!.loadRecords(StringInf equal stringInjection)
         Assert.assertEquals(elements, listOf(auditRecordOriginal))
     }
 
@@ -124,7 +113,7 @@ internal class NonValidInputTest {
 
         auditDao!!.saveRecord(auditRecordOriginal)
 
-        val elements = auditDao!!.loadRecords(StringInfPresenter equal stringInjection, QueryParameters())
+        val elements = auditDao!!.loadRecords(StringInf equal stringInjection)
         Assert.assertEquals(elements, listOf(auditRecordOriginal))
     }
 

@@ -5,32 +5,12 @@ import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.utils.RandomGenerator
 import java.util.*
 
-object TimeStampType : InformationType<Long>(AuditTable.timestamp) {
-    override fun getDefault(): Long {
-        return System.currentTimeMillis()
-    }
-}
+object TimeStampType : InformationType<Long>(AuditTable.timestamp)
 
-object VersionType : InformationType<Long>(AuditTable.version) {
-    override fun getDefault(): Long {
-        return 0
-    }
-}
+object VersionType : InformationType<Long>(AuditTable.version)
 
-object IdType : InformationType<Long>(AuditTable.id) {
-    override fun getDefault(): Long {
-        return RandomGenerator.next()
-    }
-}
+object IdType : InformationType<Long>(AuditTable.id)
 
-object DateType : InformationType<Date>(AuditTable.date) {
-    override fun getDefault(): Date {
-        return Date()
-    }
-}
+object DateType : InformationType<Date>(AuditTable.date)
 
-object IsDeletedType : InformationType<Boolean>(AuditTable.isDeleted) {
-    override fun getDefault(): Boolean {
-        return false
-    }
-}
+object IsDeletedType : InformationType<Boolean>(AuditTable.isDeleted)

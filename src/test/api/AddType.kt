@@ -18,10 +18,7 @@ import tanvd.audit.implementation.QueueCommand
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
-import utils.DbUtils
-import utils.TestClassString
-import utils.TestClassStringPresenter
-import utils.TypeUtils
+import utils.*
 import java.util.concurrent.BlockingQueue
 
 
@@ -59,7 +56,7 @@ internal class AddType : PowerMockTestCase() {
         reset(auditDao)
         reset(auditExecutor)
         reset(auditQueueInternal)
-        TypeUtils.clearTypes()
+        TestUtil.clearTypes()
     }
 
 

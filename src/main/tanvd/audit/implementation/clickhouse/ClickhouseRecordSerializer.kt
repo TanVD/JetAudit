@@ -28,12 +28,16 @@ internal object ClickhouseRecordSerializer {
 
         val elements = serializeObjects(auditRecordInternal)
 
+        auditRecordInternal.information.forEach {
+            elements.put(it.type.column, it.value)
+        }
+
         elements.put(AuditTable.description, description)
 
         return Row(elements as Map<Column<Any, DbType<Any>>, Any>)
     }
 
-    private fun serializeObjects(auditRecordInternal: AuditRecordInternal): MutableMap<Column<*, DbType<*>>, List<Any>> {
+    private fun serializeObjects(auditRecordInternal: AuditRecordInternal): MutableMap<Column<*, DbType<*>>, Any> {
         val groupedObjects = auditRecordInternal.objects.flatMap { it.second.stateList.entries }.groupBy { it.key }
                 .mapValues { it.value.map { it.value } }
         //Add mandatory columns

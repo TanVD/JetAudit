@@ -25,22 +25,25 @@ configurations {
 }
 
 sourceSets {
-    main {
-        kotlin {
-            srcDirs 'src/main'
-        }
-    }
-    test {
-        kotlin {
-            srcDirs 'src/test'
-        }
-    }
     aorm {
         kotlin {
             srcDirs 'src/aorm'
         }
         compileClasspath = configurations.aorm
     }
+    main {
+        kotlin {
+            srcDirs 'src/main'
+        }
+        compileClasspath += aorm.compileClasspath + aorm.output
+    }
+    test {
+        kotlin {
+            srcDirs 'src/test'
+        }
+        compileClasspath += main.compileClasspath + main.output
+    }
+
 }
 
 test {

@@ -5,16 +5,16 @@ import tanvd.aorm.query.*
 import tanvd.audit.implementation.clickhouse.aorm.AuditTable
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.implementation.exceptions.BasicDbException
+import tanvd.audit.model.external.presenters.IdType
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
 import tanvd.audit.utils.PropertyLoader
-import javax.sql.DataSource
 
 /**
  * Dao to Clickhouse DB.
  */
-internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
+internal class AuditDaoClickhouseImpl : AuditDao {
 
 
     /**
@@ -75,11 +75,27 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
      *
      * @throws BasicDbException
      */
-    override fun loadRecords(expression: QueryExpression, limitExpression: LimitExpression,
-                             orderByExpression: OrderByExpression): List<AuditRecordInternal> {
-        val query = AuditTable.select() prewhere expression limit limitExpression orderBy orderByExpression
-        val resultList = query.toResult()
-        return resultList.map { ClickhouseRecordSerializer.deserialize(it) }
+    override fun loadRecords(expression: QueryExpression, limitExpression: LimitExpression?,
+                             orderByExpression: OrderByExpression?): List<AuditRecordInternal> {
+        var query = AuditTable.select() prewhere expression
+        query.prewhereSection = query.prewhereSection!! and (AuditTable.isDeleted eq false)
+        if (limitExpression != null) {
+            query = query limit limitExpression
+        }
+        if (orderByExpression != null) {
+            query = query orderBy orderByExpression
+        }
+        val rows = query.toResult()
+        //filter to newest version
+        val rowsFiltered = rows.groupBy { row ->
+                        row[AuditTable.id]!!.toLong()
+                    }.mapValues {
+                        it.value.sortedByDescending { row ->
+                            row[AuditTable.version]!!.toLong()
+                            }.first()
+                    }.values.toList()
+
+        return rowsFiltered.map { ClickhouseRecordSerializer.deserialize(it) }
     }
 
     /**
@@ -89,8 +105,13 @@ internal class AuditDaoClickhouseImpl(dataSource: DataSource) : AuditDao {
      */
     override fun countRecords(expression: QueryExpression): Long {
         val alias = "cnt"
-        val resultList = AuditTable.select(Count(AuditTable.date, alias)).toResult()
-        return resultList.single()[alias] as Long
+        val query = AuditTable.select(Count(AuditTable.id, alias)) prewhere expression
+        query.prewhereSection = query.prewhereSection!! and (AuditTable.isDeleted eq false)
+
+        val resultList = query.toResult()
+        return resultList.singleOrNull()?.let {
+            it[alias] as Long
+        } ?: 0L
     }
 
     override fun resetTable() {

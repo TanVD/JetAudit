@@ -62,7 +62,7 @@ internal class SaveAudit : PowerMockTestCase() {
         reset(auditDao)
         reset(auditExecutor)
         reset(auditQueueInternal)
-        TypeUtils.clearTypes()
+        TestUtil.clearTypes()
     }
 
     @Test
@@ -126,12 +126,10 @@ internal class SaveAudit : PowerMockTestCase() {
 
     private fun addPrimitiveTypes() {
         auditApi!!.addPrimitiveTypes()
-        auditApi!!.addServiceInformation()
     }
 
     private fun addPrimitiveTypesAndTestClassFirst() {
         auditApi!!.addPrimitiveTypes()
-        auditApi!!.addServiceInformation()
         val type = ObjectType(TestClassString::class, TestClassStringPresenter)
         auditApi!!.addObjectType(type)
     }

@@ -8,7 +8,7 @@ import tanvd.audit.model.external.records.ObjectState
 import tanvd.audit.model.external.types.objects.ObjectPresenter
 import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.external.types.objects.StateType
-import utils.TypeUtils
+import utils.TestUtil
 
 internal class AddInformationTypeTest {
 
@@ -30,7 +30,11 @@ internal class AddInformationTypeTest {
 
     @AfterMethod
     fun clean() {
-        TypeUtils.clearTypes()
+        try {
+        TestUtil.drop()
+        } catch (e : Exception) {
+
+        }
     }
 
     @Test

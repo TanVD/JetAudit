@@ -1,20 +1,20 @@
-package tanvd.aorm.implementation
+package tanvd.aorm
 
 import ru.yandex.clickhouse.ClickHouseDataSource
 import ru.yandex.clickhouse.settings.ClickHouseProperties
 import java.sql.Connection
 import javax.sql.DataSource
 
-object ConnectionClikhouse {
+abstract class Database {
+    abstract val url: String
+    abstract val password: String
+    abstract val user: String
 
-    val dataSource: DataSource
-
-    init {
+    val dataSource: DataSource by lazy {
         val properties = ClickHouseProperties()
-        properties.user = "default"
-        properties.password = ""
-        dataSource = ClickHouseDataSource("jdbc:clickhouse://localhost:8123", properties)
-
+        properties.user = user
+        properties.password = password
+        ClickHouseDataSource(url, properties)
     }
 
     fun <T>withConnection(body: Connection.() -> T) : T {

@@ -6,20 +6,20 @@ import tanvd.aorm.Table
 
 object TableClickhouse {
     fun create(table: Table) {
-        ConnectionClikhouse.execute("CREATE TABLE ${table.name} " +
+        table.db.execute("CREATE TABLE ${table.name} " +
                 "(${table.columns.joinToString { it.toSqlDef() }}) " +
                 "ENGINE = ${table.engine.toSqlDef()};")
     }
 
     fun drop(table: Table) {
-        ConnectionClikhouse.execute("DROP TABLE ${table.name};")
+        table.db.execute("DROP TABLE ${table.name};")
     }
 
     fun addColumn(table: Table, column: Column<*, DbType<*>>) {
-        ConnectionClikhouse.execute("ALTER TABLE ${table.name} ADD COLUMN ${column.toSqlDef()};")
+        table.db.execute("ALTER TABLE ${table.name} ADD COLUMN ${column.toSqlDef()};")
     }
 
     fun dropColumn(table: Table, column: Column<*, DbType<*>>) {
-        ConnectionClikhouse.execute("ALTER TABLE ${table.name} DROP COLUMN ${column.name};")
+        table.db.execute("ALTER TABLE ${table.name} DROP COLUMN ${column.name};")
     }
 }

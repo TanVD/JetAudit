@@ -1,20 +1,13 @@
 package tanvd.audit.implementation.dao
 
-import ru.yandex.clickhouse.ClickHouseDataSource
-import ru.yandex.clickhouse.settings.ClickHouseProperties
 import tanvd.aorm.query.LimitExpression
 import tanvd.aorm.query.OrderByExpression
 import tanvd.aorm.query.QueryExpression
-import tanvd.audit.exceptions.UninitializedException
 import tanvd.audit.exceptions.UnknownObjectTypeException
-import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.exceptions.BasicDbException
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
-import tanvd.audit.model.internal.db.DbCredentials
-import tanvd.audit.utils.PropertyLoader
-import javax.sql.DataSource
 
 
 internal interface AuditDao {
@@ -63,7 +56,8 @@ internal interface AuditDao {
      * @throws BasicDbException
      */
     @Throws(BasicDbException::class)
-    fun loadRecords(expression: QueryExpression, limitExpression: LimitExpression, orderByExpression: OrderByExpression): List<AuditRecordInternal>
+    fun loadRecords(expression: QueryExpression, limitExpression: LimitExpression? = null,
+                    orderByExpression: OrderByExpression? = null): List<AuditRecordInternal>
 
     /**
      * Return number of records satisfying expression.
@@ -86,35 +80,4 @@ internal interface AuditDao {
      */
     @Throws(BasicDbException::class)
     fun resetTable()
-
-    companion object AuditDaoFactory {
-
-        var credentials: DbCredentials? = null
-
-        var dataSource: DataSource? = null
-
-
-        @Throws(UninitializedException::class)
-        fun getDao(): AuditDao {
-            if (dataSource != null) {
-                return AuditDaoClickhouseImpl(dataSource!!)
-            } else if (credentials != null) {
-                val properties = ClickHouseProperties()
-                properties.user = credentials!!.username
-                properties.password = credentials!!.password
-                properties.connectionTimeout = (PropertyLoader["ConnectionTimeout"]?.toInt() ?: 2000)
-                properties.timeToLiveMillis = (PropertyLoader["TimeToLive"]?.toInt() ?: 240000)
-                properties.keepAliveTimeout = (PropertyLoader["KeepAliveTimeout"]?.toInt() ?: 60000)
-                if (PropertyLoader["UseSSL"]?.toBoolean() == true) {
-                    properties.ssl = true
-                    properties.sslRootCertificate = PropertyLoader["SSLSertPath"]
-                    properties.sslMode = PropertyLoader["SSLVerifyMode"]
-                }
-                return AuditDaoClickhouseImpl(ClickHouseDataSource(credentials!!.url, properties))
-            }
-            throw UninitializedException("Nor credentials nor datasource set in DbProperties")
-        }
-
-    }
-
 }

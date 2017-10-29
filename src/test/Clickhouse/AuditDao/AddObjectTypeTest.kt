@@ -7,6 +7,7 @@ import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.presenters.StringPresenter
+import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.objects.ObjectType
 import utils.*
@@ -24,19 +25,12 @@ internal class AddObjectTypeTest {
     @BeforeMethod
     @Suppress("UNCHECKED_CAST")
     fun createAll() {
-        TypeUtils.addAuditTypesPrimitive()
-        TypeUtils.addInformationTypesPrimitive()
-
-        AuditDao.credentials = DbUtils.getCredentials()
-        auditDao = AuditDao.getDao() as AuditDaoClickhouseImpl
-
-        TypeUtils.addAuditTypePrimitive(auditDao!!)
+        auditDao = TestUtil.create()
     }
 
     @AfterMethod
     fun clearAll() {
-        auditDao!!.dropTable(AuditDaoClickhouseImpl.auditTable)
-        TypeUtils.clearTypes()
+        TestUtil.drop()
         currentId = 0
     }
 
@@ -47,7 +41,7 @@ internal class AddObjectTypeTest {
 
         addTestClassStringType()
 
-        val recordsLoaded = auditDao!!.loadRecords(StringPresenter.value equal "string", QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(StringPresenter.value equal "string")
         Assert.assertEquals(recordsLoaded, listOf(auditRecordOriginal))
     }
 
@@ -61,7 +55,7 @@ internal class AddObjectTypeTest {
         val auditRecordSecondOriginal = getRecordInternal(TestClassString("string"), information = getSampleInformation())
         auditDao!!.saveRecord(auditRecordSecondOriginal)
 
-        val recordsLoaded = auditDao!!.loadRecords(StringPresenter.value equal "string", QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(StringPresenter.value equal "string")
 
         Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
     }
@@ -77,7 +71,7 @@ internal class AddObjectTypeTest {
         auditDao!!.saveRecord(auditRecordSecondOriginal)
 
 
-        val recordsLoaded = auditDao!!.loadRecords(TestClassStringPresenter.id equal "string", QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(TestClassStringPresenter.id equal "string")
         Assert.assertEquals(recordsLoaded, listOf(auditRecordSecondOriginal))
     }
 
@@ -92,7 +86,7 @@ internal class AddObjectTypeTest {
         auditDao!!.saveRecord(auditRecordSecondOriginal)
 
 
-        val recordsLoaded = auditDao!!.loadRecords(StringPresenter.value equal "string", QueryParameters())
+        val recordsLoaded = auditDao!!.loadRecords(StringPresenter.value equal "string")
         Assert.assertEquals(recordsLoaded.toSet(), setOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
     }
 

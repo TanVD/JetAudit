@@ -3,8 +3,8 @@ package tanvd.aorm
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 
-class Column<E, out T : DbType<E>>(val name: String, val type: T) {
-    var defaultFunction: (() -> E)? = null
+class Column<E, out T : DbType<E>>(val name: String, val type: T, default: (() -> E)? = null) {
+    var defaultFunction: (() -> E)? = default
 
     fun getValue(result: ResultSet) : E {
         return type.getValue(name, result)

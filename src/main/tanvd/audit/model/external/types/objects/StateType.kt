@@ -5,7 +5,7 @@ import java.util.*
 
 class StateType<T : Any>(val stateName: String, val objectName: String, type: DbPrimitiveType<T>) {
     internal val type: DbArrayType<T> = type.toArray()
-    internal val column : Column<List<T>, DbArrayType<T>> = Column("${objectName}_$stateName", this.type)
+    internal val column : Column<List<T>, DbArrayType<T>> = Column("${objectName}_$stateName", this.type, { emptyList() })
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -40,4 +40,8 @@ fun <T : Any>ObjectPresenter<T>.long(name: String) : StateType<Long> {
 
 fun <T : Any>ObjectPresenter<T>.string(name: String) : StateType<String> {
     return StateType(name, entityName, DbString())
+}
+
+fun <T : Any>ObjectPresenter<T>.boolean(name: String) : StateType<Boolean> {
+    return StateType(name, entityName, DbBoolean())
 }

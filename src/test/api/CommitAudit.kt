@@ -59,7 +59,7 @@ internal class CommitAudit : PowerMockTestCase() {
         Mockito.reset(auditDao)
         Mockito.reset(auditExecutor)
         Mockito.reset(auditQueueInternal)
-        TypeUtils.clearTypes()
+        TestUtil.clearTypes()
     }
 
     @Test
@@ -224,7 +224,6 @@ internal class CommitAudit : PowerMockTestCase() {
     }
 
     private fun addPrimitiveTypesAndTestClassFirst() {
-        auditApi!!.addServiceInformation()
         auditApi!!.addPrimitiveTypes()
         val type = ObjectType(TestClassString::class, TestClassStringPresenter)
         auditApi!!.addObjectType(type)
