@@ -29,6 +29,7 @@ import java.util.*
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.TimeUnit
+import kotlin.collections.LinkedHashSet
 
 /**
  * Asynchronous saving of entities.
@@ -242,7 +243,7 @@ class AuditAPI {
             }
         }
 
-        auditRecordsNotCommitted.get().add(AuditRecordInternal(recordObjects, information.toMutableSet()))
+        auditRecordsNotCommitted.get().add(AuditRecordInternal(recordObjects, LinkedHashSet(information)))
     }
 
 
@@ -262,7 +263,7 @@ class AuditAPI {
 
         val recordObjects = objects.map { o -> ObjectType.resolveType(o::class).let { it to it.serialize(o) } }
 
-        auditRecordsNotCommitted.get().add(AuditRecordInternal(recordObjects, information))
+        auditRecordsNotCommitted.get().add(AuditRecordInternal(recordObjects, LinkedHashSet(information)))
     }
 
     /**

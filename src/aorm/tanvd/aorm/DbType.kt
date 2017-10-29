@@ -1,9 +1,12 @@
 package tanvd.aorm
 
 import org.joda.time.DateTime
+import ru.yandex.clickhouse.ClickHouseUtil
+import ru.yandex.clickhouse.util.ClickHouseArrayUtil
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.Timestamp
+import java.text.SimpleDateFormat
 import java.util.*
 
 sealed class DbType<T> {
@@ -11,6 +14,8 @@ sealed class DbType<T> {
 
     abstract fun getValue(name: String, result: ResultSet) : T
     abstract fun setValue(index: Int, statement: PreparedStatement, value: T)
+
+    abstract fun toStringValue(value: T): String
 }
 
 sealed class DbPrimitiveType<T>: DbType<T>() {
@@ -22,6 +27,11 @@ sealed class DbArrayType<T> : DbType<List<T>>() {
 }
 
 class DbDate : DbPrimitiveType<Date>() {
+    companion object {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd")
+    }
+
+
     override fun toSqlName(): String {
         return "Date"
     }
@@ -34,12 +44,20 @@ class DbDate : DbPrimitiveType<Date>() {
         statement.setDate(index, java.sql.Date(value.time))
     }
 
+    override fun toStringValue(value: Date): String {
+        return "'${dateFormat.format(value)}'"
+    }
+
     override fun toArray(): DbArrayType<Date> {
         return DbArrayDate()
     }
 }
 
 class DbDateTime: DbPrimitiveType<DateTime>() {
+    companion object {
+        val dateTimeFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    }
+
     override fun toSqlName(): String {
         return "DateTime"
     }
@@ -50,6 +68,10 @@ class DbDateTime: DbPrimitiveType<DateTime>() {
 
     override fun setValue(index: Int, statement: PreparedStatement, value: DateTime) {
         statement.setTimestamp(index, Timestamp(value.millis))
+    }
+
+    override fun toStringValue(value: DateTime): String {
+        return "'${dateTimeFormat.format(value)}'"
     }
 
     override fun toArray(): DbArrayType<DateTime> {
@@ -70,6 +92,10 @@ class DbLong: DbPrimitiveType<Long>() {
         statement.setLong(index, value)
     }
 
+    override fun toStringValue(value: Long): String {
+        return value.toString()
+    }
+
     override fun toArray(): DbArrayType<Long> {
         return DbArrayLong()
     }
@@ -86,6 +112,10 @@ class DbULong: DbPrimitiveType<Long>() {
 
     override fun setValue(index: Int, statement: PreparedStatement, value: Long) {
         statement.setLong(index, value)
+    }
+
+    override fun toStringValue(value: Long): String {
+        return value.toString()
     }
 
     override fun toArray(): DbArrayType<Long> {
@@ -110,6 +140,10 @@ class DbBoolean: DbPrimitiveType<Boolean>() {
         }
     }
 
+    override fun toStringValue(value: Boolean): String {
+        return if (value) "1" else "0"
+    }
+
     override fun toArray(): DbArrayType<Boolean> {
         return DbArrayBoolean()
     }
@@ -126,6 +160,10 @@ class DbString: DbPrimitiveType<String>() {
 
     override fun setValue(index: Int, statement: PreparedStatement, value: String) {
         statement.setString(index, value)
+    }
+
+    override fun toStringValue(value: String): String {
+        return "'${ClickHouseUtil.escape(value)}'"
     }
 
     override fun toArray(): DbArrayType<String> {
@@ -147,6 +185,10 @@ class DbArrayDate: DbArrayType<Date>() {
                 statement.connection.createArrayOf(toSqlName(), value.map {
                     java.sql.Date(it.time)
                 }.toTypedArray()))
+    }
+
+    override fun toStringValue(value: List<Date>): String {
+        return value.joinToString(prefix = "[", postfix = "]") { "'${DbDate.dateFormat.format(it)}'" }
     }
 
     override fun toPrimitive(): DbPrimitiveType<Date> {
@@ -172,6 +214,10 @@ class DbArrayDateTime: DbArrayType<DateTime>() {
                 }.toTypedArray()))
     }
 
+    override fun toStringValue(value: List<DateTime>): String {
+        return value.joinToString(prefix = "[", postfix = "]") { "'${DbDateTime.dateTimeFormat.format(it)}'" }
+    }
+
     override fun toPrimitive(): DbPrimitiveType<DateTime> {
         return DbDateTime()
     }
@@ -179,6 +225,7 @@ class DbArrayDateTime: DbArrayType<DateTime>() {
 }
 
 class DbArrayLong: DbArrayType<Long>() {
+
     override fun toSqlName(): String {
         return "Array(Int64)"
     }
@@ -190,6 +237,10 @@ class DbArrayLong: DbArrayType<Long>() {
     override fun setValue(index: Int, statement: PreparedStatement, value: List<Long>) {
         statement.setArray(index,
                 statement.connection.createArrayOf(toSqlName(), value.toTypedArray()))
+    }
+
+    override fun toStringValue(value: List<Long>): String {
+        return value.joinToString(prefix = "[", postfix = "]") { it.toString() }
     }
 
     override fun toPrimitive(): DbPrimitiveType<Long> {
@@ -209,6 +260,10 @@ class DbArrayULong: DbArrayType<Long>() {
     override fun setValue(index: Int, statement: PreparedStatement, value: List<Long>) {
         statement.setArray(index,
                 statement.connection.createArrayOf(toSqlName(), value.toTypedArray()))
+    }
+
+    override fun toStringValue(value: List<Long>): String {
+        return value.joinToString(prefix = "[", postfix = "]") { it.toString() }
     }
 
     override fun toPrimitive(): DbPrimitiveType<Long> {
@@ -232,6 +287,10 @@ class DbArrayBoolean: DbArrayType<Boolean>() {
                 statement.connection.createArrayOf(toSqlName(), value.map { if (it) 1 else 0 }.toTypedArray()))
     }
 
+    override fun toStringValue(value: List<Boolean>): String {
+        return value.joinToString(prefix = "[", postfix = "]") { if (it) "1" else "0" }
+    }
+
     override fun toPrimitive(): DbPrimitiveType<Boolean> {
         return DbBoolean()
     }
@@ -249,6 +308,10 @@ class DbArrayString: DbArrayType<String>() {
     override fun setValue(index: Int, statement: PreparedStatement, value: List<String>) {
         statement.setArray(index,
                 statement.connection.createArrayOf(toSqlName(), value.toTypedArray()))
+    }
+
+    override fun toStringValue(value: List<String>): String {
+        return value.joinToString(prefix = "[", postfix = "]") { "'${ClickHouseUtil.escape(it)}'" }
     }
 
     override fun toPrimitive(): DbPrimitiveType<String> {

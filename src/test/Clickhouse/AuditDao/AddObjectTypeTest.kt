@@ -97,7 +97,7 @@ internal class AddObjectTypeTest {
         auditDao!!.addTypeInDbModel(typeTestClassFirst)
     }
 
-    private fun getSampleInformation(): MutableSet<InformationObject<*>> {
+    private fun getSampleInformation(): LinkedHashSet<InformationObject<*>> {
         return InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
     }
 }

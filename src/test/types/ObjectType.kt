@@ -18,8 +18,6 @@ internal class AddInformationTypeTest {
         override val useDeserialization: Boolean = true
         override val entityName: String = "First"
 
-        override val fieldSerializers: Map<StateType<*>, (First) -> String> = emptyMap()
-
         override val deserializer: (ObjectState) -> First? =  { First()}
 
     }

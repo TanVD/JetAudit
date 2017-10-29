@@ -122,15 +122,5 @@ internal class AuditDaoClickhouseImpl : AuditDao {
 //    override fun finalize() {
 //        clickhouseConnection.close()
 //    }
-
-
-    /**
-     * Drops table with specified name
-     *
-     * @throws BasicDbException
-     */
-    fun dropTable(tableName: String) {
-        AuditTable.drop()
-    }
 }
 

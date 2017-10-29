@@ -65,7 +65,7 @@ internal class DeletedRecordsTest {
         Assert.assertEquals(recordsLoaded.single(), auditRecordSecondOriginal)
     }
 
-    private fun getSampleInformation(isDeleted: Boolean): MutableSet<InformationObject<*>> {
+    private fun getSampleInformation(isDeleted: Boolean): LinkedHashSet<InformationObject<*>> {
         return InformationUtils.getPrimitiveInformation(StateBooleanTypeTest.currentId++, 1, 2,
                 SamplesGenerator.getMillenniumStart(), isDeleted)
     }

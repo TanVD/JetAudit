@@ -105,7 +105,7 @@ internal class BinaryQueryOperatorsTest {
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
-    private fun getSampleInformation(): MutableSet<InformationObject<*>> {
+    private fun getSampleInformation(): LinkedHashSet<InformationObject<*>> {
         return InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
     }
 }

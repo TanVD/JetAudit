@@ -426,8 +426,8 @@ internal class WorkerTest : PowerMockTestCase() {
         return AuditRecordInternal(emptyList(), getSampleInformation("string2"))
     }
 
-    private fun getSampleInformation(value: String): MutableSet<InformationObject<*>> {
+    private fun getSampleInformation(value: String): LinkedHashSet<InformationObject<*>> {
         @Suppress("UNCHECKED_CAST")
-        return hashSetOf(InformationObject(value, StringInf))
+        return LinkedHashSet(setOf(InformationObject(value, StringInf)))
     }
 }

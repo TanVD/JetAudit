@@ -79,7 +79,7 @@ internal class InformationBooleanQueriesTest {
         Assert.assertEquals(recordsLoaded.size, 0)
     }
 
-    private fun getSampleInformation(value: Boolean): MutableSet<InformationObject<*>> {
+    private fun getSampleInformation(value: Boolean): LinkedHashSet<InformationObject<*>> {
         val information = InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
         (information).add(InformationObject(value, BooleanInf))
         return information

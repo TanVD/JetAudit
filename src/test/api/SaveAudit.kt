@@ -116,11 +116,11 @@ internal class SaveAudit : PowerMockTestCase() {
         Assert.fail()
     }
 
-    private fun fullAuditRecord(information: MutableSet<InformationObject<*>>): AuditRecordInternal {
+    private fun fullAuditRecord(information: LinkedHashSet<InformationObject<*>>): AuditRecordInternal {
         return getRecordInternal("123", 456, TestClassString("string"), information = information)
     }
 
-    private fun auditRecordWithoutTestClassFirst(information: MutableSet<InformationObject<*>>): AuditRecordInternal {
+    private fun auditRecordWithoutTestClassFirst(information: LinkedHashSet<InformationObject<*>>): AuditRecordInternal {
         return getRecordInternal("123", 456, information = information)
     }
 
@@ -138,7 +138,7 @@ internal class SaveAudit : PowerMockTestCase() {
         `when`(auditQueueInternal!!.offer(SaveRecords(record))).thenReturn(!full)
     }
 
-    private fun getSampleInformation(): MutableSet<InformationObject<*>> {
+    private fun getSampleInformation(): LinkedHashSet<InformationObject<*>> {
         return InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
     }
 }

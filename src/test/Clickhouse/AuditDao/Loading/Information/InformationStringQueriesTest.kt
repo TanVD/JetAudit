@@ -118,7 +118,7 @@ internal class InformationStringQueriesTest {
     }
 
 
-    private fun getSampleInformation(value: String): MutableSet<InformationObject<*>> {
+    private fun getSampleInformation(value: String): LinkedHashSet<InformationObject<*>> {
         val information = InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
         information.add(InformationObject(value, StringInf))
         return information

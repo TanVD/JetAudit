@@ -156,7 +156,7 @@ internal class InformationDateTimeQueriesTest {
     }
 
 
-    private fun getSampleInformation(dateTime: String = "2000-01-01 12:00:00"): MutableSet<InformationObject<*>> {
+    private fun getSampleInformation(dateTime: String = "2000-01-01 12:00:00"): LinkedHashSet<InformationObject<*>> {
         val set =  InformationUtils.getPrimitiveInformation(currentId++, 100, 2, getDate("2000-01-01"))
         set.add(InformationObject(getDateTime(dateTime), DateTimeInf))
         return set

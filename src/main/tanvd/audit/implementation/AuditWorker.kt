@@ -23,7 +23,7 @@ internal class AuditWorker {
         buffer = ArrayList()
         reserveBuffer = ArrayList()
         this.auditDao = AuditDaoClickhouseImpl()
-//        this.auditReserveWriter = AuditReserveWriter.getWriter()
+        this.auditReserveWriter = AuditReserveWriter.getWriter()
     }
 
     constructor(auditQueueInternal: BlockingQueue<QueueCommand>, buffer: MutableList<AuditRecordInternal>,
@@ -32,7 +32,7 @@ internal class AuditWorker {
         this.auditQueueInternal = auditQueueInternal
         this.buffer = buffer
         this.reserveBuffer = reserveBuffer
-//        this.auditReserveWriter = auditReserveWriter
+        this.auditReserveWriter = auditReserveWriter
         this.auditDao = auditDao
 
     }
@@ -52,7 +52,7 @@ internal class AuditWorker {
 
     private val auditDao: AuditDao
 
-//    private val auditReserveWriter: AuditReserveWriter
+    private val auditReserveWriter: AuditReserveWriter
 
     private val logger = LoggerFactory.getLogger(AuditWorker::class.java)
 
@@ -75,7 +75,7 @@ internal class AuditWorker {
                 //stop if asked
                 if (!isEnabled) {
 //                    auditDao.finalize()
-//                    auditReserveWriter.close()
+                    auditReserveWriter.close()
                     return
                 }
             } catch (e: Throwable) {
@@ -145,7 +145,7 @@ internal class AuditWorker {
         while (iterator.hasNext()) {
             val record = iterator.next()
             if (reserveBufferFull) {
-//                auditReserveWriter.write(record)
+                auditReserveWriter.write(record)
                 iterator.remove()
             } else {
                 var successSaved = true
@@ -158,7 +158,7 @@ internal class AuditWorker {
                 }
 
                 if (!successSaved && record.generation == maxGeneration) {
-//                    auditReserveWriter.write(record)
+                    auditReserveWriter.write(record)
                     iterator.remove()
                 } else if (successSaved) {
                     iterator.remove()
@@ -167,7 +167,7 @@ internal class AuditWorker {
 
         }
 
-//        auditReserveWriter.flush()
+        auditReserveWriter.flush()
     }
 
     @TestOnly

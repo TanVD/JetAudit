@@ -14,6 +14,7 @@ import tanvd.audit.model.external.types.objects.StateType
 import tanvd.audit.model.internal.AuditRecordInternal
 import java.util.*
 import kotlin.collections.HashSet
+import kotlin.collections.LinkedHashSet
 
 internal object ClickhouseRecordSerializer {
 
@@ -51,11 +52,10 @@ internal object ClickhouseRecordSerializer {
      * @throws UnknownObjectTypeException
      */
     fun deserialize(row: Row): AuditRecordInternal {
-        //mandatory columns
         val description = row[AuditTable.description]
         if (description == null) {
             logger.error("Clickhouse scheme violated. Not found ${AuditTable.description.name} column.")
-            return AuditRecordInternal(emptyList(), HashSet())
+            return AuditRecordInternal(emptyList(), LinkedHashSet())
         }
 
         return AuditRecordInternal(deserializeObjects(description, row), deserializeInformation(row))
@@ -82,8 +82,8 @@ internal object ClickhouseRecordSerializer {
         return objects
     }
 
-    private fun deserializeInformation(row: Row): HashSet<InformationObject<*>> {
-        val information = HashSet<InformationObject<*>>()
+    private fun deserializeInformation(row: Row): LinkedHashSet<InformationObject<*>> {
+        val information = LinkedHashSet<InformationObject<*>>()
         for (type in InformationType.getTypes()) {
             val curInformation = row[type.column]
             if (curInformation != null) {

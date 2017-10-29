@@ -292,15 +292,15 @@ internal class SavingTest {
         Assert.assertEquals(recordsLoaded.toSet(), setOf(auditRecordSecondOriginal))
     }
 
-    private fun getSampleInformation(): MutableSet<InformationObject<*>> {
+    private fun getSampleInformation(): LinkedHashSet<InformationObject<*>> {
         return InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
     }
 
-    private fun getSampleInformation(timeStamp: Long): MutableSet<InformationObject<*>> {
+    private fun getSampleInformation(timeStamp: Long): LinkedHashSet<InformationObject<*>> {
         return InformationUtils.getPrimitiveInformation(currentId++, timeStamp, 2, SamplesGenerator.getMillenniumStart())
     }
 
-    private fun getSampleInformation(id: Long, timeStamp: Long, version: Long = 2): MutableSet<InformationObject<*>> {
+    private fun getSampleInformation(id: Long, timeStamp: Long, version: Long = 2): LinkedHashSet<InformationObject<*>> {
         return InformationUtils.getPrimitiveInformation(id, timeStamp, version, SamplesGenerator.getMillenniumStart())
     }
 

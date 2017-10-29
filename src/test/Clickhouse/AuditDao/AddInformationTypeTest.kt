@@ -96,11 +96,11 @@ internal class AddInformationTypeTest {
         Assert.assertEquals(recordsLoaded.toSet(), setOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
     }
 
-    private fun getSampleInformation(): MutableSet<InformationObject<*>> {
+    private fun getSampleInformation(): LinkedHashSet<InformationObject<*>> {
         return InformationUtils.getPrimitiveInformation(currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
     }
 
-    private fun getSampleWithStringInformation(): MutableSet<InformationObject<*>> {
+    private fun getSampleWithStringInformation(): LinkedHashSet<InformationObject<*>> {
         val information = getSampleInformation()
         information.add(InformationObject("string", InformationType.resolveType("StringInfColumn")))
         return information

@@ -153,7 +153,7 @@ internal class InformationDateQueriesTest {
     }
 
 
-    private fun getSampleInformation(dateStamp: String): MutableSet<InformationObject<*>> {
+    private fun getSampleInformation(dateStamp: String): LinkedHashSet<InformationObject<*>> {
         return InformationUtils.getPrimitiveInformation(currentId++, 100, 2, getDate(dateStamp))
     }
 }

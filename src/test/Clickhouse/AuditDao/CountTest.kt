@@ -76,7 +76,7 @@ internal class CountTest {
         Assert.assertEquals(numberRecords, 1)
     }
 
-    private fun getSampleInformation(isDeleted: Boolean = false): MutableSet<InformationObject<*>> {
+    private fun getSampleInformation(isDeleted: Boolean = false): LinkedHashSet<InformationObject<*>> {
         return InformationUtils.getPrimitiveInformation(CountTest.currentId++, 1, 2, SamplesGenerator.getMillenniumStart(), isDeleted)
     }
 }

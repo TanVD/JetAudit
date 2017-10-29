@@ -7,13 +7,14 @@ import tanvd.audit.model.internal.AuditRecordInternal
 import java.math.BigInteger
 import java.security.SecureRandom
 import java.util.*
+import kotlin.collections.LinkedHashSet
 
 
 internal object SamplesGenerator {
 
     private val random = SecureRandom()
 
-    fun getRecordInternal(vararg obj: Any, information: MutableSet<InformationObject<*>>): AuditRecordInternal {
+    fun getRecordInternal(vararg obj: Any, information: LinkedHashSet<InformationObject<*>>): AuditRecordInternal {
         val listObjects = ArrayList<Pair<ObjectType<*>, ObjectState>>()
         for (o in obj) {
             val type = ObjectType.resolveType(o::class)

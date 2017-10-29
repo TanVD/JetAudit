@@ -14,6 +14,10 @@ class Column<E, out T : DbType<E>>(val name: String, val type: T, default: (() -
         type.setValue(index, statement, value)
     }
 
+    fun toStringValue(value: E): String {
+        return type.toStringValue(value)
+    }
+
     fun toSqlDef(): String {
         return "$name ${type.toSqlName()}"
     }

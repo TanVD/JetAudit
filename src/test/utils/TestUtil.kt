@@ -1,6 +1,5 @@
 package utils
 
-import Clickhouse.AuditDao.Loading.Information.InformationBooleanQueriesTest
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
 import tanvd.audit.implementation.clickhouse.aorm.AuditTable
 import tanvd.audit.implementation.dao.AuditDao

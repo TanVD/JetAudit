@@ -2,7 +2,6 @@ package tanvd.audit.model.external.presenters
 
 import tanvd.audit.implementation.clickhouse.aorm.AuditTable
 import tanvd.audit.model.external.types.information.InformationType
-import tanvd.audit.utils.RandomGenerator
 import java.util.*
 
 object TimeStampType : InformationType<Long>(AuditTable.timestamp)

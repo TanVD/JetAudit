@@ -5,8 +5,6 @@
 //import org.testng.annotations.BeforeMethod
 //import org.testng.annotations.Test
 //import tanvd.audit.AuditAPI
-//import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-//import tanvd.audit.implementation.clickhouse.aorm.AuditTable
 //import tanvd.audit.model.external.presenters.IntPresenter
 //import tanvd.audit.model.external.presenters.LongPresenter
 //import tanvd.audit.model.external.queries.equal
