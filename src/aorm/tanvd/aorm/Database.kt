@@ -6,6 +6,8 @@ import java.sql.Connection
 import javax.sql.DataSource
 
 abstract class Database {
+    abstract val name: String
+
     abstract val url: String
     abstract val password: String
     abstract val user: String

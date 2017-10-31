@@ -21,3 +21,7 @@ class Count<E: Any, out T: DbType<E>>(val column: Column<E, T>, val alias : Stri
         return "COUNT(${column.name}) as $alias"
     }
 }
+
+fun <E: Any, T: DbType<E>>count(column : Column<E, T>, alias: String): Count<E, T> {
+    return Count(column, alias)
+}

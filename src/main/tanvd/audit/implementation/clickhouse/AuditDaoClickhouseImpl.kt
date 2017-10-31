@@ -88,7 +88,7 @@ internal class AuditDaoClickhouseImpl : AuditDao {
      */
     override fun countRecords(expression: QueryExpression): Long {
         val alias = "cnt"
-        val query = AuditTable.select(Count(AuditTable.id, alias)) prewhere expression
+        val query = AuditTable.select(count(AuditTable.id, alias)) prewhere expression
         query.prewhereSection = query.prewhereSection!! and (AuditTable.isDeleted eq false)
 
         val resultList = query.toResult()
@@ -101,9 +101,5 @@ internal class AuditDaoClickhouseImpl : AuditDao {
         AuditTable.drop()
         AuditTable.create()
     }
-
-//    override fun finalize() {
-//        clickhouseConnection.close()
-//    }
 }
 

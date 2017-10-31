@@ -1,13 +1,15 @@
 //package aorm.example
 //
+//import org.joda.time.DateTime
 //import org.testng.annotations.Test
-//import tanvd.aorm.Column
-//import tanvd.aorm.DbDate
+//import tanvd.aorm.*
+//import utils.TestDatabase
+//import java.util.*
 //
 //class AormTableCreateExample {
 //    @Test
 //    fun example_create() {
-//        AuditTable.create()
+//        AuditTable.syncScheme()
 //    }
 //
 //    @Test
@@ -26,4 +28,16 @@
 //        AuditTable.create()
 //        AuditTable.dropColumn(AuditTable.version)
 //    }
+//}
+//
+//object AuditTable : Table("Audit") {
+//    override var db: Database = TestDatabase
+//
+//    val date = date("date_column").default { DateTime.now().toDate() }
+//    val id = long("id_column").default { Random().nextLong() }
+//    val version = ulong("version_column")
+//
+//    val another_id = arrayString("another_id")
+//
+//    override val engine = MergeTree(date, listOf(date, id), 8192)
 //}

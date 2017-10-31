@@ -4,6 +4,8 @@ import tanvd.aorm.Database
 import java.util.*
 
 object TestDatabase : Database(){
+    override val name: String = "default"
+
     override val url: String = System.getProperty("ClickhouseUrl")?.trim('"') ?: "jdbc:clickhouse://localhost:8123"
     override val password: String = ""
     override val user: String = "default"

@@ -1,6 +1,7 @@
 package tanvd.aorm
 
 import tanvd.aorm.implementation.InsertClickhouse
+import tanvd.aorm.implementation.MetadataClickhouse
 import tanvd.aorm.implementation.TableClickhouse
 import tanvd.aorm.query.Query
 import tanvd.aorm.query.QueryFunction
@@ -82,6 +83,10 @@ abstract class Table(val name: String) {
         return Query(this, functions.toList())
     }
 
+
+    fun syncScheme() {
+        MetadataClickhouse.syncScheme(this)
+    }
 
 
     fun insert(expression: InsertExpression) {
