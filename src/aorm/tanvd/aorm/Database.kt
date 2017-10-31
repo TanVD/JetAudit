@@ -10,6 +10,10 @@ abstract class Database {
     abstract val password: String
     abstract val user: String
 
+    abstract val useSsl: Boolean
+    abstract val sslCertPath: String
+    abstract val sslVerifyMode: String
+
     val dataSource: DataSource by lazy {
         val properties = ClickHouseProperties()
         properties.user = user

@@ -11,5 +11,5 @@ object IntPresenter : ObjectPresenter<Int>() {
 
     val value = long("Value", { it.toLong() })
 
-    override val deserializer: (ObjectState) -> Int? = { (stateList) -> stateList[value] as Int? }
+    override val deserializer: (ObjectState) -> Int? = { (stateList) -> (stateList[value] as Long?)?.toInt() }
 }

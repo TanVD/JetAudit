@@ -1,7 +1,5 @@
 package tanvd.aorm.query
 
-import tanvd.aorm.Column
-import tanvd.aorm.DbType
 import tanvd.aorm.Row
 import tanvd.aorm.Table
 import tanvd.aorm.implementation.QueryClickhouse

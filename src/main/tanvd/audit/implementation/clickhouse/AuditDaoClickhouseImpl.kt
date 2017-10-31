@@ -15,27 +15,10 @@ import tanvd.audit.utils.PropertyLoader
  * Dao to Clickhouse DB.
  */
 internal class AuditDaoClickhouseImpl : AuditDao {
-
-
     /**
      * Predefined scheme for clickhouse base.
      */
     private val useDefaultDDL by lazy { PropertyLoader["UseDefaultDDL"]?.toBoolean() ?: true }
-
-    init {
-        initTables()
-    }
-
-    /**
-     * Creates necessary tables to start
-     *
-     * @throws BasicDbException
-     */
-    private fun initTables() {
-        if (useDefaultDDL) {
-            AuditTable.create()
-        }
-    }
 
     /**
      * Saves audit record and all its objects

@@ -8,6 +8,10 @@ object TestDatabase : Database(){
     override val password: String = ""
     override val user: String = "default"
 
+    override val useSsl: Boolean = false
+    override val sslCertPath: String = ""
+    override val sslVerifyMode: String = ""
+
 }
 object DbUtils {
     fun getProperties(): Properties {

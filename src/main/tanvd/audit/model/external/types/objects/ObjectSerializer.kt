@@ -13,9 +13,9 @@ interface ObjectSerializer<T> {
     /**
      * If it can not find entity null instead will be returned
      */
-    fun deserializeBatch(primaryKeys: List<ObjectState>): Map<ObjectState, T?> {
+    fun deserializeBatch(states: List<ObjectState>): Map<ObjectState, T?> {
         val deserializedMap: MutableMap<ObjectState, T?> = HashMap()
-        for (primaryKey in primaryKeys) {
+        for (primaryKey in states) {
             deserializedMap.put(primaryKey, deserialize(primaryKey))
         }
         return deserializedMap

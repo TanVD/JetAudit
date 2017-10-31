@@ -2,6 +2,7 @@ package tanvd.audit
 
 import org.jetbrains.annotations.TestOnly
 import org.slf4j.LoggerFactory
+import tanvd.aorm.Table
 import tanvd.aorm.query.LimitExpression
 import tanvd.aorm.query.OrderByExpression
 import tanvd.aorm.query.QueryExpression
@@ -13,10 +14,9 @@ import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.QueueCommand
 import tanvd.audit.implementation.SaveRecords
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
+import tanvd.audit.implementation.clickhouse.aorm.AuditTable
 import tanvd.audit.implementation.dao.AuditDao
-import tanvd.audit.model.external.presenters.IntPresenter
-import tanvd.audit.model.external.presenters.LongPresenter
-import tanvd.audit.model.external.presenters.StringPresenter
+import tanvd.audit.model.external.presenters.*
 import tanvd.audit.model.external.records.AuditObject
 import tanvd.audit.model.external.records.AuditRecord
 import tanvd.audit.model.external.records.InformationObject
@@ -54,7 +54,7 @@ import kotlin.collections.LinkedHashSet
  *      Username               (required if datasource not present),
  *      Password               (required if datasource not present),
  *      UseSSL                 (default false),
- *      SSLSertPath            (default empty),
+ *      SSLCertPath            (default empty),
  *      SSLVerifyMode          (default empty) (may be strict|none),
  *
  *
@@ -142,7 +142,9 @@ class AuditAPI {
 
         executor = AuditExecutor(auditQueueInternal)
 
+        initTable()
         addPrimitiveTypes()
+        addServiceInformation()
     }
 
     constructor(properties: Properties?) {
@@ -161,7 +163,9 @@ class AuditAPI {
 
         executor = AuditExecutor(auditQueueInternal)
 
+        initTable()
         addPrimitiveTypes()
+        addServiceInformation()
     }
 
 
@@ -188,6 +192,18 @@ class AuditAPI {
         addObjectType(ObjectType(String::class, StringPresenter))
         addObjectType(ObjectType(Int::class, IntPresenter))
         addObjectType(ObjectType(Long::class, LongPresenter))
+    }
+
+    internal fun addServiceInformation() {
+        InformationType.addType(IdType)
+        InformationType.addType(TimeStampType)
+        InformationType.addType(VersionType)
+        InformationType.addType(DateType)
+        InformationType.addType(IsDeletedType)
+    }
+
+    internal fun initTable() {
+        AuditTable.create()
     }
 
     /**
@@ -345,8 +361,8 @@ class AuditAPI {
      *
      * @throws UnknownObjectTypeException
      */
-    fun loadAuditWithExceptions(expression: QueryExpression, limitExpression: LimitExpression,
-                                orderByExpression: OrderByExpression, useBatching: Boolean = true):
+    fun loadAuditWithExceptions(expression: QueryExpression, limitExpression: LimitExpression? = null,
+                                orderByExpression: OrderByExpression? = null, useBatching: Boolean = true):
             List<AuditRecord> {
         val auditRecords: List<AuditRecordInternal> = auditDao.loadRecords(expression, limitExpression, orderByExpression)
 
@@ -385,10 +401,14 @@ class AuditAPI {
         executor.executorService.awaitTermination(timeToWaitExecutor, TimeUnit.MILLISECONDS)
     }
 
-    /** Use it to reset table. */
-    @TestOnly
-    fun resetTable() {
-        auditDao.resetTable()
+    /**
+     * Get inner representation of Audit.
+     *
+     * WARNING: Be EXTREMELY careful with this method.
+     * You can erase whole audit data with one call.
+     */
+    fun getTable(): Table {
+        return AuditTable
     }
 
     /**

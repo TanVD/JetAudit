@@ -16,6 +16,23 @@ sealed class DbType<T> {
     abstract fun setValue(index: Int, statement: PreparedStatement, value: T)
 
     abstract fun toStringValue(value: T): String
+
+
+    /** Equals by sql name **/
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as DbType<*>
+
+        if (toSqlName() != other.toSqlName()) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return toSqlName().hashCode()
+    }
 }
 
 sealed class DbPrimitiveType<T>: DbType<T>() {

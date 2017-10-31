@@ -14,8 +14,8 @@ internal object TestUtil {
         try {
             AuditTable.drop()
         } catch (e: Exception) {}
-
         AuditTable.resetColumns()
+        AuditTable.create()
 
         val auditDao = AuditDaoClickhouseImpl()
 
