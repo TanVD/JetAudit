@@ -66,10 +66,8 @@ object PropertyLoader {
          * Load property from property file located on a classpath.
          */
         private fun loadPropertiesFromFile(filePath: String) {
-            val input: FileInputStream
-
-            try {
-                input = FileInputStream(filePath)
+            val input: FileInputStream = try {
+                FileInputStream(filePath)
             } catch (e: FileNotFoundException) {
                 logger.error("Property file $filePath not found")
                 return

@@ -13,7 +13,6 @@ import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.external.types.objects.StateType
 import tanvd.audit.model.internal.AuditRecordInternal
 import java.util.*
-import kotlin.collections.HashSet
 import kotlin.collections.LinkedHashSet
 
 internal object ClickhouseRecordSerializer {

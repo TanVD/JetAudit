@@ -1,13 +1,12 @@
 package tanvd.aorm.implementation
 
 import tanvd.aorm.InsertExpression
-import tanvd.aorm.Table
 import java.sql.Connection
 import java.sql.PreparedStatement
 
 object InsertClickhouse {
-    fun insert(table: Table, expression: InsertExpression) {
-        table.db.withConnection {
+    fun insert(expression: InsertExpression) {
+        expression.table.db.withConnection {
             constructInsert(expression).execute()
         }
     }
@@ -33,8 +32,8 @@ object InsertClickhouse {
 
     fun constructInsert(insert: InsertExpression): String {
         return  "INSERT INTO ${insert.table.name} (${insert.columns.joinToString { it.name }}) VALUES " +
-                "${insert.values.joinToString(prefix = "(", postfix = ")") { row ->
-                    insert.columns.joinToString {
+                "${insert.values.joinToString { row ->
+                    insert.columns.joinToString(prefix = "(", postfix = ")") {
                         if (row[it] != null) {
                             it.toStringValue(row[it]!!)
                         } else {

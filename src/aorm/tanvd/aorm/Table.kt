@@ -15,6 +15,9 @@ abstract class Table(val name: String) {
 
     val columns: MutableList<Column<Any, DbType<Any>>> = ArrayList()
 
+    val columnsWithDefaults
+        get() = columns.filter { it.defaultFunction != null }
+
     private fun <T, E: DbType<T>>registerColumn(column: Column<T, E>): Column<T, E> {
         columns.add(column as Column<Any, DbType<Any>>)
         return column
@@ -90,6 +93,6 @@ abstract class Table(val name: String) {
 
 
     fun insert(expression: InsertExpression) {
-        InsertClickhouse.insert(this, expression)
+        InsertClickhouse.insert(expression)
     }
 }

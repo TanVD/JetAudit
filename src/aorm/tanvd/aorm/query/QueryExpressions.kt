@@ -35,16 +35,16 @@ class NotQueryExpression(expression: QueryExpression): UnaryQueryExpression(expr
 
 //CONDITIONS
 
-sealed class InfixConditionQueryExpression<E: Any, T : DbType<E>, Y : Any>(val column: Column<E, T>, val value: Y,
-                                                             val type: DbType<Y>, val op: String) : QueryExpression() {
+sealed class InfixConditionQueryExpression<E: Any, out T : DbType<E>, Y : Any>(val column: Column<E, T>, val value: Y,
+                                                                               val type: DbType<Y>, val op: String) : QueryExpression() {
     override fun toSqlPreparedDef(): PreparedSqlResult {
         @Suppress("UNCHECKED_CAST")
         return PreparedSqlResult("(${column.name} $op ?)", listOf((column.type to value) as Pair<DbType<Any>, Any>))
     }
 }
 
-sealed class PrefixConditionQueryExpression<E: Any, T : DbType<E>, Y : Any>(val column: Column<E, T>, val value: Y,
-                                                             val type: DbType<Y>, val op: String) : QueryExpression() {
+sealed class PrefixConditionQueryExpression<E: Any, out T : DbType<E>, Y : Any>(val column: Column<E, T>, val value: Y,
+                                                                                val type: DbType<Y>, val op: String) : QueryExpression() {
     override fun toSqlPreparedDef(): PreparedSqlResult {
         @Suppress("UNCHECKED_CAST")
         return PreparedSqlResult("($op (${column.name}, ?))", listOf((column.type to value) as Pair<DbType<Any>, Any>))
@@ -54,20 +54,20 @@ sealed class PrefixConditionQueryExpression<E: Any, T : DbType<E>, Y : Any>(val 
 //VALUES
 
 //Equality
-class EqExpression<E : Any, T : DbPrimitiveType<E>>(column: Column<E, T>, value: E) :
+class EqExpression<E : Any, out T : DbPrimitiveType<E>>(column: Column<E, T>, value: E) :
         InfixConditionQueryExpression<E, T, E>(column, value, column.type, "=")
 
 //LessOrMore
-class LessExpression<E : Any, T : DbPrimitiveType<E>>(column: Column<E, T>, value: E) :
+class LessExpression<E : Any, out T : DbPrimitiveType<E>>(column: Column<E, T>, value: E) :
         InfixConditionQueryExpression<E, T, E>(column, value, column.type, "<")
 
-class LessOrEqualExpression<E : Any, T : DbPrimitiveType<E>>(column: Column<E, T>, value: E) :
+class LessOrEqualExpression<E : Any, out T : DbPrimitiveType<E>>(column: Column<E, T>, value: E) :
         InfixConditionQueryExpression<E, T, E>(column, value, column.type, "<=")
 
-class MoreExpression<E : Any, T : DbPrimitiveType<E>>(column: Column<E, T>, value: E) :
+class MoreExpression<E : Any, out T : DbPrimitiveType<E>>(column: Column<E, T>, value: E) :
         InfixConditionQueryExpression<E, T, E>(column, value, column.type, ">")
 
-class MoreOrEqualExpression<E : Any, T : DbPrimitiveType<E>>(column: Column<E, T>, value: E) :
+class MoreOrEqualExpression<E : Any, out T : DbPrimitiveType<E>>(column: Column<E, T>, value: E) :
         InfixConditionQueryExpression<E, T, E>(column, value, column.type, ">=")
 
 //Like

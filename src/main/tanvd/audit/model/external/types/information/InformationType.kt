@@ -19,12 +19,8 @@ abstract class InformationType<T : Any>(val code: String, val type : DbPrimitive
          */
         @Suppress("UNCHECKED_CAST")
         fun <T : Any> resolveType(code: String): InformationType<T> {
-            val informationType = informationTypesByCode[code]
-            if (informationType == null) {
+            return informationTypesByCode[code] as? InformationType<T> ?:
                 throw UnknownInformationTypeException("Unknown InformationType requested to resolve by stateName -- $code")
-            } else {
-                return informationType as InformationType<T>
-            }
         }
 
         @Synchronized

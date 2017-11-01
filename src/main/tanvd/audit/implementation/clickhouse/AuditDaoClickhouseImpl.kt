@@ -5,7 +5,6 @@ import tanvd.aorm.query.*
 import tanvd.audit.implementation.clickhouse.aorm.AuditTable
 import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.implementation.exceptions.BasicDbException
-import tanvd.audit.model.external.presenters.IdType
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal

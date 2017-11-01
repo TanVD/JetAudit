@@ -2,7 +2,6 @@ package tanvd.aorm
 
 import org.joda.time.DateTime
 import ru.yandex.clickhouse.ClickHouseUtil
-import ru.yandex.clickhouse.util.ClickHouseArrayUtil
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.Timestamp
