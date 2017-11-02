@@ -2,6 +2,8 @@ package tanvd.aorm
 
 import org.joda.time.DateTime
 import ru.yandex.clickhouse.ClickHouseUtil
+import sun.reflect.generics.reflectiveObjects.NotImplementedException
+import java.math.BigInteger
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.Timestamp
@@ -91,7 +93,8 @@ class DbDateTime: DbPrimitiveType<DateTime>() {
     }
 
     override fun toArray(): DbArrayType<DateTime> {
-        return DbArrayDateTime()
+        throw NotImplementedException()
+//        return DbArrayDateTime()
     }
 }
 
@@ -117,6 +120,10 @@ class DbLong: DbPrimitiveType<Long>() {
     }
 }
 
+/**
+ * ULong is equal to long in AORM.
+ * Do not use it for values, which not fits in long.
+ */
 class DbULong: DbPrimitiveType<Long>() {
     override fun toSqlName(): String {
         return "UInt64"
@@ -212,33 +219,38 @@ class DbArrayDate: DbArrayType<Date>() {
     }
 }
 
-class DbArrayDateTime: DbArrayType<DateTime>() {
-    override fun toSqlName(): String {
-        return "Array(DateTime)"
-    }
-
-    override fun getValue(name: String, result: ResultSet): List<DateTime> {
-        return (result.getArray(name).array as Array<Timestamp>).map {
-            DateTime(result.getTimestamp(name).nanos / 1000)
-        }
-    }
-
-    override fun setValue(index: Int, statement: PreparedStatement, value: List<DateTime>) {
-        statement.setArray(index,
-                statement.connection.createArrayOf(toSqlName(), value.map {
-                    Timestamp(it.millis)
-                }.toTypedArray()))
-    }
-
-    override fun toStringValue(value: List<DateTime>): String {
-        return value.joinToString(prefix = "[", postfix = "]") { "'${DbDateTime.dateTimeFormat.format(it)}'" }
-    }
-
-    override fun toPrimitive(): DbPrimitiveType<DateTime> {
-        return DbDateTime()
-    }
-
-}
+/**
+ * Disabled. See https://github.com/yandex/clickhouse-jdbc/issues/153
+ */
+//class DbArrayDateTime: DbArrayType<DateTime>() {
+//    override fun toSqlName(): String {
+//        return "Array(DateTime)"
+//    }
+//
+//    override fun getValue(name: String, result: ResultSet): List<DateTime> {
+//        return (result.getArray(name).array as Array<Timestamp>).map {
+//            DateTime(result.getTimestamp(name).nanos / 1000)
+//        }
+//    }
+//
+//    override fun setValue(index: Int, statement: PreparedStatement, value: List<DateTime>) {
+//        statement.setArray(index,
+//                statement.connection.createArrayOf(toSqlName(), value.map {
+//                    Timestamp(it.millis)
+//                }.toTypedArray()))
+//
+//        statement.setArray(index, statement.connection.createArrayOf("Array(DateTime)", array)
+//    }
+//
+//    override fun toStringValue(value: List<DateTime>): String {
+//        return value.joinToString(prefix = "[", postfix = "]") { "'${DbDateTime.dateTimeFormat.format(it)}'" }
+//    }
+//
+//    override fun toPrimitive(): DbPrimitiveType<DateTime> {
+//        return DbDateTime()
+//    }
+//
+//}
 
 class DbArrayLong: DbArrayType<Long>() {
 
@@ -270,7 +282,7 @@ class DbArrayULong: DbArrayType<Long>() {
     }
 
     override fun getValue(name: String, result: ResultSet): List<Long> {
-        return (result.getArray(name).array as LongArray).toList()
+        return (result.getArray(name).array as Array<BigInteger>).map { it.toLong() }.toList()
     }
 
     override fun setValue(index: Int, statement: PreparedStatement, value: List<Long>) {

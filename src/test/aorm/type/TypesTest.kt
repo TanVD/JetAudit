@@ -2,13 +2,28 @@ package aorm.type
 
 import audit.utils.TestDatabase
 import org.testng.Assert
+import org.testng.annotations.AfterMethod
+import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.aorm.*
+import tanvd.aorm.implementation.InsertClickhouse
 import tanvd.aorm.implementation.MetadataClickhouse
+import tanvd.aorm.query.and
+import tanvd.aorm.query.eq
+import tanvd.aorm.query.where
 import utils.getDate
 import utils.getDateTime
 
 class TypesTest {
+
+    @BeforeMethod
+    fun resetTable() {
+        try {
+            AllTypesTable.drop()
+        } catch (e: Exception) {
+        }
+    }
+
     @Test
     fun allTypes_createTable_tableCreated() {
         AllTypesTable.create()
@@ -20,15 +35,31 @@ class TypesTest {
     fun allTypes_insertIntoTable_rowInserted() {
         AllTypesTable.create()
 
-//        val row = Row(mapOf(
-//                AllTypesTable.dateCol to getDate("2000-01-01"),
-//                AllTypesTable.dateTimeCol to getDateTime("2000-01-01 12:00:00"),
-//                AllTypesTable.ulongCol to 1L,
-//                AllTypesTable.longCol to 2L,
-//                AllTypesTable.boolCol to true
-//        ))
+        val row = Row(mapOf(
+                AllTypesTable.dateCol to getDate("2000-01-01"),
+                AllTypesTable.dateTimeCol to getDateTime("2000-01-01 12:00:00"),
+                AllTypesTable.ulongCol to 1L,
+                AllTypesTable.longCol to 2L,
+                AllTypesTable.boolCol to true,
+                AllTypesTable.stringCol to "string",
+                AllTypesTable.arrayDateCol to listOf(getDate("2001-01-01"), getDate("2002-02-02")),
+//                AllTypesTable.arrayDateTimeCol to listOf(getDateTime("2001-01-01 11:11:11"), getDateTime("2002-02-02 12:12:12")),
+                AllTypesTable.arrayUlongCol to listOf(3L, 4L),
+                AllTypesTable.arrayLongCol to listOf(5L, 6L),
+                AllTypesTable.arrayBoolCol to listOf(true, false),
+                AllTypesTable.arrayStringCol to listOf("string1", "string2")
+        ) as Map<Column<Any, DbType<Any>>, Any>)
 
-        Assert.assertTrue(MetadataClickhouse.existsTable(AllTypesTable))
+        InsertClickhouse.insert(InsertExpression(AllTypesTable, row))
+
+        val gotRow = (AllTypesTable.select() where ((AllTypesTable.dateCol eq getDate("2000-01-01")) and
+                (AllTypesTable.dateTimeCol eq getDateTime("2000-01-01 12:00:00")) and
+                (AllTypesTable.ulongCol eq 1L) and
+                (AllTypesTable.longCol eq 2L) and
+                (AllTypesTable.boolCol eq true) and
+                (AllTypesTable.stringCol eq "string"))).toResult().single()
+
+        Assert.assertEquals(gotRow, row)
     }
 }
 
@@ -43,7 +74,7 @@ object AllTypesTable : Table("all_types_table"){
     val stringCol = string("string_col")
 
     val arrayDateCol = arrayDate("arrayDate_col")
-    val arrayDateTimeCol = arrayDateTime("arrayDateTime_col")
+//    val arrayDateTimeCol = arrayDateTime("arrayDateTime_col")
     val arrayUlongCol = arrayULong("arrayULong_col")
     val arrayLongCol = arrayLong("arrayLong_col")
     val arrayBoolCol = arrayBoolean("arrayBoolean_col")

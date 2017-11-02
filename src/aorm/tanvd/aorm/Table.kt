@@ -38,7 +38,7 @@ abstract class Table(val name: String) {
 
     fun arrayDate(name: String) = registerColumn(Column(name, DbArrayDate()))
 
-    fun arrayDateTime(name: String) = registerColumn(Column(name, DbArrayDateTime()))
+//    fun arrayDateTime(name: String) = registerColumn(Column(name, DbArrayDateTime()))
 
     fun arrayULong(name: String) = registerColumn(Column(name, DbArrayULong()))
 

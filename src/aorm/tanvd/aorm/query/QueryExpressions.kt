@@ -120,6 +120,7 @@ fun not(value: QueryExpression): NotQueryExpression {
 }
 
 //Equality
+//Array equality is not supported by CH for now
 infix fun <T: Any> Column<T, DbPrimitiveType<T>>.eq(value: T) : EqExpression<T, DbPrimitiveType<T>> {
     return EqExpression(this, value)
 }
