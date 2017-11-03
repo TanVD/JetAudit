@@ -11,6 +11,8 @@ object ExampleTable: Table("ExampleTable") {
     val id = long("id").default { 1L }
     val value = string("value")
 
+    val arrayValue = arrayString("string_array")
+
     override val engine: Engine = MergeTree(date, listOf(id), 8192)
 
     //For tests

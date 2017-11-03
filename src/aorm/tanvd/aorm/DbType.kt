@@ -1,6 +1,7 @@
 package tanvd.aorm
 
 import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 import ru.yandex.clickhouse.ClickHouseUtil
 import sun.reflect.generics.reflectiveObjects.NotImplementedException
 import java.math.BigInteger
@@ -73,7 +74,7 @@ class DbDate : DbPrimitiveType<Date>() {
 
 class DbDateTime: DbPrimitiveType<DateTime>() {
     companion object {
-        val dateTimeFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+        val dateTimeFormat = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")
     }
 
     override fun toSqlName(): String {
@@ -89,7 +90,7 @@ class DbDateTime: DbPrimitiveType<DateTime>() {
     }
 
     override fun toStringValue(value: DateTime): String {
-        return "'${dateTimeFormat.format(value)}'"
+        return "'${dateTimeFormat.print(value)}'"
     }
 
     override fun toArray(): DbArrayType<DateTime> {

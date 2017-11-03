@@ -3,6 +3,7 @@ package tanvd.aorm.implementation
 import tanvd.aorm.DbType
 import tanvd.aorm.Row
 import tanvd.aorm.Table
+import tanvd.aorm.query.PreparedSqlResult
 import tanvd.aorm.query.Query
 import java.sql.Connection
 import java.sql.PreparedStatement
@@ -21,7 +22,26 @@ object QueryClickhouse {
         return rows
     }
 
+    fun constructQuery(query: Query): String {
+        var (sql, valuesToSet) = preconstructQuery(query)
+        valuesToSet.forEach { (type, value) ->
+            sql = sql.replaceFirst("?", type.toStringValue(value))
+        }
+        return sql
+    }
+
     private fun Connection.constructQuery(query: Query) : PreparedStatement {
+        val (sql, valuesToSet) = preconstructQuery(query)
+        val statement = prepareStatement(sql)
+        for ((index, pair) in valuesToSet.withIndex()) {
+            val column = pair.first
+            val value = pair.second
+            column.setValue(index + 1, statement, value)
+        }
+        return statement
+    }
+
+    private fun preconstructQuery(query: Query): PreparedSqlResult {
         var sql = "SELECT ${query.columns.joinToString { it.toSql() }} FROM ${query.table.name} "
         val valuesToSet = ArrayList<Pair<DbType<Any>, Any>>()
         if (query.prewhereSection != null) {
@@ -41,16 +61,8 @@ object QueryClickhouse {
             sql += "LIMIT ${query.limitSection!!.offset} ${query.limitSection!!.limit} "
         }
         sql += ";"
-        return prepare(sql, valuesToSet)
+        return PreparedSqlResult(sql, valuesToSet)
     }
 
-    private fun Connection.prepare(sql: String, values: List<Pair<DbType<Any>, Any>>) : PreparedStatement {
-        val statement = prepareStatement(sql)
-        for ((index, pair) in values.withIndex()) {
-            val column = pair.first
-            val value = pair.second
-            column.setValue(index + 1, statement, value)
-        }
-        return statement
-    }
+
 }

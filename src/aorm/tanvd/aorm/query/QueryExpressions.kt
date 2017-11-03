@@ -6,7 +6,7 @@ sealed class QueryExpression {
     abstract fun toSqlPreparedDef() : PreparedSqlResult
 }
 
-
+/** CONTRACT: All sql's generated on every level should be in brackets. Inner sql should not be in brackets.**/
 
 //Binary logic expressions
 sealed class BinaryQueryExpression(val left: QueryExpression, val right: QueryExpression, val op: String) : QueryExpression() {
@@ -39,7 +39,7 @@ sealed class InfixConditionQueryExpression<E: Any, out T : DbType<E>, Y : Any>(v
                                                                                val type: DbType<Y>, val op: String) : QueryExpression() {
     override fun toSqlPreparedDef(): PreparedSqlResult {
         @Suppress("UNCHECKED_CAST")
-        return PreparedSqlResult("(${column.name} $op ?)", listOf((column.type to value) as Pair<DbType<Any>, Any>))
+        return PreparedSqlResult("(${column.name} $op ?)", listOf((type to value) as Pair<DbType<Any>, Any>))
     }
 }
 
@@ -47,7 +47,7 @@ sealed class PrefixConditionQueryExpression<E: Any, out T : DbType<E>, Y : Any>(
                                                                                 val type: DbType<Y>, val op: String) : QueryExpression() {
     override fun toSqlPreparedDef(): PreparedSqlResult {
         @Suppress("UNCHECKED_CAST")
-        return PreparedSqlResult("($op (${column.name}, ?))", listOf((column.type to value) as Pair<DbType<Any>, Any>))
+        return PreparedSqlResult("($op(${column.name}, ?))", listOf((type to value) as Pair<DbType<Any>, Any>))
     }
 }
 
@@ -88,7 +88,7 @@ class InListExpression<T: Any>(val column: Column<T, DbPrimitiveType<T>>, val va
 
 //ARRAYS
 class HasExpression<T: Any>(column: Column<List<T>, DbArrayType<T>>, value: T)
-    : PrefixConditionQueryExpression<List<T>, DbArrayType<T>, T>(column, value, column.type.toPrimitive(), "HAS")
+    : PrefixConditionQueryExpression<List<T>, DbArrayType<T>, T>(column, value, column.type.toPrimitive(), "has")
 
 class ExistsExpression<T: Any>(val column: Column<List<T>, DbArrayType<T>>,
                                val body: (Column<T, DbPrimitiveType<T>>) -> QueryExpression) : QueryExpression() {
@@ -96,7 +96,7 @@ class ExistsExpression<T: Any>(val column: Column<List<T>, DbArrayType<T>>,
         val innerColumn = Column("x", column.type.toPrimitive())
         val innerExpression = body(innerColumn)
         val (sql, data) = innerExpression.toSqlPreparedDef()
-        return PreparedSqlResult("arrayExists((x) -> ($sql), ${column.name})", data)
+        return PreparedSqlResult("(arrayExists(x -> $sql, ${column.name}))", data)
     }
 }
 
