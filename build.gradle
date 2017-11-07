@@ -6,6 +6,9 @@ buildscript {
 
     repositories {
         mavenCentral()
+        flatDir {
+            dirs 'libs'
+        }
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
@@ -18,30 +21,21 @@ sourceCompatibility = 1.7
 
 repositories {
     mavenCentral()
-}
-
-configurations {
-    aorm { extendsFrom compile }
+    flatDir {
+        dirs 'libs'
+    }
 }
 
 sourceSets {
-    aorm {
-        kotlin {
-            srcDirs 'src/aorm'
-        }
-        compileClasspath = configurations.aorm
-    }
     main {
         kotlin {
             srcDirs 'src/main'
         }
-        compileClasspath += aorm.compileClasspath + aorm.output
     }
     test {
         kotlin {
             srcDirs 'src/test'
         }
-        compileClasspath += main.compileClasspath + main.output
     }
 
 }
@@ -58,6 +52,7 @@ task JetAuditJar(type: Jar) {
 
 
 dependencies {
+    compile "tanvd:aorm:0.1"
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
