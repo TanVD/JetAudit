@@ -17,7 +17,7 @@ object AuditTable : Table("AuditTable", AuditDatabase) {
     val version = ulong("VersionColumn").default { 0 }
     val isDeleted by lazy { boolean("IsDeletedColumn").default { false } }
 
-    val description = arrayString("DescriptionColumn")
+    val description = arrayString("Description")
 
     @TestOnly
     @Suppress("UNCHECKED_CAST")

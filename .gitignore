@@ -1,6 +1,7 @@
 out
 .gradle
 *.txt
+build
 
 # Cause we now use gradle
 .idea

@@ -7,8 +7,15 @@ import tanvd.audit.implementation.clickhouse.aorm.AuditTable
 import tanvd.audit.model.external.presenters.*
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.external.types.objects.ObjectType
+import tanvd.audit.utils.RandomGenerator
 
 internal object TestUtil {
+
+    init {
+        val randomPostfix = RandomGenerator.next()
+        AuditTable.name += randomPostfix.toString()
+    }
+
     fun create(): AuditDaoClickhouse {
         if (AuditTable.useIsDeleted) {
             AuditTable.isDeleted

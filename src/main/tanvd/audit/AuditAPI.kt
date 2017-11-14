@@ -346,9 +346,8 @@ class AuditAPI {
      *
      * This method not throwing any exceptions.
      */
-    fun load(expression: QueryExpression, limitExpression: LimitExpression? = null,
-             orderByExpression: OrderByExpression? = null,
-             useBatching: Boolean = true): List<AuditRecord> {
+    fun load(expression: QueryExpression, orderByExpression: OrderByExpression? = null,
+             limitExpression: LimitExpression? = null, useBatching: Boolean = true): List<AuditRecord> {
         val auditRecords = try {
             auditDao.loadRecords(expression, orderByExpression, limitExpression)
         } catch (e: UnknownObjectTypeException) {
@@ -372,8 +371,8 @@ class AuditAPI {
      *
      * @throws UnknownObjectTypeException
      */
-    fun loadAuditWithExceptions(expression: QueryExpression, limitExpression: LimitExpression? = null,
-                                orderByExpression: OrderByExpression? = null, useBatching: Boolean = true):
+    fun loadAuditWithExceptions(expression: QueryExpression, orderByExpression: OrderByExpression? = null,
+                                limitExpression: LimitExpression? = null,  useBatching: Boolean = true):
             List<AuditRecord> {
         val auditRecords: List<AuditRecordInternal> = auditDao.loadRecords(expression, orderByExpression, limitExpression)
 
