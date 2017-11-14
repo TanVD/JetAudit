@@ -1,4 +1,4 @@
-package Clickhouse.AuditDao.Saving
+package clickhouse.auditDao.saving
 
 import org.testng.Assert
 import org.testng.annotations.AfterMethod
@@ -9,8 +9,11 @@ import tanvd.audit.model.external.presenters.StringPresenter
 import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.information.InformationType
-import utils.*
+import utils.InformationUtils
+import utils.SamplesGenerator
 import utils.SamplesGenerator.getRecordInternal
+import utils.StringInf
+import utils.TestUtil
 
 internal class NonValidInputTest {
 

@@ -9,6 +9,7 @@ import tanvd.audit.model.external.types.objects.ObjectPresenter
 import tanvd.audit.model.external.types.objects.ObjectType
 import utils.TestUtil
 
+@Suppress("UNCHECKED_CAST")
 internal class AddInformationTypeTest {
 
     open class First
@@ -17,7 +18,7 @@ internal class AddInformationTypeTest {
         override val useDeserialization: Boolean = true
         override val entityName: String = "First"
 
-        override val deserializer: (ObjectState) -> First? =  { First()}
+        override val deserializer: (ObjectState) -> First? = { First() }
 
     }
 
@@ -27,11 +28,7 @@ internal class AddInformationTypeTest {
 
     @AfterMethod
     fun clean() {
-        try {
         TestUtil.drop()
-        } catch (e : Exception) {
-
-        }
     }
 
     @Test
@@ -56,7 +53,7 @@ internal class AddInformationTypeTest {
         ObjectType.addType(type)
         try {
             ObjectType.resolveType(Second::class)
-        } catch(e: UnknownObjectTypeException) {
+        } catch (e: UnknownObjectTypeException) {
             return
         }
         Assert.fail()

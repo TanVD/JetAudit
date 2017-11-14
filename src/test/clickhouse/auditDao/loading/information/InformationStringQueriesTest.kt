@@ -1,16 +1,22 @@
-package Clickhouse.AuditDao.Loading.Information
+package clickhouse.auditDao.loading.information
 
 import org.testng.Assert
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouse
-import tanvd.audit.model.external.queries.*
+import tanvd.audit.model.external.queries.equal
+import tanvd.audit.model.external.queries.inList
+import tanvd.audit.model.external.queries.like
+import tanvd.audit.model.external.queries.regex
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.internal.AuditRecordInternal
-import utils.*
+import utils.InformationUtils
+import utils.SamplesGenerator
 import utils.SamplesGenerator.getRecordInternal
+import utils.StringInf
+import utils.TestUtil
 
 internal class InformationStringQueriesTest {
 

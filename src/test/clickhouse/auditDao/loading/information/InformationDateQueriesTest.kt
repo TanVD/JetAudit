@@ -1,4 +1,4 @@
-package Clickhouse.AuditDao.Loading.Information
+package clickhouse.auditDao.loading.information
 
 import org.testng.Assert
 import org.testng.annotations.AfterMethod
@@ -8,7 +8,9 @@ import tanvd.audit.implementation.clickhouse.AuditDaoClickhouse
 import tanvd.audit.model.external.presenters.DateType
 import tanvd.audit.model.external.queries.*
 import tanvd.audit.model.external.records.InformationObject
-import utils.*
+import utils.InformationUtils
+import utils.SamplesGenerator
+import utils.TestUtil
 import utils.getDate
 
 internal class InformationDateQueriesTest {

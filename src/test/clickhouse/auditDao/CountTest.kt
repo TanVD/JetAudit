@@ -1,4 +1,4 @@
-package Clickhouse.AuditDao
+package clickhouse.auditDao
 
 import org.testng.Assert
 import org.testng.annotations.AfterMethod

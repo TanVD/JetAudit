@@ -7,7 +7,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest
 import org.powermock.modules.testng.PowerMockTestCase
 import org.testng.Assert
 import org.testng.annotations.AfterMethod
-import org.testng.annotations.BeforeClass
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.AuditAPI
@@ -16,7 +15,6 @@ import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.QueueCommand
 import tanvd.audit.implementation.SaveRecords
 import tanvd.audit.implementation.clickhouse.AuditDao
-import tanvd.audit.implementation.clickhouse.AuditDaoClickhouse
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
@@ -25,6 +23,7 @@ import utils.SamplesGenerator.getRecordInternal
 import java.util.*
 import java.util.concurrent.BlockingQueue
 
+@Suppress("UNCHECKED_CAST")
 @PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*")
 @PrepareForTest(AuditExecutor::class, ObjectType::class)
 internal class CommitAudit : PowerMockTestCase() {

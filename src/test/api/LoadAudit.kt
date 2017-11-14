@@ -17,7 +17,6 @@ import tanvd.audit.exceptions.UnknownObjectTypeException
 import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.QueueCommand
 import tanvd.audit.implementation.clickhouse.AuditDao
-import tanvd.audit.implementation.clickhouse.AuditDaoClickhouse
 import tanvd.audit.model.external.presenters.StringPresenter
 import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.records.AuditObject
@@ -29,7 +28,6 @@ import utils.*
 import utils.SamplesGenerator.getRecordInternal
 import java.util.*
 import java.util.concurrent.BlockingQueue
-import kotlin.collections.LinkedHashSet
 
 @PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*")
 @PrepareForTest(AuditExecutor::class, ObjectType::class)
@@ -178,17 +176,17 @@ internal class LoadAudit : PowerMockTestCase() {
 
     private fun returnRecordOnExpressionAndParam(record: AuditRecordInternal, expression: QueryExpression,
                                                  limit: LimitExpression? = null, orderBy: OrderByExpression? = null) {
-        PowerMockito.`when`(auditDao!!.loadRecords(expression, limit, orderBy)).thenReturn(listOf(record))
+        PowerMockito.`when`(auditDao!!.loadRecords(expression, orderBy, limit)).thenReturn(listOf(record))
     }
 
     private fun throwUnknownAuditTypeOnExpressionAndParam(expression: QueryExpression, limit: LimitExpression? = null,
                                                           orderBy: OrderByExpression? = null) {
-        PowerMockito.`when`(auditDao!!.loadRecords(expression, limit, orderBy)).thenThrow(UnknownObjectTypeException::class.java)
+        PowerMockito.`when`(auditDao!!.loadRecords(expression, orderBy, limit)).thenThrow(UnknownObjectTypeException::class.java)
     }
 
     private fun returnRecordsOnExpressionAndParam(records: List<AuditRecordInternal>, expression: QueryExpression,
                                                   limit: LimitExpression? = null, orderBy: OrderByExpression? = null) {
-        PowerMockito.`when`(auditDao!!.loadRecords(expression, limit, orderBy)).thenReturn(records)
+        PowerMockito.`when`(auditDao!!.loadRecords(expression, orderBy, limit)).thenReturn(records)
     }
 
     private fun addPrimitiveTypes() {

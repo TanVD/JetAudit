@@ -1,7 +1,7 @@
 package utils
 
 
-fun measureTime(func: () -> Unit) : Long {
+fun measureTime(func: () -> Unit): Long {
     val time = System.currentTimeMillis()
     func()
     return System.currentTimeMillis() - time

@@ -7,7 +7,10 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import org.joda.time.format.DateTimeFormat
+import tanvd.aorm.Column
+import tanvd.aorm.DbType
 import tanvd.aorm.InsertExpression
+import tanvd.aorm.Row
 import tanvd.audit.implementation.clickhouse.ClickhouseRecordSerializer
 import tanvd.audit.implementation.clickhouse.aorm.AuditTable
 import tanvd.audit.model.internal.AuditRecordInternal
@@ -39,9 +42,10 @@ internal class ClickhouseSqlS3Writer : AuditReserveWriter {
     }
 
 
+    @Suppress("UNCHECKED_CAST")
     override fun write(record: AuditRecordInternal) {
         val row = ClickhouseRecordSerializer.serialize(record)
-        buffer.add(InsertExpression(AuditTable, row).toSql())
+        buffer.add(InsertExpression(AuditTable, Row(row as Map<Column<Any, DbType<Any>>, Any>)).toSql())
     }
 
     override fun flush() = close()

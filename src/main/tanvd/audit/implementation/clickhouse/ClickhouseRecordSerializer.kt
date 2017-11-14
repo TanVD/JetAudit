@@ -4,7 +4,6 @@ import org.slf4j.LoggerFactory
 import tanvd.aorm.Column
 import tanvd.aorm.DbType
 import tanvd.aorm.Row
-import tanvd.audit.exceptions.UnknownObjectTypeException
 import tanvd.audit.implementation.clickhouse.aorm.AuditTable
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.records.ObjectState
@@ -22,8 +21,7 @@ internal object ClickhouseRecordSerializer {
     /**
      * Serialize AuditRecordInternal for Clickhouse
      */
-    fun serialize(auditRecordInternal: AuditRecordInternal): Row {
-
+    fun serialize(auditRecordInternal: AuditRecordInternal): Map<Column<*, DbType<*>>, Any> {
         val description = auditRecordInternal.objects.map { it.first.entityName }
 
         val elements = serializeObjects(auditRecordInternal)
@@ -34,7 +32,7 @@ internal object ClickhouseRecordSerializer {
 
         elements.put(AuditTable.description, description)
 
-        return Row(elements as Map<Column<Any, DbType<Any>>, Any>)
+        return elements
     }
 
     private fun serializeObjects(auditRecordInternal: AuditRecordInternal): MutableMap<Column<*, DbType<*>>, Any> {
@@ -43,12 +41,6 @@ internal object ClickhouseRecordSerializer {
         return groupedObjects.mapKeys { it.key.column }.toMutableMap()
     }
 
-    /**
-     * Deserialize AuditRecordInternal from string representation
-     * DbString in Map -- name stateName
-     *
-     * @throws UnknownObjectTypeException
-     */
     fun deserialize(row: Row): AuditRecordInternal {
         val description = row[AuditTable.description]
         if (description == null) {
@@ -59,6 +51,7 @@ internal object ClickhouseRecordSerializer {
         return AuditRecordInternal(deserializeObjects(description, row), deserializeInformation(row))
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun deserializeObjects(description: List<String>, row: Row): ArrayList<Pair<ObjectType<Any>, ObjectState>> {
         val objects = ArrayList<Pair<ObjectType<Any>, ObjectState>>()
         val currentNumberOfType = HashMap<String, Int>()
@@ -75,7 +68,6 @@ internal object ClickhouseRecordSerializer {
                 }
             }
             objects.add(Pair(type, ObjectState(stateList)))
-
         }
         return objects
     }

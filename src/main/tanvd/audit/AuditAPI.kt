@@ -1,6 +1,5 @@
 package tanvd.audit
 
-import org.jetbrains.annotations.TestOnly
 import org.slf4j.LoggerFactory
 import tanvd.aorm.Table
 import tanvd.aorm.query.LimitExpression
@@ -351,7 +350,7 @@ class AuditAPI {
              orderByExpression: OrderByExpression? = null,
              useBatching: Boolean = true): List<AuditRecord> {
         val auditRecords = try {
-            auditDao.loadRecords(expression, limitExpression, orderByExpression)
+            auditDao.loadRecords(expression, orderByExpression, limitExpression)
         } catch (e: UnknownObjectTypeException) {
             logger.error("AuditAPI met unknown ObjectType. Empty list will be returned.", e)
             return emptyList()
@@ -376,7 +375,7 @@ class AuditAPI {
     fun loadAuditWithExceptions(expression: QueryExpression, limitExpression: LimitExpression? = null,
                                 orderByExpression: OrderByExpression? = null, useBatching: Boolean = true):
             List<AuditRecord> {
-        val auditRecords: List<AuditRecordInternal> = auditDao.loadRecords(expression, limitExpression, orderByExpression)
+        val auditRecords: List<AuditRecordInternal> = auditDao.loadRecords(expression, orderByExpression, limitExpression)
 
         return if (useBatching) {
             deserializeAuditRecordsWithBatching(auditRecords)

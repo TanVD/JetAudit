@@ -1,4 +1,4 @@
-package Clickhouse.AuditDao.Loading.Objects
+package clickhouse.auditDao.loading.objects
 
 import org.testng.Assert
 import org.testng.annotations.AfterMethod
@@ -14,6 +14,7 @@ import tanvd.audit.model.external.types.objects.ObjectType
 import utils.*
 import utils.SamplesGenerator.getRecordInternal
 
+@Suppress("UNCHECKED_CAST")
 internal class StateLongTypeTest {
 
     companion object {

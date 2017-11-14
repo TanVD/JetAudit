@@ -1,10 +1,9 @@
 package tanvd.audit.implementation.clickhouse
 
-import com.fasterxml.jackson.databind.introspect.TypeResolutionContext
-import tanvd.aorm.*
 import tanvd.aorm.exceptions.BasicDbException
-import tanvd.aorm.query.*
-import tanvd.audit.implementation.clickhouse.aorm.AuditTable
+import tanvd.aorm.query.LimitExpression
+import tanvd.aorm.query.OrderByExpression
+import tanvd.aorm.query.QueryExpression
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
@@ -48,8 +47,8 @@ internal interface AuditDao {
      * @throws BasicDbException
      */
     @Throws(BasicDbException::class)
-    fun loadRecords(expression: QueryExpression, limitExpression: LimitExpression? = null,
-                    orderByExpression: OrderByExpression? = null): List<AuditRecordInternal>
+    fun loadRecords(expression: QueryExpression, orderByExpression: OrderByExpression? = null,
+                    limitExpression: LimitExpression? = null): List<AuditRecordInternal>
 
     /**
      * Return total count of records satisfying condition except Deleted

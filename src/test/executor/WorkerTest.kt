@@ -352,76 +352,76 @@ internal class WorkerTest : PowerMockTestCase() {
         Assert.assertTrue(auditWorker.reserveBuffer.isEmpty())
     }
 
-//    @Test
-//    fun processReserveBuffer_oneRecordExceptionalLastGeneration_ExceptionalRecordPassedToWriter() {
-//        val recordFirst = simpleAuditRecordInternalFirst()
-//        recordFirst.generation = AuditWorker.maxGeneration - 1
-//        val recordSecond = simpleAuditRecordInternalSecond()
-//        reserveBuffer.add(recordFirst)
-//        reserveBuffer.add(recordSecond)
-//        PowerMockito.`when`(auditDao!!.saveRecord(recordFirst)).thenThrow(BasicDbException::class.java)
-//
-//        val auditWorker = AuditWorker(queue, buffer, reserveBuffer, auditDao!!, auditWriter!!)
-//        val spyWorker = PowerMockito.spy(auditWorker)
-//
-//        spyWorker.processReserveBuffer()
-//
-//        Mockito.verify(auditWriter)!!.write(recordFirst)
-//    }
+    @Test
+    fun processReserveBuffer_oneRecordExceptionalLastGeneration_ExceptionalRecordPassedToWriter() {
+        val recordFirst = simpleAuditRecordInternalFirst()
+        recordFirst.generation = AuditWorker.maxGeneration - 1
+        val recordSecond = simpleAuditRecordInternalSecond()
+        reserveBuffer.add(recordFirst)
+        reserveBuffer.add(recordSecond)
+        PowerMockito.`when`(auditDao!!.saveRecord(recordFirst)).thenThrow(BasicDbException::class.java)
 
-//    @Test
-//    fun processReserveBuffer_oneRecordExceptionalLastGeneration_WriterFlushedAtTheEnd() {
-//        val recordFirst = simpleAuditRecordInternalFirst()
-//        recordFirst.generation = AuditWorker.maxGeneration - 1
-//        val recordSecond = simpleAuditRecordInternalSecond()
-//        reserveBuffer.add(recordFirst)
-//        reserveBuffer.add(recordSecond)
-//        PowerMockito.`when`(auditDao!!.saveRecord(recordFirst)).thenThrow(BasicDbException::class.java)
-//
-//        val auditWorker = AuditWorker(queue, buffer, reserveBuffer, auditDao!!, auditWriter!!)
-//        val spyWorker = PowerMockito.spy(auditWorker)
-//
-//        spyWorker.processReserveBuffer()
-//
-//        val order = Mockito.inOrder(auditWriter)
-//
-//        order.verify(auditWriter)!!.write(recordFirst)
-//
-//        order.verify(auditWriter)!!.flush()
-//    }
+        val auditWorker = AuditWorker(queue, buffer, reserveBuffer, auditDao!!, auditWriter!!)
+        val spyWorker = PowerMockito.spy(auditWorker)
 
-//    @Test
-//    fun processReserveBuffer_BothRecordExceptionalLastGeneration_WriterFlushedAtTheEndOneTime() {
-//        val recordFirst = simpleAuditRecordInternalFirst()
-//        recordFirst.generation = AuditWorker.maxGeneration - 1
-//        val recordSecond = simpleAuditRecordInternalSecond()
-//        recordSecond.generation = AuditWorker.maxGeneration - 1
-//
-//        reserveBuffer.add(recordFirst)
-//        reserveBuffer.add(recordSecond)
-//        PowerMockito.`when`(auditDao!!.saveRecord(recordFirst)).thenThrow(BasicDbException::class.java)
-//        PowerMockito.`when`(auditDao!!.saveRecord(recordSecond)).thenThrow(BasicDbException::class.java)
-//
-//
-//        val auditWorker = AuditWorker(queue, buffer, reserveBuffer, auditDao!!, auditWriter!!)
-//        val spyWorker = PowerMockito.spy(auditWorker)
-//
-//        spyWorker.processReserveBuffer()
-//
-//        val order = Mockito.inOrder(auditWriter)
-//
-//        order.verify(auditWriter)!!.write(recordFirst)
-//
-//        order.verify(auditWriter)!!.write(recordSecond)
-//
-//        order.verify(auditWriter)!!.flush()
-//    }
+        spyWorker.processReserveBuffer()
 
-    fun simpleAuditRecordInternalFirst(): AuditRecordInternal {
+        Mockito.verify(auditWriter)!!.write(recordFirst)
+    }
+
+    @Test
+    fun processReserveBuffer_oneRecordExceptionalLastGeneration_WriterFlushedAtTheEnd() {
+        val recordFirst = simpleAuditRecordInternalFirst()
+        recordFirst.generation = AuditWorker.maxGeneration - 1
+        val recordSecond = simpleAuditRecordInternalSecond()
+        reserveBuffer.add(recordFirst)
+        reserveBuffer.add(recordSecond)
+        PowerMockito.`when`(auditDao!!.saveRecord(recordFirst)).thenThrow(BasicDbException::class.java)
+
+        val auditWorker = AuditWorker(queue, buffer, reserveBuffer, auditDao!!, auditWriter!!)
+        val spyWorker = PowerMockito.spy(auditWorker)
+
+        spyWorker.processReserveBuffer()
+
+        val order = Mockito.inOrder(auditWriter)
+
+        order.verify(auditWriter)!!.write(recordFirst)
+
+        order.verify(auditWriter)!!.flush()
+    }
+
+    @Test
+    fun processReserveBuffer_BothRecordExceptionalLastGeneration_WriterFlushedAtTheEndOneTime() {
+        val recordFirst = simpleAuditRecordInternalFirst()
+        recordFirst.generation = AuditWorker.maxGeneration - 1
+        val recordSecond = simpleAuditRecordInternalSecond()
+        recordSecond.generation = AuditWorker.maxGeneration - 1
+
+        reserveBuffer.add(recordFirst)
+        reserveBuffer.add(recordSecond)
+        PowerMockito.`when`(auditDao!!.saveRecord(recordFirst)).thenThrow(BasicDbException::class.java)
+        PowerMockito.`when`(auditDao!!.saveRecord(recordSecond)).thenThrow(BasicDbException::class.java)
+
+
+        val auditWorker = AuditWorker(queue, buffer, reserveBuffer, auditDao!!, auditWriter!!)
+        val spyWorker = PowerMockito.spy(auditWorker)
+
+        spyWorker.processReserveBuffer()
+
+        val order = Mockito.inOrder(auditWriter)
+
+        order.verify(auditWriter)!!.write(recordFirst)
+
+        order.verify(auditWriter)!!.write(recordSecond)
+
+        order.verify(auditWriter)!!.flush()
+    }
+
+    private fun simpleAuditRecordInternalFirst(): AuditRecordInternal {
         return AuditRecordInternal(emptyList(), getSampleInformation("string1"))
     }
 
-    fun simpleAuditRecordInternalSecond(): AuditRecordInternal {
+    private fun simpleAuditRecordInternalSecond(): AuditRecordInternal {
         return AuditRecordInternal(emptyList(), getSampleInformation("string2"))
     }
 

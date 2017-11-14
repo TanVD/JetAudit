@@ -4,10 +4,10 @@ import tanvd.aorm.Database
 import tanvd.aorm.DatabaseProperties
 import tanvd.audit.utils.PropertyLoader
 
-object AuditDatabaseProperties: DatabaseProperties() {
+object AuditDatabaseProperties : DatabaseProperties() {
     override val name: String by lazy { "default" }
 
-    override val url: String by lazy {  PropertyLoader["Url"]!! }
+    override val url: String by lazy { PropertyLoader["Url"]!! }
 
     override val password: String by lazy { PropertyLoader["Password"]!! }
     override val user: String by lazy { PropertyLoader["Username"]!! }

@@ -35,14 +35,12 @@ internal class AuditWorker {
         this.reserveBuffer = reserveBuffer
         this.auditReserveWriter = auditReserveWriter
         this.auditDao = auditDao
-
     }
 
     companion object Config {
         val capacityOfWorkerBuffer by lazy { PropertyLoader["CapacityOfWorkerBuffer"]?.toInt() ?: 5000 }
         val waitingQueueTime by lazy { PropertyLoader["WaitingQueueTime"]?.toLong() ?: 10 }
         val maxGeneration by lazy { PropertyLoader["MaxGeneration"]?.toInt() ?: 15 }
-
     }
 
     private val auditQueueInternal: BlockingQueue<QueueCommand>
@@ -60,7 +58,7 @@ internal class AuditWorker {
     private var isEnabled = true
 
     fun start() {
-        while (true) {
+        while (!Thread.interrupted()) {
             try {
                 //while performing cycle worker can not report it's state to executor
                 //get new record if sure that can save it (reserve buffer not full)
@@ -75,10 +73,12 @@ internal class AuditWorker {
 
                 //stop if asked
                 if (!isEnabled) {
-//                    auditDao.finalize()
                     auditReserveWriter.close()
                     return
                 }
+            } catch (e: InterruptedException) {
+                logger.info("Audit worker exiting.")
+                return
             } catch (e: Throwable) {
                 logger.error("Audit worker encountered error", e)
             }
@@ -119,7 +119,10 @@ internal class AuditWorker {
         val records = buffer.take(batchSize)
         try {
             auditDao.saveRecords(records)
-        } catch (e: Throwable) {
+        } catch (e: InterruptedException) {
+            isEnabled = false
+            return
+        } catch (e: Exception) {
             reserveBuffer.addAll(records)
         }
         for (i in 1..batchSize) {
@@ -153,7 +156,10 @@ internal class AuditWorker {
 
                 try {
                     auditDao.saveRecord(record)
-                } catch (e: Throwable) {
+                } catch (e: InterruptedException) {
+                    isEnabled = false
+                    return
+                } catch (e: Exception) {
                     record.generation++
                     successSaved = false
                 }
@@ -175,6 +181,5 @@ internal class AuditWorker {
     fun disable() {
         isEnabled = false
     }
-
 }
 

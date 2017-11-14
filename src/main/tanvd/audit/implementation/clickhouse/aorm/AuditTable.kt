@@ -20,6 +20,7 @@ object AuditTable : Table("AuditTable", AuditDatabase) {
     val description = arrayString("DescriptionColumn")
 
     @TestOnly
+    @Suppress("UNCHECKED_CAST")
     internal fun resetColumns() {
         columns.clear()
         columns.add(date as Column<Any, DbType<Any>>)

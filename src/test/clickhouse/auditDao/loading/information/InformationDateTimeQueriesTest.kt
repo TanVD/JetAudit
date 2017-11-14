@@ -1,4 +1,4 @@
-package Clickhouse.AuditDao.Loading.Information
+package clickhouse.auditDao.loading.information
 
 import org.testng.Assert
 import org.testng.annotations.AfterMethod
@@ -9,8 +9,6 @@ import tanvd.audit.model.external.queries.*
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.information.InformationType
 import utils.*
-import utils.getDate
-import utils.getDateTime
 
 internal class InformationDateTimeQueriesTest {
 
@@ -159,7 +157,7 @@ internal class InformationDateTimeQueriesTest {
 
 
     private fun getSampleInformation(dateTime: String = "2000-01-01 12:00:00"): LinkedHashSet<InformationObject<*>> {
-        val set =  InformationUtils.getPrimitiveInformation(currentId++, 100, 2, getDate("2000-01-01"))
+        val set = InformationUtils.getPrimitiveInformation(currentId++, 100, 2, getDate("2000-01-01"))
         set.add(InformationObject(getDateTime(dateTime), DateTimeInf))
         return set
     }

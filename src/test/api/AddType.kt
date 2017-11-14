@@ -16,10 +16,12 @@ import tanvd.audit.exceptions.AddExistingAuditTypeException
 import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.QueueCommand
 import tanvd.audit.implementation.clickhouse.AuditDao
-import tanvd.audit.implementation.clickhouse.AuditDaoClickhouse
 import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
-import utils.*
+import utils.DbUtils
+import utils.TestClassString
+import utils.TestClassStringPresenter
+import utils.TestUtil
 import java.util.concurrent.BlockingQueue
 
 

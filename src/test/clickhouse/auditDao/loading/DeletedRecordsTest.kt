@@ -1,6 +1,6 @@
-package Clickhouse.AuditDao.Loading
+package clickhouse.auditDao.loading
 
-import Clickhouse.AuditDao.Loading.Objects.StateBooleanTypeTest
+import clickhouse.auditDao.loading.objects.StateBooleanTypeTest
 import org.testng.Assert
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
@@ -11,6 +11,7 @@ import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.objects.ObjectType
 import utils.*
 
+@Suppress("UNCHECKED_CAST")
 internal class DeletedRecordsTest {
 
     companion object {

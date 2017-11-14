@@ -1,4 +1,4 @@
-package Clickhouse.AuditDao
+package clickhouse.auditDao
 
 import org.testng.Assert
 import org.testng.annotations.AfterMethod
@@ -10,8 +10,11 @@ import tanvd.audit.model.external.presenters.TimeStampType
 import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.information.InformationType
-import utils.*
+import utils.InformationUtils
+import utils.SamplesGenerator
 import utils.SamplesGenerator.getRecordInternal
+import utils.StringInf
+import utils.TestUtil
 
 internal class AddInformationTypeTest {
 

@@ -1,38 +1,28 @@
 package tanvd.audit.implementation.clickhouse
 
-import tanvd.aorm.*
+import tanvd.aorm.Column
+import tanvd.aorm.DbType
 import tanvd.aorm.query.*
 import tanvd.audit.implementation.clickhouse.aorm.AuditTable
-import tanvd.aorm.exceptions.BasicDbException
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
 
 open internal class AuditDaoClickhouse : AuditDao {
 
-    /**
-     * Saves audit record and all its objects
-     *
-     * @throws BasicDbException
-     */
     override fun saveRecord(auditRecordInternal: AuditRecordInternal) {
-        AuditTable insert ClickhouseRecordSerializer.serialize(auditRecordInternal)
+        AuditTable.insert {
+            it.putAll(ClickhouseRecordSerializer.serialize(auditRecordInternal))
+        }
     }
 
-    /**
-     * Saves audit records. Makes it faster, than FOR loop with saveRecord
-     *
-     * @throws BasicDbException
-     */
     override fun saveRecords(auditRecordInternals: List<AuditRecordInternal>) {
-        AuditTable insertWithColumns AuditTable.columns.toList() values auditRecordInternals.map { ClickhouseRecordSerializer.serialize(it) }
+        AuditTable.batchInsert(auditRecordInternals, AuditTable.columns.toList()) { row, value ->
+            row.putAll(ClickhouseRecordSerializer.serialize(value))
+        }
     }
 
-    /**
-     * Adds new type and creates column for it
-     *
-     * @throws BasicDbException
-     */
+    @Suppress("UNCHECKED_CAST")
     override fun <T : Any> addTypeInDbModel(type: ObjectType<T>) {
         for (stateType in type.state) {
             AuditTable.addColumn(stateType.column as Column<List<T>, DbType<List<T>>>)
@@ -43,13 +33,8 @@ open internal class AuditDaoClickhouse : AuditDao {
         AuditTable.addColumn(information.column)
     }
 
-    /**
-     * Loads all auditRecords with specified object except Deleted
-     *
-     * @throws BasicDbException
-     */
-    override fun loadRecords(expression: QueryExpression, limitExpression: LimitExpression?,
-                             orderByExpression: OrderByExpression?): List<AuditRecordInternal> {
+    override fun loadRecords(expression: QueryExpression, orderByExpression: OrderByExpression?,
+                             limitExpression: LimitExpression?): List<AuditRecordInternal> {
         var query = AuditTable.select() prewhere expression
 
         if (AuditTable.useIsDeleted) {
@@ -61,6 +46,7 @@ open internal class AuditDaoClickhouse : AuditDao {
         if (orderByExpression != null) {
             query = query orderBy orderByExpression
         }
+
         val rows = query.toResult()
         //filter to newest version
         val rowsFiltered = rows.groupBy { row ->
@@ -74,11 +60,6 @@ open internal class AuditDaoClickhouse : AuditDao {
         return rowsFiltered.map { ClickhouseRecordSerializer.deserialize(it) }
     }
 
-    /**
-     * Return total count of records satisfying condition except Deleted
-     *
-     * @throws BasicDbException
-     */
     override fun countRecords(expression: QueryExpression): Long {
         val alias = "cnt"
         val query = AuditTable.select(count(AuditTable.id, alias)) prewhere expression

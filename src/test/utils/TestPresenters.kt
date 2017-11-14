@@ -2,7 +2,7 @@ package utils
 
 import org.joda.time.DateTime
 import tanvd.aorm.*
-import tanvd.audit.model.external.types.information.*
+import tanvd.audit.model.external.types.information.InformationType
 import java.util.*
 
 internal object LongInf : InformationType<Long>("LongInfColumn", DbLong(), { 0 })

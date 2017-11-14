@@ -1,16 +1,13 @@
 package api
 
-import org.mockito.Mockito.reset
 import org.mockito.Mockito.verify
 import org.powermock.api.mockito.PowerMockito.mock
 import org.powermock.core.classloader.annotations.PowerMockIgnore
 import org.powermock.core.classloader.annotations.PrepareForTest
 import org.powermock.modules.testng.PowerMockTestCase
 import org.testng.Assert
-import org.testng.Assert.assertEquals
 import org.testng.Assert.assertTrue
 import org.testng.annotations.AfterMethod
-import org.testng.annotations.BeforeClass
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.AuditAPI
@@ -26,6 +23,7 @@ import utils.TestUtil
 import java.util.concurrent.BlockingQueue
 
 
+@Suppress("UNCHECKED_CAST")
 @PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*")
 @PrepareForTest(AuditExecutor::class, InformationType::class)
 internal class AddInformation : PowerMockTestCase() {

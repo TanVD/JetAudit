@@ -1,4 +1,4 @@
-package Clickhouse.AuditDao.Loading.Information
+package clickhouse.auditDao.loading.information
 
 import org.testng.Assert
 import org.testng.annotations.AfterMethod

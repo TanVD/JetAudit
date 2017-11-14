@@ -1,4 +1,4 @@
-package Clickhouse.AuditDao.Saving
+package clickhouse.auditDao.saving
 
 import org.testng.Assert
 import org.testng.annotations.AfterMethod
@@ -14,9 +14,8 @@ import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.external.types.objects.ObjectType.TypesResolution.addType
 import utils.*
 import utils.SamplesGenerator.getRecordInternal
-import utils.getDate
-import utils.getDateTime
 
+@Suppress("UNCHECKED_CAST")
 internal class SavingTest {
 
     companion object {

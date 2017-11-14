@@ -9,7 +9,7 @@ import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.external.types.objects.ObjectType
 
 internal object TestUtil {
-    fun create() : AuditDaoClickhouse {
+    fun create(): AuditDaoClickhouse {
         if (AuditTable.useIsDeleted) {
             AuditTable.isDeleted
         }
@@ -17,7 +17,8 @@ internal object TestUtil {
 
         try {
             AuditTable.drop()
-        } catch (e: Exception) {}
+        } catch (e: Exception) {
+        }
         AuditTable.resetColumns()
         AuditTable.create()
 
@@ -33,7 +34,8 @@ internal object TestUtil {
         AuditTable.db = TestDatabase
         try {
             AuditTable.drop()
-        } catch (e: Exception) {}
+        } catch (e: Exception) {
+        }
         clearTypes()
     }
 
