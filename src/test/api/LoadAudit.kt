@@ -16,7 +16,8 @@ import tanvd.audit.AuditAPI
 import tanvd.audit.exceptions.UnknownObjectTypeException
 import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.QueueCommand
-import tanvd.audit.implementation.dao.AuditDao
+import tanvd.audit.implementation.clickhouse.AuditDao
+import tanvd.audit.implementation.clickhouse.AuditDaoClickhouse
 import tanvd.audit.model.external.presenters.StringPresenter
 import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.records.AuditObject

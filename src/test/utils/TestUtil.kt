@@ -1,15 +1,18 @@
 package utils
 
 import tanvd.aorm.Database
-import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
+import tanvd.aorm.DatabaseProperties
+import tanvd.audit.implementation.clickhouse.AuditDaoClickhouse
 import tanvd.audit.implementation.clickhouse.aorm.AuditTable
-import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.presenters.*
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.external.types.objects.ObjectType
 
 internal object TestUtil {
-    fun create() : AuditDaoClickhouseImpl {
+    fun create() : AuditDaoClickhouse {
+        if (AuditTable.useIsDeleted) {
+            AuditTable.isDeleted
+        }
         AuditTable.db = TestDatabase
 
         try {
@@ -18,7 +21,7 @@ internal object TestUtil {
         AuditTable.resetColumns()
         AuditTable.create()
 
-        val auditDao = AuditDaoClickhouseImpl()
+        val auditDao = AuditDaoClickhouse()
 
         addObjectTypePrimitives()
         addAuditTypePrimitive(auditDao)
@@ -49,7 +52,7 @@ internal object TestUtil {
     }
 
     @Suppress("UNCHECKED_CAST")
-    internal fun addAuditTypePrimitive(auditDao: AuditDao) {
+    internal fun addAuditTypePrimitive(auditDao: AuditDaoClickhouse) {
         auditDao.addTypeInDbModel(ObjectType(String::class, StringPresenter) as ObjectType<Any>)
         auditDao.addTypeInDbModel(ObjectType(Int::class, IntPresenter) as ObjectType<Any>)
         auditDao.addTypeInDbModel(ObjectType(Long::class, LongPresenter) as ObjectType<Any>)
@@ -64,7 +67,7 @@ internal object TestUtil {
     }
 }
 
-object TestDatabase : Database(){
+object TestDatabaseProperties : DatabaseProperties() {
     override val name: String = "default"
 
     override val url: String = System.getProperty("ClickhouseUrl")?.trim('"') ?: "jdbc:clickhouse://localhost:8123"
@@ -74,5 +77,6 @@ object TestDatabase : Database(){
     override val useSsl: Boolean = false
     override val sslCertPath: String = ""
     override val sslVerifyMode: String = ""
-
 }
+
+object TestDatabase : Database(TestDatabaseProperties)

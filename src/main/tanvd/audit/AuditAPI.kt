@@ -1,5 +1,6 @@
 package tanvd.audit
 
+import org.jetbrains.annotations.TestOnly
 import org.slf4j.LoggerFactory
 import tanvd.aorm.Table
 import tanvd.aorm.query.LimitExpression
@@ -12,9 +13,9 @@ import tanvd.audit.exceptions.UnknownObjectTypeException
 import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.QueueCommand
 import tanvd.audit.implementation.SaveRecords
-import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
+import tanvd.audit.implementation.clickhouse.AuditDao
+import tanvd.audit.implementation.clickhouse.AuditDaoClickhouse
 import tanvd.audit.implementation.clickhouse.aorm.AuditTable
-import tanvd.audit.implementation.dao.AuditDao
 import tanvd.audit.model.external.presenters.*
 import tanvd.audit.model.external.records.AuditObject
 import tanvd.audit.model.external.records.AuditRecord
@@ -56,11 +57,20 @@ import kotlin.collections.LinkedHashSet
  *      SSLCertPath            (default empty),
  *      SSLVerifyMode          (default empty) (may be strict|none),
  *
+ *      MaxTotalHttpThreads            (default 1000)  (max total threads),
+ *      MaxPerRouteTotalHttpThreads    (default 500)   (max threads per route),
  *
  *      UseDefaultDDL          (default true),
- *      ConnectionTimeout      (default 2000) (ms) (timeout of connection to Clickhouse),
- *      KeepAliveTimeout       (default 240000) (ms) (time connection can be safely kept idle),
+ *      SocketTimeout          (default 30000) (ms)
+ *      ConnectionTimeout      (default 10000) (ms) (timeout of connection to Clickhouse),
+ *      KeepAliveTimeout       (default 30000) (ms) (time connection can be safely kept idle),
  *      TimeToLive             (default 60000) (ms) (time to live for one connection in pool unconditionally)
+ *      DataTransferTimeout    (default 20000) (ms) (max time for request execution)
+ *
+ *      MaxIdleConnections     (default 30)          (max idle jdbc connections)
+ *      MinIdleConnections     (default 1)           (min idle jdbc connections)
+ *      MaxTotalConnections    (default 60)          (max number of jdbc connections)
+ *      TimeBetweenEvictionRuns (default 30000) (ms) (time in ms between eviction passes through the pool)
  *
  *      #AuditApi config
  *      CapacityOfQueue        (default 20000 records),
@@ -82,6 +92,7 @@ import kotlin.collections.LinkedHashSet
  *      VersionColumn          (default VersionColumn),
  *      IdColumn               (default IdColumn),
  *      IsDeletedColumn        (default IsDeletedColumn)
+ *      UseIsDeleted           (default false)
  *
  * If properties file or some properties not found default values will be used.
  *
@@ -137,7 +148,7 @@ class AuditAPI {
             }
         }
 
-        auditDao = AuditDaoClickhouseImpl()
+        auditDao = AuditDaoClickhouse()
 
         executor = AuditExecutor(auditQueueInternal)
 
@@ -158,7 +169,7 @@ class AuditAPI {
             }
         }
 
-        auditDao = AuditDaoClickhouseImpl()
+        auditDao = AuditDaoClickhouse()
 
         executor = AuditExecutor(auditQueueInternal)
 
@@ -202,6 +213,9 @@ class AuditAPI {
     }
 
     internal fun initTable() {
+        if (AuditTable.useIsDeleted) {
+            AuditTable.isDeleted
+        }
         AuditTable.create()
     }
 

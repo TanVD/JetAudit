@@ -5,7 +5,7 @@ import org.testng.Assert
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
-import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
+import tanvd.audit.implementation.clickhouse.AuditDaoClickhouse
 import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.objects.ObjectType
@@ -15,7 +15,7 @@ internal class DeletedRecordsTest {
 
     companion object {
         var currentId = 0L
-        var auditDao: AuditDaoClickhouseImpl? = null
+        var auditDao: AuditDaoClickhouse? = null
     }
 
     val type = ObjectType(TestClassString::class, TestClassStringPresenter) as ObjectType<Any>

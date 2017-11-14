@@ -3,21 +3,12 @@ package tanvd.audit.implementation.clickhouse
 import tanvd.aorm.*
 import tanvd.aorm.query.*
 import tanvd.audit.implementation.clickhouse.aorm.AuditTable
-import tanvd.audit.implementation.dao.AuditDao
-import tanvd.audit.implementation.exceptions.BasicDbException
+import tanvd.aorm.exceptions.BasicDbException
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
-import tanvd.audit.utils.PropertyLoader
 
-/**
- * Dao to Clickhouse DB.
- */
-internal class AuditDaoClickhouseImpl : AuditDao {
-    /**
-     * Predefined scheme for clickhouse base.
-     */
-    private val useDefaultDDL by lazy { PropertyLoader["UseDefaultDDL"]?.toBoolean() ?: true }
+open internal class AuditDaoClickhouse : AuditDao {
 
     /**
      * Saves audit record and all its objects
@@ -44,12 +35,12 @@ internal class AuditDaoClickhouseImpl : AuditDao {
      */
     override fun <T : Any> addTypeInDbModel(type: ObjectType<T>) {
         for (stateType in type.state) {
-            AuditTable.addColumn(stateType.column as Column<List<T>, DbType<List<T>>>, useDefaultDDL)
+            AuditTable.addColumn(stateType.column as Column<List<T>, DbType<List<T>>>)
         }
     }
 
     override fun <T : Any> addInformationInDbModel(information: InformationType<T>) {
-        AuditTable.addColumn(information.column, useDefaultDDL)
+        AuditTable.addColumn(information.column)
     }
 
     /**
@@ -60,7 +51,10 @@ internal class AuditDaoClickhouseImpl : AuditDao {
     override fun loadRecords(expression: QueryExpression, limitExpression: LimitExpression?,
                              orderByExpression: OrderByExpression?): List<AuditRecordInternal> {
         var query = AuditTable.select() prewhere expression
-        query.prewhereSection = query.prewhereSection!! and (AuditTable.isDeleted eq false)
+
+        if (AuditTable.useIsDeleted) {
+            query.prewhereSection = query.prewhereSection!! and (AuditTable.isDeleted eq false)
+        }
         if (limitExpression != null) {
             query = query limit limitExpression
         }
@@ -70,12 +64,12 @@ internal class AuditDaoClickhouseImpl : AuditDao {
         val rows = query.toResult()
         //filter to newest version
         val rowsFiltered = rows.groupBy { row ->
-                        row[AuditTable.id]!!.toLong()
-                    }.mapValues {
-                        it.value.sortedByDescending { row ->
-                            row[AuditTable.version]!!.toLong()
-                            }.first()
-                    }.values.toList()
+            row[AuditTable.id]!!.toLong()
+        }.mapValues {
+            it.value.sortedByDescending { row ->
+                row[AuditTable.version]!!.toLong()
+            }.first()
+        }.values.toList()
 
         return rowsFiltered.map { ClickhouseRecordSerializer.deserialize(it) }
     }
@@ -88,17 +82,13 @@ internal class AuditDaoClickhouseImpl : AuditDao {
     override fun countRecords(expression: QueryExpression): Long {
         val alias = "cnt"
         val query = AuditTable.select(count(AuditTable.id, alias)) prewhere expression
-        query.prewhereSection = query.prewhereSection!! and (AuditTable.isDeleted eq false)
+        if (AuditTable.useIsDeleted) {
+            query.prewhereSection = query.prewhereSection!! and (AuditTable.isDeleted eq false)
+        }
 
         val resultList = query.toResult()
         return resultList.singleOrNull()?.let {
             it[alias] as Long
         } ?: 0L
     }
-
-    override fun resetTable() {
-        AuditTable.drop()
-        AuditTable.create()
-    }
 }
-

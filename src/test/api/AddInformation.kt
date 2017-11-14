@@ -8,14 +8,16 @@ import org.powermock.core.classloader.annotations.PrepareForTest
 import org.powermock.modules.testng.PowerMockTestCase
 import org.testng.Assert
 import org.testng.Assert.assertEquals
+import org.testng.Assert.assertTrue
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeClass
+import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.AuditAPI
 import tanvd.audit.exceptions.AddExistingInformationTypeException
 import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.QueueCommand
-import tanvd.audit.implementation.dao.AuditDao
+import tanvd.audit.implementation.clickhouse.AuditDao
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.internal.AuditRecordInternal
 import utils.BooleanInf
@@ -38,7 +40,7 @@ internal class AddInformation : PowerMockTestCase() {
 
     private var auditApi: AuditAPI? = null
 
-    @BeforeClass
+    @BeforeMethod
     fun setMocks() {
         auditDao = mock(AuditDao::class.java)
         auditExecutor = mock(AuditExecutor::class.java)
@@ -50,14 +52,13 @@ internal class AddInformation : PowerMockTestCase() {
             }
         }
         auditApi = AuditAPI(auditDao!!, auditExecutor!!, auditQueueInternal!!, auditRecordsNotCommitted!!, DbUtils.getProperties())
+        auditApi!!.addServiceInformation()
+        auditApi!!.addPrimitiveTypes()
     }
 
     @AfterMethod
     fun resetMocks() {
         auditRecordsNotCommitted!!.remove()
-        reset(auditDao)
-        reset(auditExecutor)
-        reset(auditQueueInternal)
         TestUtil.clearTypes()
     }
 
@@ -66,7 +67,7 @@ internal class AddInformation : PowerMockTestCase() {
     fun addInformation_typeAdded_typeToInformationTypesAdded() {
         auditApi?.addInformationType(BooleanInf)
 
-        assertEquals(setOf(BooleanInf), InformationType.getTypes())
+        assertTrue(InformationType.getTypes().contains(BooleanInf as InformationType<Any>))
     }
 
     @Test

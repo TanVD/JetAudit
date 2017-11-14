@@ -2,8 +2,8 @@ package tanvd.audit.implementation
 
 import org.jetbrains.annotations.TestOnly
 import org.slf4j.LoggerFactory
-import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
-import tanvd.audit.implementation.dao.AuditDao
+import tanvd.audit.implementation.clickhouse.AuditDao
+import tanvd.audit.implementation.clickhouse.AuditDaoClickhouse
 import tanvd.audit.implementation.writer.AuditReserveWriter
 import tanvd.audit.model.internal.AuditRecordInternal
 import tanvd.audit.utils.PropertyLoader
@@ -22,10 +22,11 @@ internal class AuditWorker {
         this.auditQueueInternal = auditQueueInternal
         buffer = ArrayList()
         reserveBuffer = ArrayList()
-        this.auditDao = AuditDaoClickhouseImpl()
+        this.auditDao = AuditDaoClickhouse()
         this.auditReserveWriter = AuditReserveWriter.getWriter()
     }
 
+    @TestOnly
     constructor(auditQueueInternal: BlockingQueue<QueueCommand>, buffer: MutableList<AuditRecordInternal>,
                 reserveBuffer: MutableList<AuditRecordInternal>,
                 auditDao: AuditDao, auditReserveWriter: AuditReserveWriter) {

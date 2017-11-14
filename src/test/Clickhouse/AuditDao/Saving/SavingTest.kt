@@ -4,7 +4,7 @@ import org.testng.Assert
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
-import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
+import tanvd.audit.implementation.clickhouse.AuditDaoClickhouse
 import tanvd.audit.model.external.presenters.IdType
 import tanvd.audit.model.external.presenters.LongPresenter
 import tanvd.audit.model.external.queries.equal
@@ -20,7 +20,7 @@ import utils.getDateTime
 internal class SavingTest {
 
     companion object {
-        var auditDao: AuditDaoClickhouseImpl? = null
+        var auditDao: AuditDaoClickhouse? = null
         var currentId = 0L
     }
 

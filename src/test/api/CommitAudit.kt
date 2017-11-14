@@ -8,13 +8,15 @@ import org.powermock.modules.testng.PowerMockTestCase
 import org.testng.Assert
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeClass
+import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.AuditAPI
 import tanvd.audit.exceptions.AuditQueueFullException
 import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.QueueCommand
 import tanvd.audit.implementation.SaveRecords
-import tanvd.audit.implementation.dao.AuditDao
+import tanvd.audit.implementation.clickhouse.AuditDao
+import tanvd.audit.implementation.clickhouse.AuditDaoClickhouse
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
@@ -39,7 +41,7 @@ internal class CommitAudit : PowerMockTestCase() {
 
     private var auditApi: AuditAPI? = null
 
-    @BeforeClass
+    @BeforeMethod
     fun setMocks() {
         auditDao = PowerMockito.mock(AuditDao::class.java)
         auditExecutor = PowerMockito.mock(AuditExecutor::class.java)
@@ -51,14 +53,13 @@ internal class CommitAudit : PowerMockTestCase() {
             }
         }
         auditApi = AuditAPI(auditDao!!, auditExecutor!!, auditQueueInternal!!, auditRecordsNotCommitted!!, DbUtils.getProperties())
+        auditApi!!.addServiceInformation()
+        auditApi!!.addPrimitiveTypes()
     }
 
     @AfterMethod
     fun resetMocks() {
         auditRecordsNotCommitted!!.remove()
-        Mockito.reset(auditDao)
-        Mockito.reset(auditExecutor)
-        Mockito.reset(auditQueueInternal)
         TestUtil.clearTypes()
     }
 
@@ -66,7 +67,7 @@ internal class CommitAudit : PowerMockTestCase() {
     fun commitAudit_noExceptions_recordAddedToAuditQueue() {
         val testSet = arrayOf("123", 456, TestClassString("string"))
         val testStamp = 789L
-        addPrimitiveTypesAndTestClassFirst()
+        addTestClassFirst()
         val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp)
         auditRecordsNotCommitted!!.get().add(auditRecord)
 
@@ -79,7 +80,7 @@ internal class CommitAudit : PowerMockTestCase() {
     fun commitAudit_noExceptions_threadGroupDeleted() {
         val testSet = arrayOf("123", 456, TestClassString("string"))
         val testStamp = 789L
-        addPrimitiveTypesAndTestClassFirst()
+        addTestClassFirst()
         val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp)
         auditRecordsNotCommitted!!.get().add(auditRecord)
 
@@ -92,7 +93,7 @@ internal class CommitAudit : PowerMockTestCase() {
     fun commitAuditWithExceptions_noExceptions_recordAddedToAuditQueue() {
         val testSet = arrayOf("123", 456, TestClassString("string"))
         val testStamp = 789L
-        addPrimitiveTypesAndTestClassFirst()
+        addTestClassFirst()
         val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp)
         auditRecordsNotCommitted!!.get().add(auditRecord)
 
@@ -105,7 +106,7 @@ internal class CommitAudit : PowerMockTestCase() {
     fun commitAuditWithExceptions_noExceptions_threadGroupDeleted() {
         val testSet = arrayOf("123", 456, TestClassString("string"))
         val testStamp = 789L
-        addPrimitiveTypesAndTestClassFirst()
+        addTestClassFirst()
         val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp)
         auditRecordsNotCommitted!!.get().add(auditRecord)
 
@@ -118,7 +119,7 @@ internal class CommitAudit : PowerMockTestCase() {
     fun commitAudit_queueFull_noExceptions() {
         val testSet = arrayOf("123", 456, TestClassString("string"))
         val testStamp = 789L
-        addPrimitiveTypesAndTestClassFirst()
+        addTestClassFirst()
         val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp)
         PowerMockito.`when`(auditQueueInternal!!.size).thenReturn(AuditAPI.capacityOfQueue)
 
@@ -131,7 +132,7 @@ internal class CommitAudit : PowerMockTestCase() {
     fun commitAudit_queueFull_auditQueueInternalNotChanged() {
         val testSet = arrayOf("123", 456, TestClassString("string"))
         val testStamp = 789L
-        addPrimitiveTypesAndTestClassFirst()
+        addTestClassFirst()
         val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp)
         PowerMockito.`when`(auditQueueInternal!!.size).thenReturn(AuditAPI.capacityOfQueue)
 
@@ -147,7 +148,7 @@ internal class CommitAudit : PowerMockTestCase() {
     fun commitAudit_queueFull_notCommittedGroupNotDeleted() {
         val testSet = arrayOf("123", 456, TestClassString("string"))
         val testStamp = 789L
-        addPrimitiveTypesAndTestClassFirst()
+        addTestClassFirst()
         val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp)
         PowerMockito.`when`(auditQueueInternal!!.size).thenReturn(AuditAPI.capacityOfQueue)
 
@@ -165,7 +166,7 @@ internal class CommitAudit : PowerMockTestCase() {
     fun commitAuditWithExceptions_queueFull_exceptionThrown() {
         val testSet = arrayOf("123", 456, TestClassString("string"))
         val testStamp = 789L
-        addPrimitiveTypesAndTestClassFirst()
+        addTestClassFirst()
         val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp)
         PowerMockito.`when`(auditQueueInternal!!.size).thenReturn(AuditAPI.capacityOfQueue)
 
@@ -184,7 +185,7 @@ internal class CommitAudit : PowerMockTestCase() {
     fun commitAuditWithExceptions_queueFull_auditQueueInternalNotChanged() {
         val testSet = arrayOf("123", 456, TestClassString("string"))
         val testStamp = 789L
-        addPrimitiveTypesAndTestClassFirst()
+        addTestClassFirst()
         val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp)
         PowerMockito.`when`(auditQueueInternal!!.size).thenReturn(AuditAPI.capacityOfQueue)
 
@@ -204,7 +205,7 @@ internal class CommitAudit : PowerMockTestCase() {
     fun commitAuditWithExceptions_queueFull_notCommittedGroupNotDeleted() {
         val testSet = arrayOf("123", 456, TestClassString("string"))
         val testStamp = 789L
-        addPrimitiveTypesAndTestClassFirst()
+        addTestClassFirst()
         val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp)
         PowerMockito.`when`(auditQueueInternal!!.size).thenReturn(AuditAPI.capacityOfQueue)
 
@@ -223,10 +224,10 @@ internal class CommitAudit : PowerMockTestCase() {
         return getRecordInternal(*objects, information = getSampleInformation(unixTimeStamp))
     }
 
-    private fun addPrimitiveTypesAndTestClassFirst() {
-        auditApi!!.addPrimitiveTypes()
+    private fun addTestClassFirst() {
         val type = ObjectType(TestClassString::class, TestClassStringPresenter)
-        auditApi!!.addObjectType(type)
+        auditDao!!.addTypeInDbModel(type)
+        ObjectType.addType(type as ObjectType<Any>)
     }
 
     private fun getSampleInformation(timeStamp: Long): LinkedHashSet<InformationObject<*>> {

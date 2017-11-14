@@ -52,7 +52,7 @@ task JetAuditJar(type: Jar) {
 
 
 dependencies {
-    compile "tanvd:aorm:0.1"
+    compile "tanvd:AORM:0.1-SNAPSHOT"
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
@@ -62,6 +62,7 @@ dependencies {
     compile "com.google.guava:guava:19.0"
     compile "com.amazonaws:aws-java-sdk-s3:1.11.160"
     compile "joda-time:joda-time:2.9.9"
+    compile "org.apache.commons:commons-dbcp2:2.1.1"
     testCompile "org.testng:testng:6.11"
     testCompile "org.mockito:mockito-all:1.10.19"
     //need it for kotlin object mocking purposes (mocking static members)

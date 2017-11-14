@@ -4,7 +4,7 @@
 //import org.testng.annotations.AfterMethod
 //import org.testng.annotations.BeforeMethod
 //import org.testng.annotations.Test
-//import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
+//import tanvd.audit.implementation.clickhouse.AuditDaoClickhouse
 //import tanvd.audit.implementation.dao.AuditDao
 //import tanvd.audit.model.external.presenters.StringPresenter
 //import tanvd.audit.model.external.presenters.TimeStampType
@@ -23,7 +23,7 @@
 //
 //    companion object {
 //        var currentId = 0L
-//        var auditDao: AuditDaoClickhouseImpl? = null
+//        var auditDao: AuditDaoClickhouse? = null
 //    }
 //
 //    @BeforeMethod
@@ -33,14 +33,14 @@
 //        TypeUtils.addInformationTypesPrimitive()
 //
 //        AuditDao.credentials = DbUtils.getCredentials()
-//        auditDao = AuditDao.getDao() as AuditDaoClickhouseImpl
+//        auditDao = AuditDao.getDao() as AuditDaoClickhouse
 //
 //        TypeUtils.addAuditTypePrimitive(auditDao!!)
 //    }
 //
 //    @AfterMethod
 //    fun clearAll() {
-//        auditDao!!.dropTable(AuditDaoClickhouseImpl.auditTable)
+//        auditDao!!.dropTable(AuditDaoClickhouse.auditTable)
 //        TypeUtils.clearTypes()
 //        currentId = 0
 //    }

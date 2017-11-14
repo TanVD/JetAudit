@@ -9,12 +9,12 @@ import org.testng.Assert
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
+import tanvd.aorm.exceptions.BasicDbException
 import tanvd.audit.implementation.AuditWorker
 import tanvd.audit.implementation.QueueCommand
 import tanvd.audit.implementation.SaveRecords
 import tanvd.audit.implementation.ShutDown
-import tanvd.audit.implementation.dao.AuditDao
-import tanvd.audit.implementation.exceptions.BasicDbException
+import tanvd.audit.implementation.clickhouse.AuditDao
 import tanvd.audit.implementation.writer.AuditReserveWriter
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.internal.AuditRecordInternal
@@ -138,7 +138,7 @@ internal class WorkerTest : PowerMockTestCase() {
         val batchSize = 1
         buffer.add(record)
         val auditWorker = AuditWorker(queue, buffer, reserveBuffer, auditDao!!, auditWriter!!)
-        PowerMockito.`when`(auditDao!!.saveRecords(listOf(record))).thenThrow(BasicDbException())
+        PowerMockito.`when`(auditDao!!.saveRecords(listOf(record))).thenThrow(BasicDbException("Some exception", Exception()))
 
         auditWorker.saveBuffer(batchSize)
 

@@ -6,7 +6,7 @@ import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.aorm.query.and
 import tanvd.aorm.query.or
-import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
+import tanvd.audit.implementation.clickhouse.AuditDaoClickhouse
 import tanvd.audit.model.external.presenters.StringPresenter
 import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.records.InformationObject
@@ -19,7 +19,7 @@ internal class BinaryQueryOperatorsTest {
 
     companion object {
         var currentId = 0L
-        var auditDao: AuditDaoClickhouseImpl? = null
+        var auditDao: AuditDaoClickhouse? = null
     }
 
 

@@ -4,7 +4,7 @@ import org.testng.Assert
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
-import tanvd.audit.implementation.clickhouse.AuditDaoClickhouseImpl
+import tanvd.audit.implementation.clickhouse.AuditDaoClickhouse
 import tanvd.audit.model.external.queries.*
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.information.InformationType
@@ -16,7 +16,7 @@ internal class InformationStringQueriesTest {
 
     companion object {
         var currentId = 0L
-        var auditDao: AuditDaoClickhouseImpl? = null
+        var auditDao: AuditDaoClickhouse? = null
     }
 
     @BeforeMethod
