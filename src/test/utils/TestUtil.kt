@@ -1,7 +1,6 @@
 package utils
 
 import tanvd.aorm.Database
-import tanvd.aorm.DatabaseProperties
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouse
 import tanvd.audit.implementation.clickhouse.aorm.AuditTable
 import tanvd.audit.model.external.presenters.*
@@ -12,22 +11,23 @@ import tanvd.audit.utils.RandomGenerator
 internal object TestUtil {
 
     init {
+        AuditTable.init(DbUtils.getDataSource())
         val randomPostfix = RandomGenerator.next()
-        AuditTable.name += randomPostfix.toString()
+        AuditTable().name += randomPostfix.toString()
     }
 
     fun create(): AuditDaoClickhouse {
-        if (AuditTable.useIsDeleted) {
-            AuditTable.isDeleted
+
+        if (AuditTable().useIsDeleted) {
+            AuditTable().isDeleted
         }
-        AuditTable.db = TestDatabase
 
         try {
-            AuditTable.drop()
+            AuditTable().drop()
         } catch (e: Exception) {
         }
-        AuditTable.resetColumns()
-        AuditTable.create()
+        AuditTable().resetColumns()
+        AuditTable().create()
 
         val auditDao = AuditDaoClickhouse()
 
@@ -38,9 +38,8 @@ internal object TestUtil {
     }
 
     fun drop() {
-        AuditTable.db = TestDatabase
         try {
-            AuditTable.drop()
+            AuditTable().drop()
         } catch (e: Exception) {
         }
         clearTypes()
@@ -76,16 +75,4 @@ internal object TestUtil {
     }
 }
 
-object TestDatabaseProperties : DatabaseProperties() {
-    override val name: String = "default"
-
-    override val url: String = System.getProperty("ClickhouseUrl")?.trim('"') ?: "jdbc:clickhouse://localhost:8123"
-    override val password: String = ""
-    override val user: String = "default"
-
-    override val useSsl: Boolean = false
-    override val sslCertPath: String = ""
-    override val sslVerifyMode: String = ""
-}
-
-object TestDatabase : Database(TestDatabaseProperties)
+val TestDatabase = Database("testDb", DbUtils.getDataSource())

@@ -17,8 +17,8 @@ import tanvd.audit.exceptions.UnknownObjectTypeException
 import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.QueueCommand
 import tanvd.audit.implementation.clickhouse.AuditDao
+import tanvd.audit.model.external.equal
 import tanvd.audit.model.external.presenters.StringPresenter
-import tanvd.audit.model.external.queries.equal
 import tanvd.audit.model.external.records.AuditObject
 import tanvd.audit.model.external.records.AuditRecord
 import tanvd.audit.model.external.records.InformationObject
@@ -54,7 +54,7 @@ internal class LoadAudit : PowerMockTestCase() {
                 return ArrayList()
             }
         }
-        auditApi = AuditAPI(auditDao!!, auditExecutor!!, auditQueueInternal!!, auditRecordsNotCommitted!!, DbUtils.getProperties())
+        auditApi = AuditAPI(auditDao!!, auditExecutor!!, auditQueueInternal!!, auditRecordsNotCommitted!!, DbUtils.getProperties(), DbUtils.getDataSource())
     }
 
     @AfterMethod
@@ -110,55 +110,6 @@ internal class LoadAudit : PowerMockTestCase() {
         val result = auditApi!!.load(expression)
 
         Assert.assertEquals(result, emptyList<AuditRecordInternal>())
-    }
-
-    @Test
-    fun loadAuditWithExceptions_recordLoaded_AppropriateAuditRecordReturned() {
-        val testSet = arrayOf("123", 456, TestClassString("string"))
-        val testStamp = 789L
-        addPrimitiveTypesAndTestClassFirst()
-        val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp, id = 1)
-        val expression = createExpressionString()
-        returnRecordOnExpressionAndParam(auditRecord, expression)
-
-        val result = auditApi!!.loadAuditWithExceptions(expression)
-
-        Assert.assertEquals(result, listOf(fullAuditRecord(*testSet, unixTimeStamp = testStamp, id = 1)))
-    }
-
-    @Test
-    fun loadAuditWithExceptions_recordsLoaded_AppropriateAuditRecordsReturned() {
-        val testSetFirst = arrayOf("123", 456, TestClassString("string"))
-        val testStampFirst = 1L
-        val testSetSecond = arrayOf("123", 789)
-        val testStampSecond = 2L
-        addPrimitiveTypesAndTestClassFirst()
-        val auditRecords = listOf(
-                createAuditRecordInternal(*testSetFirst, unixTimeStamp = testStampFirst, id = 1),
-                createAuditRecordInternal(*testSetSecond, unixTimeStamp = testStampSecond, id = 2)
-        )
-        val expression = createExpressionString()
-        returnRecordsOnExpressionAndParam(auditRecords, expression)
-
-        val result = auditApi!!.loadAuditWithExceptions(expression)
-
-        Assert.assertEquals(result.toSet(), setOf(
-                fullAuditRecord(*testSetFirst, unixTimeStamp = testStampFirst, id = 1),
-                fullAuditRecord(*testSetSecond, unixTimeStamp = testStampSecond, id = 2)))
-    }
-
-    @Test
-    fun loadAuditWithExceptions_UnknownAuditType_ExceptionThrown() {
-        addPrimitiveTypes()
-        val expression = createExpressionString()
-        throwUnknownAuditTypeOnExpressionAndParam(expression)
-
-        try {
-            auditApi!!.loadAuditWithExceptions(expression)
-        } catch (e: UnknownObjectTypeException) {
-            return
-        }
-        Assert.fail()
     }
 
     private fun createAuditRecordInternal(vararg objects: Any, unixTimeStamp: Long, id: Long): AuditRecordInternal {

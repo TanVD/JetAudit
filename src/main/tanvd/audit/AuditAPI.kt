@@ -1,5 +1,6 @@
 package tanvd.audit
 
+import org.jetbrains.annotations.TestOnly
 import org.slf4j.LoggerFactory
 import tanvd.aorm.Table
 import tanvd.aorm.query.LimitExpression
@@ -28,6 +29,7 @@ import java.util.*
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.TimeUnit
+import javax.sql.DataSource
 import kotlin.collections.LinkedHashSet
 
 /**
@@ -135,58 +137,56 @@ class AuditAPI {
     /**
      * Create AuditApi with default dataSource
      */
-    constructor(configPath: String?) {
+    constructor(configPath: String?, dataSource: DataSource) {
         if (configPath != null) {
             PropertyLoader.setPropertyFilePath(configPath)
         }
 
         auditQueueInternal = ArrayBlockingQueue(capacityOfQueue)
         auditRecordsNotCommitted = object : ThreadLocal<ArrayList<AuditRecordInternal>>() {
-            override fun initialValue(): ArrayList<AuditRecordInternal>? {
-                return ArrayList()
-            }
+            override fun initialValue(): ArrayList<AuditRecordInternal>? = ArrayList()
         }
 
         auditDao = AuditDaoClickhouse()
 
         executor = AuditExecutor(auditQueueInternal)
 
-        initTable()
-        addPrimitiveTypes()
-        addServiceInformation()
+        init(dataSource)
     }
 
-    constructor(properties: Properties?) {
+    constructor(properties: Properties?, dataSource: DataSource) {
         if (properties != null) {
             PropertyLoader.setProperties(properties)
         }
 
         auditQueueInternal = ArrayBlockingQueue(capacityOfQueue)
         auditRecordsNotCommitted = object : ThreadLocal<ArrayList<AuditRecordInternal>>() {
-            override fun initialValue(): ArrayList<AuditRecordInternal>? {
-                return ArrayList()
-            }
+            override fun initialValue(): ArrayList<AuditRecordInternal>? = ArrayList()
         }
 
         auditDao = AuditDaoClickhouse()
 
         executor = AuditExecutor(auditQueueInternal)
 
+        init(dataSource)
+    }
+
+    private fun init(dataSource: DataSource) {
+        AuditTable.init(dataSource)
         initTable()
         addPrimitiveTypes()
         addServiceInformation()
     }
 
 
-    /**
-     * Constructor for test needs
-     */
+    @TestOnly
     internal constructor(auditDao: AuditDao, executor: AuditExecutor,
                          auditQueueInternal: BlockingQueue<QueueCommand>,
                          auditRecordsNotCommitted: ThreadLocal<ArrayList<AuditRecordInternal>>,
-                         properties: Properties) {
+                         properties: Properties, dataSource: DataSource) {
 
         PropertyLoader.setProperties(properties)
+        AuditTable.init(dataSource)
 
         this.auditRecordsNotCommitted = auditRecordsNotCommitted
         this.auditQueueInternal = auditQueueInternal
@@ -211,11 +211,11 @@ class AuditAPI {
         InformationType.addType(IsDeletedType)
     }
 
-    internal fun initTable() {
-        if (AuditTable.useIsDeleted) {
-            AuditTable.isDeleted
+    private fun initTable() {
+        if (AuditTable().useIsDeleted) {
+            AuditTable().isDeleted
         }
-        AuditTable.create()
+        auditDao.initTable()
     }
 
     /**
@@ -274,26 +274,6 @@ class AuditAPI {
         auditRecordsNotCommitted.get().add(AuditRecordInternal(recordObjects, LinkedHashSet(information)))
     }
 
-
-    /**
-     * Add audit entry (resolving dependencies) to group of audit records associated with Thread.
-     *
-     * This method throws exceptions related to AuditApi. Exceptions of Db are ignored anyway.
-     *
-     * In case of shutting down audit all records will be ignored including partly saved, but not committed
-     *
-     * @throws UnknownObjectTypeException
-     */
-    fun saveWithException(vararg objects: Any, information: MutableSet<InformationObject<*>> = HashSet()) {
-        if (shuttingDown) {
-            return
-        }
-
-        val recordObjects = objects.map { o -> ObjectType.resolveType(o::class).let { it to it.serialize(o) } }
-
-        auditRecordsNotCommitted.get().add(AuditRecordInternal(recordObjects, LinkedHashSet(information)))
-    }
-
     /**
      * Commit all audit records associated with Thread.
      *
@@ -304,25 +284,6 @@ class AuditAPI {
         if (listRecords != null) {
             if (listRecords.size > (capacityOfQueue - auditQueueInternal.size)) {
                 logger.error("Audit queue full. Records was not committed.")
-            } else {
-                auditQueueInternal += SaveRecords(listRecords)
-                auditRecordsNotCommitted.remove()
-            }
-        }
-    }
-
-    /**
-     * Commit all audit records associated with Thread.
-     *
-     * This method throws exceptions related to AuditApi. Exceptions of Db are ignored anyway.
-     *
-     * @throws AuditQueueFullException
-     */
-    fun commitWithExceptions() {
-        val listRecords = auditRecordsNotCommitted.get()
-        if (listRecords != null) {
-            if (listRecords.size > (capacityOfQueue - auditQueueInternal.size)) {
-                throw AuditQueueFullException("Audit queue full. Records was not committed.")
             } else {
                 auditQueueInternal += SaveRecords(listRecords)
                 auditRecordsNotCommitted.remove()
@@ -362,33 +323,11 @@ class AuditAPI {
         }
     }
 
-    /**
-     * Load audits containing specified object. Supports paging and ordering.
-     *
-     * If some entities was not found null instead will be returned
-     *
-     * This method throws exceptions related to AuditApi. Exceptions of Db are ignored anyway.
-     *
-     * @throws UnknownObjectTypeException
-     */
-    fun loadAuditWithExceptions(expression: QueryExpression, orderByExpression: OrderByExpression? = null,
-                                limitExpression: LimitExpression? = null,  useBatching: Boolean = true):
-            List<AuditRecord> {
-        val auditRecords: List<AuditRecordInternal> = auditDao.loadRecords(expression, orderByExpression, limitExpression)
-
-        return if (useBatching) {
-            deserializeAuditRecordsWithBatching(auditRecords)
-        } else {
-            deserializeAuditRecords(auditRecords)
-        }
-    }
 
     /**
      * Count number of rows satisfying expression.
      */
-    fun count(expression: QueryExpression): Long {
-        return auditDao.countRecords(expression)
-    }
+    fun count(expression: QueryExpression): Long = auditDao.countRecords(expression)
 
 
     /**
@@ -417,9 +356,7 @@ class AuditAPI {
      * WARNING: Be EXTREMELY careful with this method.
      * You can erase whole audit data with one call.
      */
-    fun getTable(): Table {
-        return AuditTable
-    }
+    fun getTable(): Table = AuditTable()
 
     /**
      * Deserialize AuditRecordsInternal to AuditRecords using batching deserialization.

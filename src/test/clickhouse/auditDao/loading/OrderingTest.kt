@@ -7,9 +7,9 @@ import org.testng.annotations.Test
 import tanvd.aorm.query.Order
 import tanvd.aorm.query.or
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouse
+import tanvd.audit.model.external.equal
+import tanvd.audit.model.external.orderBy
 import tanvd.audit.model.external.presenters.*
-import tanvd.audit.model.external.queries.equal
-import tanvd.audit.model.external.queries.orderBy
 import tanvd.audit.model.external.records.InformationObject
 import utils.*
 import utils.SamplesGenerator.getRecordInternal

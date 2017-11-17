@@ -16,6 +16,7 @@ import tanvd.audit.exceptions.AddExistingAuditTypeException
 import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.QueueCommand
 import tanvd.audit.implementation.clickhouse.AuditDao
+import tanvd.audit.implementation.clickhouse.aorm.AuditTable
 import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
 import utils.DbUtils
@@ -50,7 +51,7 @@ internal class AddType : PowerMockTestCase() {
                 return ArrayList()
             }
         }
-        auditApi = AuditAPI(auditDao!!, auditExecutor!!, auditQueueInternal!!, auditRecordsNotCommitted!!, DbUtils.getProperties())
+        auditApi = AuditAPI(auditDao!!, auditExecutor!!, auditQueueInternal!!, auditRecordsNotCommitted!!, DbUtils.getProperties(), DbUtils.getDataSource())
     }
 
     @AfterMethod
@@ -60,6 +61,7 @@ internal class AddType : PowerMockTestCase() {
         reset(auditExecutor)
         reset(auditQueueInternal)
         TestUtil.clearTypes()
+        AuditTable().resetColumns()
     }
 
 

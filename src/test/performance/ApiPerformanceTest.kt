@@ -5,9 +5,9 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.AuditAPI
+import tanvd.audit.model.external.equal
 import tanvd.audit.model.external.presenters.IntPresenter
 import tanvd.audit.model.external.presenters.LongPresenter
-import tanvd.audit.model.external.queries.equal
 import utils.*
 import java.util.*
 
@@ -18,7 +18,7 @@ internal class ApiPerformanceTest {
     @BeforeMethod
     fun addTypes() {
         TestUtil.drop()
-        auditApi = AuditAPI(DbUtils.getProperties())
+        auditApi = AuditAPI(DbUtils.getProperties(), DbUtils.getDataSource())
     }
 
     @AfterMethod

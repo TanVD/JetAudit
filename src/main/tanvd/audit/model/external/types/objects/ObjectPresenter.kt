@@ -12,9 +12,7 @@ abstract class ObjectPresenter<T : Any> : ObjectSerializer<T> {
     val fieldSerializers: MutableMap<StateType<*>, (T) -> Any> = HashMap()
     abstract val deserializer: (ObjectState) -> T?
 
-    override fun deserialize(primaryKey: ObjectState): T? {
-        return deserializer.invoke(primaryKey)
-    }
+    override fun deserialize(primaryKey: ObjectState): T? = deserializer.invoke(primaryKey)
 
     override fun serialize(entity: T): ObjectState {
         val stateList = HashMap<StateType<*>, Any>()

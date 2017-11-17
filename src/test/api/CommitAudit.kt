@@ -51,7 +51,7 @@ internal class CommitAudit : PowerMockTestCase() {
                 return ArrayList()
             }
         }
-        auditApi = AuditAPI(auditDao!!, auditExecutor!!, auditQueueInternal!!, auditRecordsNotCommitted!!, DbUtils.getProperties())
+        auditApi = AuditAPI(auditDao!!, auditExecutor!!, auditQueueInternal!!, auditRecordsNotCommitted!!, DbUtils.getProperties(), DbUtils.getDataSource())
         auditApi!!.addServiceInformation()
         auditApi!!.addPrimitiveTypes()
     }
@@ -71,32 +71,6 @@ internal class CommitAudit : PowerMockTestCase() {
         auditRecordsNotCommitted!!.get().add(auditRecord)
 
         auditApi!!.commit()
-
-        Mockito.verify(auditQueueInternal)!!.add(SaveRecords(auditRecord))
-    }
-
-    @Test
-    fun commitAudit_noExceptions_threadGroupDeleted() {
-        val testSet = arrayOf("123", 456, TestClassString("string"))
-        val testStamp = 789L
-        addTestClassFirst()
-        val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp)
-        auditRecordsNotCommitted!!.get().add(auditRecord)
-
-        auditApi!!.commitWithExceptions()
-
-        Assert.assertEquals(auditRecordsNotCommitted?.get()?.size, 0)
-    }
-
-    @Test
-    fun commitAuditWithExceptions_noExceptions_recordAddedToAuditQueue() {
-        val testSet = arrayOf("123", 456, TestClassString("string"))
-        val testStamp = 789L
-        addTestClassFirst()
-        val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp)
-        auditRecordsNotCommitted!!.get().add(auditRecord)
-
-        auditApi!!.commitWithExceptions()
 
         Mockito.verify(auditQueueInternal)!!.add(SaveRecords(auditRecord))
     }
@@ -155,63 +129,6 @@ internal class CommitAudit : PowerMockTestCase() {
 
         try {
             auditApi!!.commit()
-        } catch (e: AuditQueueFullException) {
-        }
-
-        Assert.assertEquals(auditRecordsNotCommitted?.get(), arrayListOf(auditRecord))
-    }
-
-    @Test
-    fun commitAuditWithExceptions_queueFull_exceptionThrown() {
-        val testSet = arrayOf("123", 456, TestClassString("string"))
-        val testStamp = 789L
-        addTestClassFirst()
-        val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp)
-        PowerMockito.`when`(auditQueueInternal!!.size).thenReturn(AuditAPI.capacityOfQueue)
-
-        auditRecordsNotCommitted!!.get().add(auditRecord)
-
-        try {
-            auditApi!!.commitWithExceptions()
-        } catch (e: AuditQueueFullException) {
-            return
-        }
-
-        Assert.fail()
-    }
-
-    @Test
-    fun commitAuditWithExceptions_queueFull_auditQueueInternalNotChanged() {
-        val testSet = arrayOf("123", 456, TestClassString("string"))
-        val testStamp = 789L
-        addTestClassFirst()
-        val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp)
-        PowerMockito.`when`(auditQueueInternal!!.size).thenReturn(AuditAPI.capacityOfQueue)
-
-        auditRecordsNotCommitted!!.get().add(auditRecord)
-
-        try {
-            auditApi!!.commitWithExceptions()
-        } catch (e: AuditQueueFullException) {
-        }
-
-        Mockito.verify(auditQueueInternal)!!.size
-        Mockito.verifyNoMoreInteractions(auditQueueInternal)
-    }
-
-
-    @Test
-    fun commitAuditWithExceptions_queueFull_notCommittedGroupNotDeleted() {
-        val testSet = arrayOf("123", 456, TestClassString("string"))
-        val testStamp = 789L
-        addTestClassFirst()
-        val auditRecord = createAuditRecordInternal(*testSet, unixTimeStamp = testStamp)
-        PowerMockito.`when`(auditQueueInternal!!.size).thenReturn(AuditAPI.capacityOfQueue)
-
-        auditRecordsNotCommitted!!.get().add(auditRecord)
-
-        try {
-            auditApi!!.commitWithExceptions()
         } catch (e: AuditQueueFullException) {
         }
 

@@ -52,7 +52,7 @@ internal class SaveAudit : PowerMockTestCase() {
                 return ArrayList()
             }
         }
-        auditApi = AuditAPI(auditDao!!, auditExecutor!!, auditQueueInternal!!, auditRecordsNotCommitted!!, DbUtils.getProperties())
+        auditApi = AuditAPI(auditDao!!, auditExecutor!!, auditQueueInternal!!, auditRecordsNotCommitted!!, DbUtils.getProperties(), DbUtils.getDataSource())
     }
 
     @AfterMethod
@@ -79,19 +79,6 @@ internal class SaveAudit : PowerMockTestCase() {
     }
 
     @Test
-    fun saveObjectsWithExceptions_objectsSaved_AppropriateAuditRecordAddedToQueue() {
-        addPrimitiveTypesAndTestClassFirst()
-
-        val information = getSampleInformation()
-        val auditRecord = fullAuditRecord(information)
-        isQueueFullOnRecord(auditRecord, false)
-
-        auditApi!!.saveWithException("123", 456, TestClassString("string"), information = information)
-
-        Assert.assertEquals(auditRecordsNotCommitted?.get(), listOf(auditRecord))
-    }
-
-    @Test
     fun saveObjects_unknownType_ObjectIgnored() {
         addPrimitiveTypes()
 
@@ -104,17 +91,6 @@ internal class SaveAudit : PowerMockTestCase() {
         Assert.assertEquals(auditRecordsNotCommitted?.get(), listOf(auditRecord))
     }
 
-    @Test
-    fun saveObjectsWithExceptions_unknownType_ExceptionThrown() {
-        addPrimitiveTypes()
-
-        try {
-            auditApi?.saveWithException("123", 456, TestClassString("string"), information = HashSet())
-        } catch (e: UnknownObjectTypeException) {
-            return
-        }
-        Assert.fail()
-    }
 
     private fun fullAuditRecord(information: LinkedHashSet<InformationObject<*>>): AuditRecordInternal {
         return getRecordInternal("123", 456, TestClassString("string"), information = information)

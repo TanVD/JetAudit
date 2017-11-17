@@ -5,12 +5,12 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.aorm.query.Order
-import tanvd.aorm.query.limit
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouse
+import tanvd.audit.model.external.equal
+import tanvd.audit.model.external.limit
+import tanvd.audit.model.external.orderBy
 import tanvd.audit.model.external.presenters.StringPresenter
 import tanvd.audit.model.external.presenters.TimeStampType
-import tanvd.audit.model.external.queries.equal
-import tanvd.audit.model.external.queries.orderBy
 import tanvd.audit.model.external.records.InformationObject
 import utils.*
 import utils.SamplesGenerator.getRecordInternal

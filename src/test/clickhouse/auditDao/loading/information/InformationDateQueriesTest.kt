@@ -5,8 +5,8 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouse
+import tanvd.audit.model.external.*
 import tanvd.audit.model.external.presenters.DateType
-import tanvd.audit.model.external.queries.*
 import tanvd.audit.model.external.records.InformationObject
 import utils.InformationUtils
 import utils.SamplesGenerator
@@ -130,7 +130,7 @@ internal class InformationDateQueriesTest {
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(DateType more getDate("2000-01-02"))
+        val recordsLoaded = auditDao!!.loadRecords(DateType moreOrEq getDate("2000-01-02"))
         Assert.assertTrue(recordsLoaded.isEmpty())
     }
 

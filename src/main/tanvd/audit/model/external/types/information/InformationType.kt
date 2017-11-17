@@ -1,14 +1,18 @@
 package tanvd.audit.model.external.types.information
 
-import tanvd.aorm.Column
+import org.jetbrains.annotations.TestOnly
+import tanvd.aorm.DbArrayType
 import tanvd.aorm.DbPrimitiveType
+import tanvd.aorm.expression.Column
 import tanvd.audit.exceptions.UnknownInformationTypeException
+import tanvd.audit.implementation.clickhouse.aorm.AuditTable
 import tanvd.audit.model.external.types.ColumnWrapper
 
-abstract class InformationType<T : Any>(val code: String, val type: DbPrimitiveType<T>, val default: () -> T,
-                                        column: Column<T, DbPrimitiveType<T>> = Column(code, type, default))
-    : ColumnWrapper<T, DbPrimitiveType<T>>(column){
+abstract class InformationType<T : Any>(val code: String, val type: DbPrimitiveType<T>, val default: () -> T)
+    : ColumnWrapper<T, DbPrimitiveType<T>>(){
     constructor(column: Column<T, DbPrimitiveType<T>>) : this(column.name, column.type, column.defaultFunction!!)
+
+    override val column: Column<T, DbPrimitiveType<T>> by lazy { Column(code, type, AuditTable(), default) }
 
     companion object TypesResolution {
         private val informationTypes: MutableSet<InformationType<Any>> = LinkedHashSet()
@@ -32,10 +36,9 @@ abstract class InformationType<T : Any>(val code: String, val type: DbPrimitiveT
             informationTypesByCode.put(type.code, type)
         }
 
-        internal fun getTypes(): Set<InformationType<Any>> {
-            return informationTypes
-        }
+        internal fun getTypes(): Set<InformationType<Any>> = informationTypes
 
+        @TestOnly
         @Synchronized
         internal fun clearTypes() {
             informationTypes.clear()

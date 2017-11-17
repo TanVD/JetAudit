@@ -9,6 +9,12 @@ import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
 
 internal interface AuditDao {
+
+    /**
+     * Creates AuditTable, if useDDL = true
+     */
+    fun initTable()
+
     /**
      * Saves audit record and all its objects
      *

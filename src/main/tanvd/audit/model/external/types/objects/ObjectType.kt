@@ -1,5 +1,6 @@
 package tanvd.audit.model.external.types.objects
 
+import org.jetbrains.annotations.TestOnly
 import tanvd.audit.exceptions.UnknownObjectTypeException
 import kotlin.reflect.KClass
 import kotlin.reflect.full.superclasses
@@ -49,10 +50,9 @@ data class ObjectType<T : Any>(val klass: KClass<T>, val objectPresenter: Object
             typesByEntityName.put(type.entityName, type)
         }
 
-        internal fun getTypes(): Set<ObjectType<Any>> {
-            return ObjectType.TypesResolution.types
-        }
+        internal fun getTypes(): Set<ObjectType<Any>> = ObjectType.TypesResolution.types
 
+        @TestOnly
         @Synchronized
         internal fun clearTypes() {
             types.clear()

@@ -5,11 +5,11 @@ import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouse
+import tanvd.audit.model.external.equal
+import tanvd.audit.model.external.inList
+import tanvd.audit.model.external.less
+import tanvd.audit.model.external.more
 import tanvd.audit.model.external.presenters.TimeStampType
-import tanvd.audit.model.external.queries.equal
-import tanvd.audit.model.external.queries.inList
-import tanvd.audit.model.external.queries.less
-import tanvd.audit.model.external.queries.more
 import tanvd.audit.model.external.records.InformationObject
 import utils.InformationUtils
 import utils.SamplesGenerator

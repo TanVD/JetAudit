@@ -21,7 +21,7 @@ internal data class AuditRecordInternal(val objects: List<Pair<ObjectType<*>, Ob
                         it.type to it.state
                     },
                     LinkedHashSet(auditRecord.informations.map {
-                        if (it.type.code == AuditTable.version.name)
+                        if (it.type.code == AuditTable().version.name)
                             InformationObject((it.value as Long) + 1, VersionType)
                         else
                             it
