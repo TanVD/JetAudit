@@ -138,7 +138,7 @@ internal class AuditWorker {
      * If record was not saved then generation of record will be incremented.
      * If generation equal to max generation than record will be printed by writer
      *
-     * If Reserver Buffer is full all records will be printed by writer
+     * If Reserve Buffer is full all records will be printed by writer
      */
     fun processReserveBuffer() {
         val iterator = reserveBuffer.iterator()

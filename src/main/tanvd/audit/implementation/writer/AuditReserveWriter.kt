@@ -42,8 +42,6 @@ internal interface AuditReserveWriter {
             }
         }
 
-        fun getWriter(): AuditReserveWriter {
-            return internalWriter
-        }
+        fun getWriter(): AuditReserveWriter = internalWriter
     }
 }

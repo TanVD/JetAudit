@@ -43,7 +43,6 @@ internal class AuditExecutor(private val auditQueueInternal: BlockingQueue<Queue
     }
 
     @TestOnly
-    fun stillWorking(): Boolean {
-        return workers.all { it.buffer.isNotEmpty() } || workers.any { it.reserveBuffer.isNotEmpty() } || auditQueueInternal.isNotEmpty()
-    }
+    fun stillWorking(): Boolean =
+            workers.all { it.buffer.isNotEmpty() } || workers.any { it.reserveBuffer.isNotEmpty() } || auditQueueInternal.isNotEmpty()
 }

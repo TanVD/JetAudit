@@ -13,7 +13,6 @@ data class ObjectType<T : Any>(val klass: KClass<T>, val objectPresenter: Object
     val entityName = objectPresenter.entityName
 
     companion object TypesResolution {
-        private val types: MutableSet<ObjectType<Any>> = HashSet()
         private val typesByClass: MutableMap<KClass<*>, ObjectType<Any>> = HashMap()
         private val typesByEntityName: MutableMap<String, ObjectType<Any>> = HashMap()
 
@@ -45,17 +44,15 @@ data class ObjectType<T : Any>(val klass: KClass<T>, val objectPresenter: Object
 
         @Synchronized
         internal fun addType(type: ObjectType<Any>) {
-            types.add(type)
             typesByClass.put(type.klass, type)
             typesByEntityName.put(type.entityName, type)
         }
 
-        internal fun getTypes(): Set<ObjectType<Any>> = ObjectType.TypesResolution.types
+        internal fun getTypes(): Set<ObjectType<Any>> = typesByClass.values.toSet()
 
         @TestOnly
         @Synchronized
         internal fun clearTypes() {
-            types.clear()
             typesByClass.clear()
             typesByEntityName.clear()
         }

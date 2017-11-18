@@ -2,7 +2,10 @@ package tanvd.audit.implementation.clickhouse.aorm
 
 import org.jetbrains.annotations.TestOnly
 import org.joda.time.DateTime
-import tanvd.aorm.*
+import tanvd.aorm.Database
+import tanvd.aorm.DbType
+import tanvd.aorm.Engine
+import tanvd.aorm.Table
 import tanvd.aorm.expression.Column
 import tanvd.aorm.expression.default
 import tanvd.audit.utils.PropertyLoader
@@ -20,7 +23,7 @@ object AuditTable {
         }
     }
 
-    private fun get() : AuditTableImpl {
+    private fun get(): AuditTableImpl {
         if (!initialized) {
             error("AuditTable was not initialized with suitable DataSource.")
         }

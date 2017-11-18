@@ -13,6 +13,4 @@ data class ObjectState(val stateList: Map<StateType<*>, Any>) {
 /**
  * External representation of loaded audit object with rich type information.
  */
-data class AuditObject(val type: ObjectType<*>, val obj: Any?, val state: ObjectState) {
-    fun isObjectNotFound(): Boolean = type.useDeserialization && obj == null
-}
+data class AuditObject(val type: ObjectType<*>, val obj: Any?, val state: ObjectState)

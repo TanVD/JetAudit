@@ -8,7 +8,6 @@ import tanvd.aorm.query.OrderByExpression
 import tanvd.aorm.query.QueryExpression
 import tanvd.audit.exceptions.AddExistingAuditTypeException
 import tanvd.audit.exceptions.AddExistingInformationTypeException
-import tanvd.audit.exceptions.AuditQueueFullException
 import tanvd.audit.exceptions.UnknownObjectTypeException
 import tanvd.audit.implementation.AuditExecutor
 import tanvd.audit.implementation.QueueCommand

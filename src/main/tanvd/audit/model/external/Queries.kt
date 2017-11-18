@@ -49,7 +49,7 @@ infix fun <T : Number> StateType<T>.moreOrEq(value: T): QueryExpression = column
 infix fun <T : Any> StateType<T>.inList(value: List<T>): QueryExpression = column exists { x -> x inList value }
 
 //QUERY PARAMETERS
-fun orderBy(vararg pair: Pair<ColumnWrapper<*, DbType<*>>, Order>) : OrderByExpression =
+fun orderBy(vararg pair: Pair<ColumnWrapper<*, DbType<*>>, Order>): OrderByExpression =
         OrderByExpression(pair.map { it.first.column to it.second }.toMap())
 
 fun limit(limit: Long, offset: Long): LimitExpression = LimitExpression(limit, offset)
