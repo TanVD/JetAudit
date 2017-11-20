@@ -11,8 +11,10 @@ import tanvd.audit.model.internal.AuditRecordInternal
 
 open internal class AuditDaoClickhouse : AuditDao {
 
-    override fun initTable() = ddlRequest {
-        AuditTable().create()
+    override fun initTable() {
+        if (AuditTable().useDDL) {
+            AuditTable().create()
+        }
     }
 
     override fun saveRecord(auditRecordInternal: AuditRecordInternal) {
@@ -28,14 +30,22 @@ open internal class AuditDaoClickhouse : AuditDao {
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T : Any> addTypeInDbModel(type: ObjectType<T>) = ddlRequest {
+    override fun <T : Any> addTypeInDbModel(type: ObjectType<T>)  {
         for (stateType in type.state) {
-            AuditTable().addColumn(stateType.column as Column<List<T>, DbType<List<T>>>)
+            if (AuditTable().useDDL) {
+                AuditTable().addColumn(stateType.column as Column<List<T>, DbType<List<T>>>)
+            } else {
+                AuditTable().columns.add(stateType.column as Column<Any, DbType<Any>>)
+            }
         }
     }
 
-    override fun <T : Any> addInformationInDbModel(information: InformationType<T>) = ddlRequest {
-        AuditTable().addColumn(information.column)
+    override fun <T : Any> addInformationInDbModel(information: InformationType<T>) {
+        if (AuditTable().useDDL) {
+            AuditTable().addColumn(information.column)
+        } else {
+            AuditTable().columns.add(information.column as Column<Any, DbType<Any>>)
+        }
     }
 
     override fun loadRecords(expression: QueryExpression, orderByExpression: OrderByExpression?,
@@ -75,11 +85,5 @@ open internal class AuditDaoClickhouse : AuditDao {
         return resultList.singleOrNull()?.let {
             it.values.values.single() as Long
         } ?: 0L
-    }
-
-    private fun ddlRequest(body: () -> Unit) {
-        if (AuditTable().useDDL) {
-            body()
-        }
     }
 }
