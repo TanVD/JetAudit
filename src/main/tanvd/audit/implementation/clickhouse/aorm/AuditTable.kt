@@ -32,7 +32,8 @@ object AuditTable {
 
     operator fun invoke(): AuditTableImpl = get()
 
-    class AuditTableImpl(dbName: String, dataSource: DataSource) : Table("AuditTable", Database(dbName, dataSource)) {
+    class AuditTableImpl(dbName: String, dataSource: DataSource) : Table(PropertyLoader["AuditTable"] ?: "AuditTable",
+            Database(dbName, dataSource)) {
         val useDDL: Boolean by lazy { PropertyLoader["UseDefaultDDL"]?.toBoolean() ?: true }
 
         val useIsDeleted by lazy { PropertyLoader["UseIsDeleted"]?.toBoolean() ?: true }

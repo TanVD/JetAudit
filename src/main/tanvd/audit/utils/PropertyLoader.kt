@@ -18,14 +18,24 @@ object PropertyLoader {
 
     private val logger = LoggerFactory.getLogger(PropertyLoader::class.java)
 
+    private val overwriteProperties = Properties()
+
     private var instance: PropertyLoaderSingl? = null
 
     fun setPropertyFilePath(filePath: String) {
-        instance = PropertyLoaderSingl(propertyFilePath = filePath)
+        if (instance == null) {
+            instance = PropertyLoaderSingl(propertyFilePath = filePath)
+        }
     }
 
     fun setProperties(properties: Properties) {
-        instance = PropertyLoaderSingl(null, properties)
+        if (instance == null) {
+            instance = PropertyLoaderSingl(null, properties)
+        }
+    }
+
+    fun setOverwrite(properties: Properties) {
+        overwriteProperties += properties
     }
 
     operator fun get(propertyName: String): String? {
@@ -33,7 +43,7 @@ object PropertyLoader {
             logger.error("Property loader probably was not initialized. It may affect work of JetAudit")
             instance = PropertyLoaderSingl()
         }
-        return PropertiesUtils.resolveEnvVariables(instance!!.loadProperty(propertyName))
+        return overwriteProperties[propertyName]?.toString() ?: PropertiesUtils.resolveEnvVariables(instance!!.loadProperty(propertyName))
     }
 
     private class PropertyLoaderSingl(val propertyFilePath: String? = null, val properties: Properties = Properties()) {
