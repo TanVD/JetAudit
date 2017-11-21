@@ -20,17 +20,17 @@ object PropertyLoader {
 
     private val overwriteProperties = Properties()
 
-    private var instance: PropertyLoaderSingl? = null
+    private var instance: PropertyLoaderImpl? = null
 
     fun setPropertyFilePath(filePath: String) {
         if (instance == null) {
-            instance = PropertyLoaderSingl(propertyFilePath = filePath)
+            instance = PropertyLoaderImpl(propertyFilePath = filePath)
         }
     }
 
     fun setProperties(properties: Properties) {
         if (instance == null) {
-            instance = PropertyLoaderSingl(null, properties)
+            instance = PropertyLoaderImpl(null, properties)
         }
     }
 
@@ -41,12 +41,12 @@ object PropertyLoader {
     operator fun get(propertyName: String): String? {
         if (instance == null) {
             logger.error("Property loader probably was not initialized. It may affect work of JetAudit")
-            instance = PropertyLoaderSingl()
+            instance = PropertyLoaderImpl()
         }
         return overwriteProperties[propertyName]?.toString() ?: PropertiesUtils.resolveEnvVariables(instance!!.loadProperty(propertyName))
     }
 
-    private class PropertyLoaderSingl(val propertyFilePath: String? = null, val properties: Properties = Properties()) {
+    private class PropertyLoaderImpl(val propertyFilePath: String? = null, val properties: Properties = Properties()) {
         /**
          * Loads property from file located on given path
          *

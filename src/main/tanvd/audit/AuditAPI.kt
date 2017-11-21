@@ -207,7 +207,9 @@ class AuditAPI {
         InformationType.addType(TimeStampType)
         InformationType.addType(VersionType)
         InformationType.addType(DateType)
-        InformationType.addType(IsDeletedType)
+        if (AuditTable().useIsDeleted) {
+            InformationType.addType(IsDeletedType)
+        }
     }
 
     private fun initTable() {
