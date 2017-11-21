@@ -49,28 +49,7 @@ import kotlin.collections.LinkedHashSet
  * Or use properties object
  *
  * Configuration may include:
- *      #Clickhouse config
- *      Url                    (required if datasource not present),
- *      Username               (required if datasource not present),
- *      Password               (required if datasource not present),
- *      UseSSL                 (default false),
- *      SSLCertPath            (default empty),
- *      SSLVerifyMode          (default empty) (may be strict|none),
- *
- *      MaxTotalHttpThreads            (default 1000)  (max total threads),
- *      MaxPerRouteTotalHttpThreads    (default 500)   (max threads per route),
- *
  *      UseDefaultDDL          (default true),
- *      SocketTimeout          (default 30000) (ms)
- *      ConnectionTimeout      (default 10000) (ms) (timeout of connection to Clickhouse),
- *      KeepAliveTimeout       (default 30000) (ms) (time connection can be safely kept idle),
- *      TimeToLive             (default 60000) (ms) (time to live for one connection in pool unconditionally)
- *      DataTransferTimeout    (default 20000) (ms) (max time for request execution)
- *
- *      MaxIdleConnections     (default 30)          (max idle jdbc connections)
- *      MinIdleConnections     (default 1)           (min idle jdbc connections)
- *      MaxTotalConnections    (default 60)          (max number of jdbc connections)
- *      TimeBetweenEvictionRuns (default 30000) (ms) (time in ms between eviction passes through the pool)
  *
  *      #AuditApi config
  *      CapacityOfQueue        (default 20000 records),
@@ -104,16 +83,6 @@ import kotlin.collections.LinkedHashSet
  * will find only old record and will not find new ones old one will not be returned. You can force
  * deleting of old records executing OPTIMIZE FINAL in Clickhouse database directly. In other situations
  * you should change fields only by which records will not be seeked (like service information).
- *
- *
- * You can either use methods which throw exception (to be confident that audit records was saved),
- * or use methods logging exceptions (to be confident that exception will not crash calling thread).
- *
- * In case of method with exception JetAudit guarantee that record will be saved or exception will be thrown.
- * In other case JetAudit tries to save record, but not guarantee that it will be saved in exceptional situations.
- *
- * Timezone notice: all timestamps will be returned in UTC and should be saved in UTC.
- * Timezone notice: all java.utils.Date objects assumed to be UTC (as in docs)
  */
 class AuditAPI {
 
@@ -133,9 +102,6 @@ class AuditAPI {
         val capacityOfQueue by lazy { PropertyLoader["CapacityOfQueue"]?.toInt() ?: 20000 }
     }
 
-    /**
-     * Create AuditApi with default dataSource
-     */
     constructor(configPath: String?, dataSource: DataSource) {
         if (configPath != null) {
             PropertyLoader.setPropertyFilePath(configPath)
