@@ -40,6 +40,7 @@ open internal class AuditDaoClickhouse : AuditDao {
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun <T : Any> addInformationInDbModel(information: InformationType<T>) {
         if (AuditTable().useDDL) {
             AuditTable().addColumn(information.column)
@@ -52,9 +53,6 @@ open internal class AuditDaoClickhouse : AuditDao {
                              limitExpression: LimitExpression?): List<AuditRecordInternal> {
         var query = AuditTable().select() prewhere expression
 
-        if (AuditTable().useIsDeleted) {
-            query.prewhereSection = query.prewhereSection!! and (AuditTable().isDeleted eq false)
-        }
         if (limitExpression != null) {
             query = query limit limitExpression
         }
@@ -77,9 +75,6 @@ open internal class AuditDaoClickhouse : AuditDao {
 
     override fun countRecords(expression: QueryExpression): Long {
         val query = AuditTable().select(count(AuditTable().id)) prewhere expression
-        if (AuditTable().useIsDeleted) {
-            query.prewhereSection = query.prewhereSection!! and (AuditTable().isDeleted eq false)
-        }
 
         val resultList = query.toResult()
         return resultList.singleOrNull()?.let {

@@ -70,8 +70,6 @@ import kotlin.collections.LinkedHashSet
  *      TimeStampColumn        (default TimeStampColumn),
  *      VersionColumn          (default VersionColumn),
  *      IdColumn               (default IdColumn),
- *      IsDeletedColumn        (default IsDeletedColumn)
- *      UseIsDeleted           (default true)
  *
  * If properties file or some properties not found default values will be used.
  *
@@ -173,15 +171,9 @@ class AuditAPI {
         InformationType.addType(TimeStampType)
         InformationType.addType(VersionType)
         InformationType.addType(DateType)
-        if (AuditTable().useIsDeleted) {
-            InformationType.addType(IsDeletedType)
-        }
     }
 
     private fun initTable() {
-        if (AuditTable().useIsDeleted) {
-            AuditTable().isDeleted
-        }
         auditDao.initTable()
     }
 

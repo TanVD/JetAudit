@@ -65,19 +65,19 @@ internal class CountTest {
 
     }
 
-    @Test
-    fun countRecords_deletedRecord_countOne() {
-        val auditRecordFirst = SamplesGenerator.getRecordInternal(123L, "string", information = getSampleInformation(true))
-        val auditRecordSecond = SamplesGenerator.getRecordInternal(123L, "string1", information = getSampleInformation(false))
+//    @Test
+//    fun countRecords_deletedRecord_countOne() {
+//        val auditRecordFirst = SamplesGenerator.getRecordInternal(123L, "string", information = getSampleInformation())
+//        val auditRecordSecond = SamplesGenerator.getRecordInternal(123L, "string1", information = getSampleInformation())
+//
+//
+//        auditDao!!.saveRecords(listOf(auditRecordFirst, auditRecordSecond))
+//
+//        val numberRecords = auditDao!!.countRecords(LongPresenter.value equal 123)
+//        Assert.assertEquals(numberRecords, 1)
+//    }
 
-
-        auditDao!!.saveRecords(listOf(auditRecordFirst, auditRecordSecond))
-
-        val numberRecords = auditDao!!.countRecords(LongPresenter.value equal 123)
-        Assert.assertEquals(numberRecords, 1)
-    }
-
-    private fun getSampleInformation(isDeleted: Boolean = false): LinkedHashSet<InformationObject<*>> {
-        return InformationUtils.getPrimitiveInformation(CountTest.currentId++, 1, 2, SamplesGenerator.getMillenniumStart(), isDeleted)
+    private fun getSampleInformation(): LinkedHashSet<InformationObject<*>> {
+        return InformationUtils.getPrimitiveInformation(CountTest.currentId++, 1, 2, SamplesGenerator.getMillenniumStart())
     }
 }

@@ -18,10 +18,6 @@ internal object TestUtil {
 
     fun create(): AuditDaoClickhouse {
 
-        if (AuditTable().useIsDeleted) {
-            AuditTable().isDeleted
-        }
-
         try {
             AuditTable().drop()
         } catch (e: Exception) {
@@ -71,7 +67,6 @@ internal object TestUtil {
         InformationType.addType(VersionType)
         InformationType.addType(TimeStampType)
         InformationType.addType(DateType)
-        InformationType.addType(IsDeletedType)
     }
 }
 

@@ -36,25 +36,25 @@ internal class DeletedRecordsTest {
         currentId = 0
     }
 
-    @Test
-    fun loadRow_recordDeleted_recordNotLoaded() {
-        val auditRecordFirstOriginal = SamplesGenerator.getRecordInternal(TestClassString("string1"),
-                information = getSampleInformation(true))
-        val auditRecordSecondOriginal = SamplesGenerator.getRecordInternal(TestClassString("string2"),
-                information = getSampleInformation(false))
-
-        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
-
-        val recordsLoaded = auditDao!!.loadRecords(TestClassStringPresenter.id equal "string1")
-        Assert.assertTrue(recordsLoaded.isEmpty())
-    }
+//    @Test
+//    fun loadRow_recordDeleted_recordNotLoaded() {
+//        val auditRecordFirstOriginal = SamplesGenerator.getRecordInternal(TestClassString("string1"),
+//                information = true.getSampleInformation())
+//        val auditRecordSecondOriginal = SamplesGenerator.getRecordInternal(TestClassString("string2"),
+//                information = false.getSampleInformation())
+//
+//        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
+//
+//        val recordsLoaded = auditDao!!.loadRecords(TestClassStringPresenter.id equal "string1")
+//        Assert.assertTrue(recordsLoaded.isEmpty())
+//    }
 
     @Test
     fun loadRow_recordNotDeleted_recordLoaded() {
         val auditRecordFirstOriginal = SamplesGenerator.getRecordInternal(TestClassString("string1"),
-                information = getSampleInformation(true))
+                information = getSampleInformation())
         val auditRecordSecondOriginal = SamplesGenerator.getRecordInternal(TestClassString("string2"),
-                information = getSampleInformation(false))
+                information = getSampleInformation())
 
         auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
@@ -62,8 +62,8 @@ internal class DeletedRecordsTest {
         Assert.assertEquals(recordsLoaded.single(), auditRecordSecondOriginal)
     }
 
-    private fun getSampleInformation(isDeleted: Boolean): LinkedHashSet<InformationObject<*>> {
+    private fun getSampleInformation(): LinkedHashSet<InformationObject<*>> {
         return InformationUtils.getPrimitiveInformation(StateBooleanTypeTest.currentId++, 1, 2,
-                SamplesGenerator.getMillenniumStart(), isDeleted)
+                SamplesGenerator.getMillenniumStart())
     }
 }
