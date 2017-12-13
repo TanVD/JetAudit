@@ -71,7 +71,7 @@ import kotlin.collections.LinkedHashSet
  *      VersionColumn          (default VersionColumn),
  *      IdColumn               (default IdColumn),
  *      IsDeletedColumn        (default IsDeletedColumn)
- *      UseIsDeleted           (default false)
+ *      UseIsDeleted           (default true)
  *
  * If properties file or some properties not found default values will be used.
  *
