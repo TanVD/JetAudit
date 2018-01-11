@@ -123,6 +123,7 @@ internal class AuditWorker {
             isEnabled = false
             return
         } catch (e: Exception) {
+            logger.error("Encountered error while saving records", e)
             reserveBuffer.addAll(records)
         }
         for (i in 1..batchSize) {
