@@ -33,7 +33,7 @@ object AuditTable {
     operator fun invoke(): AuditTableImpl = get()
 
     class AuditTableImpl(dbName: String, dataSource: DataSource) : Table(PropertyLoader["AuditTable"] ?: "AuditTable",
-            object: Database(dbName, dataSource) {}) {
+            Database(dbName, dataSource)) {
         val useDDL: Boolean by lazy { PropertyLoader["UseDefaultDDL"]?.toBoolean() ?: true }
 
         val date = date("DateColumn").default { DateTime.now().toDate() }
