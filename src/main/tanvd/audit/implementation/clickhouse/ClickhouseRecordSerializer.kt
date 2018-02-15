@@ -61,7 +61,7 @@ internal object ClickhouseRecordSerializer {
             val type = ObjectType.resolveType(code)
             val stateList = HashMap<StateType<*>, Any>()
             for (stateType in type.state) {
-                val value = row[stateType.column as Expression<Any, DbType<Any>>] as List<Any>?
+                val value = row[stateType.column as Column<Any, DbType<Any>>] as List<Any>?
                 if (value != null) {
                     val index = currentNumberOfType[stateType.column.name] ?: 0
                     stateList.put(stateType, value[index])
