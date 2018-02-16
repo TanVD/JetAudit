@@ -1,12 +1,15 @@
 group 'tanvd'
 version '1.1-SNAPSHOT'
 
+apply plugin: "base"
+archivesBaseName="JetAudit"
+
 task wrapper(type: Wrapper) {
     gradleVersion = "4.4"
 }
 
 buildscript {
-    ext.kotlin_version = '1.1.60'
+    ext.kotlin_version = '1.2.21'
 
     repositories {
         mavenCentral()
@@ -50,7 +53,6 @@ test {
 }
 
 task JetAuditJar(type: Jar) {
-    baseName = 'JetAudit'
     from sourceSets.main.output
 }
 
@@ -64,7 +66,7 @@ dependencies {
     compile "tanvd:AORM:0.1-SNAPSHOT"
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     compile "ru.yandex.clickhouse:clickhouse-jdbc:0.1.33"
     compile "org.slf4j:slf4j-api:1.7.25"
     compile "ch.qos.logback:logback-classic:1.2.2"
