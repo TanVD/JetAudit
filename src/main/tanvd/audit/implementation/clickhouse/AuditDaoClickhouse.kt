@@ -5,11 +5,12 @@ import tanvd.aorm.expression.Column
 import tanvd.aorm.expression.count
 import tanvd.aorm.query.*
 import tanvd.audit.implementation.clickhouse.aorm.AuditTable
+import tanvd.audit.model.external.presenters.IsDeletedType
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
 
-open internal class AuditDaoClickhouse : AuditDao {
+internal open class AuditDaoClickhouse : AuditDao {
 
     override fun initTable() {
         if (AuditTable().useDDL) {
@@ -62,15 +63,18 @@ open internal class AuditDaoClickhouse : AuditDao {
 
         val rows = query.toResult()
         //filter to newest version
-        val rowsFiltered = rows.groupBy { row ->
+        val rowsFiltered = rows.groupBy{ row ->
             row[AuditTable().id] as Long
         }.mapValues {
-            it.value.sortedByDescending { row ->
+            it.value.maxBy { row ->
                 row[AuditTable().version]!!.toLong()
-            }.first()
-        }.values.toList()
+            }!!
+        }.values
 
-        return rowsFiltered.map { ClickhouseRecordSerializer.deserialize(it) }
+        return rowsFiltered.map { ClickhouseRecordSerializer.deserialize(it) }.filterNot {
+            it.information.any { it.type == IsDeletedType && it.value as Boolean }
+        }
+
     }
 
     override fun countRecords(expression: QueryExpression): Long {

@@ -70,6 +70,7 @@ import kotlin.collections.LinkedHashSet
  *      TimeStampColumn        (default TimeStampColumn),
  *      VersionColumn          (default VersionColumn),
  *      IdColumn               (default IdColumn),
+ *      IsDeletedColumn        (default IsDeletedColumn)
  *
  * If properties file or some properties not found default values will be used.
  *
@@ -171,6 +172,7 @@ class AuditAPI {
         InformationType.addType(TimeStampType)
         InformationType.addType(VersionType)
         InformationType.addType(DateType)
+        InformationType.addType(IsDeletedType)
     }
 
     private fun initTable() {
@@ -288,6 +290,13 @@ class AuditAPI {
      */
     fun count(expression: QueryExpression): Long = auditDao.countRecords(expression)
 
+    /**
+     * Insert rows with new version and isDeleted = true.
+     * New version will be assigned automatically
+     */
+    fun delete(auditRecords: List<AuditRecord>) {
+        auditRecordsNotCommitted.get() += auditRecords.map { AuditRecordInternal.markRecordAsDeleted(it) }
+    }
 
     /**
      * Replaces rows with new rows with new version.

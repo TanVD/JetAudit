@@ -28,10 +28,10 @@ internal object ClickhouseRecordSerializer {
         val elements = serializeObjects(auditRecordInternal)
 
         auditRecordInternal.information.forEach {
-            elements.put(it.type.column, it.value)
+            elements[it.type.column] = it.value
         }
 
-        elements.put(AuditTable().description, description)
+        elements[AuditTable().description] = description
 
         return elements
     }

@@ -11,3 +11,5 @@ object VersionType : InformationType<Long>(AuditTable().version)
 object IdType : InformationType<Long>(AuditTable().id)
 
 object DateType : InformationType<Date>(AuditTable().date)
+
+object IsDeletedType : InformationType<Boolean>(AuditTable().isDeleted)

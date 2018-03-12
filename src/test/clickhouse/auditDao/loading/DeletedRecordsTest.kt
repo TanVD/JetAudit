@@ -1,6 +1,5 @@
 package clickhouse.auditDao.loading
 
-import clickhouse.auditDao.loading.objects.StateBooleanTypeTest
 import org.testng.Assert
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
@@ -9,14 +8,16 @@ import tanvd.audit.implementation.clickhouse.AuditDaoClickhouse
 import tanvd.audit.model.external.equal
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.types.objects.ObjectType
+import tanvd.audit.model.internal.AuditRecordInternal
 import utils.*
+import kotlin.properties.Delegates
 
 @Suppress("UNCHECKED_CAST")
 internal class DeletedRecordsTest {
 
     companion object {
         var currentId = 0L
-        var auditDao: AuditDaoClickhouse? = null
+        var auditDao: AuditDaoClickhouse by Delegates.notNull()
     }
 
     val type = ObjectType(TestClassString::class, TestClassStringPresenter) as ObjectType<Any>
@@ -27,7 +28,7 @@ internal class DeletedRecordsTest {
         auditDao = TestUtil.create()
 
         ObjectType.addType(type)
-        auditDao!!.addTypeInDbModel(type)
+        auditDao.addTypeInDbModel(type)
     }
 
     @AfterMethod
@@ -36,34 +37,53 @@ internal class DeletedRecordsTest {
         currentId = 0
     }
 
-//    @Test
-//    fun loadRow_recordDeleted_recordNotLoaded() {
-//        val auditRecordFirstOriginal = SamplesGenerator.getRecordInternal(TestClassString("string1"),
-//                information = true.getSampleInformation())
-//        val auditRecordSecondOriginal = SamplesGenerator.getRecordInternal(TestClassString("string2"),
-//                information = false.getSampleInformation())
-//
-//        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
-//
-//        val recordsLoaded = auditDao!!.loadRecords(TestClassStringPresenter.id equal "string1")
-//        Assert.assertTrue(recordsLoaded.isEmpty())
-//    }
+    @Test
+    fun loadRow_recordInsertedAsDeleted_recordNotLoaded() {
+        val auditRecordFirstOriginal = SamplesGenerator.getRecordInternal(TestClassString("string1"),
+                information = getSampleInformation(true))
+        val auditRecordSecondOriginal = SamplesGenerator.getRecordInternal(TestClassString("string2"),
+                information = getSampleInformation(false))
+
+        auditDao.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
+
+        val recordsNotLoaded = auditDao.loadRecords(TestClassStringPresenter.id equal "string1")
+        Assert.assertTrue(recordsNotLoaded.isEmpty())
+        val recordsLoaded = auditDao.loadRecords(TestClassStringPresenter.id equal "string2")
+        Assert.assertTrue(recordsLoaded.isNotEmpty())
+    }
+
+    @Test
+    fun loadRow_recordDeleted_recordNotLoaded() {
+        val auditRecordFirstOriginal = SamplesGenerator.getRecordInternal(TestClassString("string1"),
+                information = getSampleInformation(false))
+
+        auditDao.saveRecord(auditRecordFirstOriginal)
+
+        val recordsLoaded = auditDao.loadRecords(TestClassStringPresenter.id equal "string1")
+        Assert.assertTrue(recordsLoaded.isNotEmpty())
+
+        auditDao.saveRecord(AuditRecordInternal(auditRecordFirstOriginal.objects, getSampleInformation(true)))
+
+        val recordsNotLoaded = auditDao.loadRecords(TestClassStringPresenter.id equal "string1")
+        Assert.assertTrue(recordsNotLoaded.isEmpty())
+    }
 
     @Test
     fun loadRow_recordNotDeleted_recordLoaded() {
         val auditRecordFirstOriginal = SamplesGenerator.getRecordInternal(TestClassString("string1"),
-                information = getSampleInformation())
+                information = getSampleInformation(false))
         val auditRecordSecondOriginal = SamplesGenerator.getRecordInternal(TestClassString("string2"),
-                information = getSampleInformation())
+                information = getSampleInformation(false))
 
-        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
+        auditDao.saveRecords(listOf(auditRecordFirstOriginal, auditRecordSecondOriginal))
 
-        val recordsLoaded = auditDao!!.loadRecords(TestClassStringPresenter.id equal "string2")
+        val recordsLoaded = auditDao.loadRecords(TestClassStringPresenter.id equal "string2")
         Assert.assertEquals(recordsLoaded.single(), auditRecordSecondOriginal)
     }
 
-    private fun getSampleInformation(): LinkedHashSet<InformationObject<*>> {
-        return InformationUtils.getPrimitiveInformation(StateBooleanTypeTest.currentId++, 1, 2,
-                SamplesGenerator.getMillenniumStart())
+    private fun getSampleInformation(isDeleted: Boolean): LinkedHashSet<InformationObject<*>> {
+        val version = if (isDeleted) 3L else 2L
+        return InformationUtils.getPrimitiveInformation(currentId++, 1, version,
+                SamplesGenerator.getMillenniumStart(), isDeleted)
     }
 }

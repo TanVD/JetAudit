@@ -41,6 +41,7 @@ object AuditTable {
         val id = long("IdColumn").default { RandomGenerator.next() }
         val timestamp = long("TimeStampColumn").default { DateTime.now().millis }
         val version = ulong("VersionColumn").default { 0 }
+        val isDeleted = boolean("isDeletedColumn").default { false }
 
         val description = arrayString("Description")
 
@@ -53,6 +54,7 @@ object AuditTable {
             columns.add(timestamp as Column<Any, DbType<Any>>)
             columns.add(version as Column<Any, DbType<Any>>)
             columns.add(description as Column<Any, DbType<Any>>)
+            columns.add(isDeleted as Column<Any, DbType<Any>>)
         }
 
         override val engine: Engine = Engine.ReplacingMergeTree(date, listOf(id, timestamp), version, 512)
