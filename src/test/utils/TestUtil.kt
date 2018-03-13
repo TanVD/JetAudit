@@ -67,6 +67,7 @@ internal object TestUtil {
         InformationType.addType(VersionType)
         InformationType.addType(TimeStampType)
         InformationType.addType(DateType)
+        InformationType.addType(IsDeletedType)
     }
 }
 

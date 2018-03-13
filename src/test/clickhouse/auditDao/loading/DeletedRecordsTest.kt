@@ -82,8 +82,8 @@ internal class DeletedRecordsTest {
     }
 
     private fun getSampleInformation(isDeleted: Boolean): LinkedHashSet<InformationObject<*>> {
-        val version = if (isDeleted) 3L else 2L
-        return InformationUtils.getPrimitiveInformation(currentId++, 1, version,
+        val (id, version) = if (isDeleted) (currentId to 3L) else ++currentId to 2L
+        return InformationUtils.getPrimitiveInformation(id, 1, version,
                 SamplesGenerator.getMillenniumStart(), isDeleted)
     }
 }
