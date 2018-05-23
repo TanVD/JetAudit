@@ -1,6 +1,7 @@
 package tanvd.audit.implementation
 
 import org.jetbrains.annotations.TestOnly
+import tanvd.audit.utils.Conf
 import tanvd.audit.utils.PropertyLoader
 import java.util.*
 import java.util.concurrent.BlockingQueue
@@ -15,7 +16,7 @@ import java.util.concurrent.Executors
 internal class AuditExecutor(private val auditQueueInternal: BlockingQueue<QueueCommand>) {
 
     companion object Config {
-        val numberOfWorkers by lazy { PropertyLoader["NumberOfWorkers"]?.toInt() ?: 3 }
+        val numberOfWorkers by lazy { PropertyLoader[Conf.WORKERS_NUM].toInt() }
     }
 
     val workers: List<AuditWorker>

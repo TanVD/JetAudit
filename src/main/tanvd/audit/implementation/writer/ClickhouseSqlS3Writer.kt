@@ -14,13 +14,14 @@ import tanvd.aorm.expression.Column
 import tanvd.audit.implementation.clickhouse.ClickhouseRecordSerializer
 import tanvd.audit.implementation.clickhouse.aorm.AuditTable
 import tanvd.audit.model.internal.AuditRecordInternal
+import tanvd.audit.utils.Conf
 import tanvd.audit.utils.PropertyLoader
 
 internal class ClickhouseSqlS3Writer : AuditReserveWriter {
 
-    private val bucketName by lazy { PropertyLoader["S3BucketFailover"] ?: "ClickhouseFailover" }
+    private val bucketName by lazy { PropertyLoader[Conf.S3_FAILOVER] }
 
-    private val awsRegion by lazy { PropertyLoader["AWSRegion"] }
+    private val awsRegion by lazy { PropertyLoader.tryGet(Conf.AWS_REGION) }
 
     private val formatter = DateTimeFormat.forPattern("yyyyMMdd_HHmmss_SSS")
 

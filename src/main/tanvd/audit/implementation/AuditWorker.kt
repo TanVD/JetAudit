@@ -6,6 +6,7 @@ import tanvd.audit.implementation.clickhouse.AuditDao
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouse
 import tanvd.audit.implementation.writer.AuditReserveWriter
 import tanvd.audit.model.internal.AuditRecordInternal
+import tanvd.audit.utils.Conf
 import tanvd.audit.utils.PropertyLoader
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.TimeUnit
@@ -38,9 +39,9 @@ internal class AuditWorker {
     }
 
     companion object Config {
-        val capacityOfWorkerBuffer by lazy { PropertyLoader["CapacityOfWorkerBuffer"]?.toInt() ?: 5000 }
-        val waitingQueueTime by lazy { PropertyLoader["WaitingQueueTime"]?.toLong() ?: 10 }
-        val maxGeneration by lazy { PropertyLoader["MaxGeneration"]?.toInt() ?: 15 }
+        val capacityOfWorkerBuffer by lazy { PropertyLoader[Conf.WORKER_BUFFER].toInt() }
+        val waitingQueueTime by lazy { PropertyLoader[Conf.WAITING_QUEUE_TIME].toLong() }
+        val maxGeneration by lazy { PropertyLoader[Conf.MAX_GENERATION].toInt() }
     }
 
     private val auditQueueInternal: BlockingQueue<QueueCommand>

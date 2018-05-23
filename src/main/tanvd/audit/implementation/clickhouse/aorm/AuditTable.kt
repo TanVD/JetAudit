@@ -8,6 +8,7 @@ import tanvd.aorm.Engine
 import tanvd.aorm.Table
 import tanvd.aorm.expression.Column
 import tanvd.aorm.expression.default
+import tanvd.audit.utils.Conf
 import tanvd.audit.utils.PropertyLoader
 import tanvd.audit.utils.RandomGenerator
 import javax.sql.DataSource
@@ -32,9 +33,9 @@ object AuditTable {
 
     operator fun invoke(): AuditTableImpl = get()
 
-    class AuditTableImpl(dbName: String, dataSource: DataSource) : Table(PropertyLoader["AuditTable"] ?: "AuditTable",
+    class AuditTableImpl(dbName: String, dataSource: DataSource) : Table(PropertyLoader[Conf.AUDIT_TABLE],
             Database(dbName, dataSource)) {
-        val useDDL: Boolean by lazy { PropertyLoader["UseDefaultDDL"]?.toBoolean() ?: true }
+        val useDDL: Boolean by lazy { PropertyLoader[Conf.DEFAULT_DDL].toBoolean() }
 
         val date = date("DateColumn").default { DateTime.now().toDate() }
 

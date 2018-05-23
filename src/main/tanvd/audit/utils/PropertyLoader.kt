@@ -38,12 +38,17 @@ object PropertyLoader {
         overwriteProperties += properties
     }
 
-    operator fun get(propertyName: String): String? {
+    operator fun get(property: Conf) = tryGet(property)?: error("Can't resolve configuration property ${property.paramName}")
+
+    fun tryGet(property: Conf): String? {
+        val propertyName = property.propertyName()
         if (instance == null) {
             logger.error("Property loader probably was not initialized. It may affect work of JetAudit")
             instance = PropertyLoaderImpl()
         }
-        return overwriteProperties[propertyName]?.toString() ?: PropertiesUtils.resolveEnvVariables(instance!!.loadProperty(propertyName))
+        return overwriteProperties[propertyName]?.toString()
+                ?: PropertiesUtils.resolveEnvVariables(instance!!.loadProperty(propertyName))
+                ?: property.defaultValue
     }
 
     private class PropertyLoaderImpl(val propertyFilePath: String? = null, val properties: Properties = Properties()) {

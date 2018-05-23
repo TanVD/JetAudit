@@ -2,6 +2,7 @@ package tanvd.audit.implementation.writer
 
 import org.slf4j.LoggerFactory
 import tanvd.audit.model.internal.AuditRecordInternal
+import tanvd.audit.utils.Conf
 import tanvd.audit.utils.PropertyLoader
 
 /**
@@ -21,22 +22,16 @@ internal interface AuditReserveWriter {
 
         private val logger = LoggerFactory.getLogger(AuditReserveWriterFactory::class.java)
 
-        private val reserveWriterType: String by lazy { PropertyLoader["ReserveWriter"] ?: "File" }
+        private val reserveWriterType: String by lazy { PropertyLoader[Conf.RESERVE_WRITER] }
 
         private val internalWriter: AuditReserveWriter by lazy {
+            val reservePath = PropertyLoader[Conf.RESERVE_PATH]
             when (reserveWriterType) {
-                "File" -> {
-                    val reservePath = PropertyLoader["ReservePath"] ?: "reserve.txt"
-                    ClickhouseSqlFileWriter(reservePath)
-                }
-                "Log" -> {
-                    val reservePath = PropertyLoader["ReservePath"] ?: "ReserveLogger"
-                    ClickhouseSqlLogWriter(reservePath)
-                }
+                "File" -> ClickhouseSqlFileWriter(reservePath)
+                "Log" -> ClickhouseSqlLogWriter(reservePath)
                 "S3" -> ClickhouseSqlS3Writer()
                 else -> {
                     logger.error("Unknown option -- $reserveWriterType for reserve writing. Fallback to File.")
-                    val reservePath = PropertyLoader["ReservePath"] ?: "reserve.txt"
                     ClickhouseSqlFileWriter(reservePath)
                 }
             }

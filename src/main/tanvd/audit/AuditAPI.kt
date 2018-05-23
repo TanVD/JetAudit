@@ -23,6 +23,7 @@ import tanvd.audit.model.external.records.ObjectState
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.external.types.objects.ObjectType
 import tanvd.audit.model.internal.AuditRecordInternal
+import tanvd.audit.utils.Conf
 import tanvd.audit.utils.PropertyLoader
 import java.util.*
 import java.util.concurrent.ArrayBlockingQueue
@@ -98,7 +99,7 @@ class AuditAPI {
     internal val auditRecordsNotCommitted: ThreadLocal<ArrayList<AuditRecordInternal>>
 
     internal companion object Config {
-        val capacityOfQueue by lazy { PropertyLoader["CapacityOfQueue"]?.toInt() ?: 20000 }
+        val capacityOfQueue by lazy { PropertyLoader[Conf.QUEUE_CAPACITY].toInt() }
     }
 
     constructor(configPath: String?, dataSource: DataSource) {
