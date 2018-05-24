@@ -15,7 +15,7 @@ enum class Conf(val paramName: String, val defaultValue: String?) {
     AWS_REGION("AWSRegion", null);
 
     companion object {
-        val NAMESPACE = "jetaudit"
+        val NAMESPACE = "jetAudit"
     }
 
     fun propertyName() = "$NAMESPACE.$paramName"
