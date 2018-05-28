@@ -42,7 +42,7 @@ object AuditTable {
         val id = long("IdColumn").default { RandomGenerator.next() }
         val timestamp = long("TimeStampColumn").default { DateTime.now().millis }
         val version = ulong("VersionColumn").default { 0 }
-        val isDeleted = boolean("isDeletedColumn").default { false }
+        val isDeleted = boolean("IsDeletedColumn").default { false }
 
         val description = arrayString("Description")
 
