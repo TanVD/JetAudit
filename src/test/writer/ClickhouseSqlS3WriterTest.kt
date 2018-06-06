@@ -43,14 +43,14 @@ internal class ClickhouseSqlS3WriterTest : PowerMockTestCase() {
 
 
         Mockito.verify(s3Client).putObject(Mockito.eq("ClickhouseFailover"), Mockito.anyString(),
-                Mockito.eq("INSERT INTO ${AuditTable().name} (" +
+                Mockito.eq("INSERT INTO ${AuditTable.name} (" +
                         "${IntPresenter.value.column.name}, ${StringPresenter.value.column.name}, " +
                         "${IdType.column.name}, " +
                         "${TimeStampType.column.name}, " +
                         "${VersionType.column.name}, " +
                         "${DateType.column.name}, " +
                         "${IsDeletedType.column.name}, " +
-                        "${AuditTable().description.name}, " +
+                        "${AuditTable.description.name}, " +
                         "${LongPresenter.value.column.name}) VALUES " +
                         "([123], ['456'], 0, 2, 1, '2000-01-01', 0, ['Int', 'String'], []);"))
     }

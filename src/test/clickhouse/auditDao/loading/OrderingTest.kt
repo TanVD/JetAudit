@@ -11,8 +11,10 @@ import tanvd.audit.model.external.equal
 import tanvd.audit.model.external.orderBy
 import tanvd.audit.model.external.presenters.*
 import tanvd.audit.model.external.records.InformationObject
-import utils.*
+import utils.InformationUtils
+import utils.SamplesGenerator
 import utils.SamplesGenerator.getRecordInternal
+import utils.TestUtil
 
 internal class OrderingTest {
 

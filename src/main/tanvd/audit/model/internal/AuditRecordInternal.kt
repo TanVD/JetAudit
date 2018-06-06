@@ -18,8 +18,8 @@ internal data class AuditRecordInternal(val objects: List<Pair<ObjectType<*>, Ob
 
         private fun makeCopyWithChangedInformation(auditRecord: AuditRecord, transform: (InformationObject<*>) -> InformationObject<*>) =
                 AuditRecordInternal(
-                    objects = auditRecord.objects.map { it.type to it.state },
-                    information = LinkedHashSet(auditRecord.informations.map(transform))
+                        objects = auditRecord.objects.map { it.type to it.state },
+                        information = LinkedHashSet(auditRecord.informations.map(transform))
                 )
 
         fun createFromRecordWithNewVersion(auditRecord: AuditRecord) =

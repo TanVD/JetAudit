@@ -7,6 +7,7 @@ enum class Conf(val paramName: String, val defaultValue: String?) {
     RESERVE_WRITER("reserveWriter", "File"),
     RESERVE_PATH("reservePath", "reserve.txt"),
     AUDIT_TABLE("auditTable", "AuditTable"),
+    AUDIT_DATABASE("auditDatabase", "default"),
     DEFAULT_DDL("useDefaultDDL", "true"),
     WORKER_BUFFER("capacityOfWorkerBuffer", "5000"),
     WAITING_QUEUE_TIME("waitingQueueTime", "10"),

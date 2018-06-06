@@ -11,7 +11,7 @@ abstract class InformationType<T : Any>(val code: String, val type: DbPrimitiveT
     : ColumnWrapper<T, DbPrimitiveType<T>>() {
     constructor(column: Column<T, DbPrimitiveType<T>>) : this(column.name, column.type, column.defaultFunction!!)
 
-    override val column: Column<T, DbPrimitiveType<T>> by lazy { Column(code, type, AuditTable(), default) }
+    override val column: Column<T, DbPrimitiveType<T>> by lazy { Column(code, type, AuditTable, default) }
 
 
     companion object TypesResolution {
@@ -24,8 +24,8 @@ abstract class InformationType<T : Any>(val code: String, val type: DbPrimitiveT
          */
         @Suppress("UNCHECKED_CAST")
         fun <T : Any> resolveType(code: String): InformationType<T> {
-            return informationTypesByCode[code] as? InformationType<T> ?:
-                    throw UnknownInformationTypeException("Unknown InformationType requested to resolve by stateName -- $code")
+            return informationTypesByCode[code] as? InformationType<T>
+                    ?: throw UnknownInformationTypeException("Unknown InformationType requested to resolve by stateName -- $code")
         }
 
         @Suppress("UNCHECKED_CAST")

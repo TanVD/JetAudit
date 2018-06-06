@@ -14,6 +14,7 @@ import tanvd.audit.implementation.QueueCommand
 import tanvd.audit.implementation.SaveRecords
 import tanvd.audit.implementation.clickhouse.AuditDao
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouse
+import tanvd.audit.implementation.clickhouse.aorm.AuditDatabase
 import tanvd.audit.implementation.clickhouse.aorm.AuditTable
 import tanvd.audit.model.external.presenters.*
 import tanvd.audit.model.external.records.AuditObject
@@ -66,6 +67,7 @@ import kotlin.collections.LinkedHashSet
  *
  *      #Clickouse scheme config
  *      AuditTable             (default AuditTable),
+ *      AuditDatabase          (default default),
  *      DescriptionColumn      (default Description),
  *      DateColumn             (default DateColumn),
  *      TimeStampColumn        (default TimeStampColumn),
@@ -137,7 +139,7 @@ class AuditAPI {
     }
 
     private fun init(dataSource: DataSource) {
-        AuditTable.init(dataSource)
+        AuditDatabase.init(PropertyLoader[Conf.AUDIT_DATABASE], dataSource)
         initTable()
         addPrimitiveTypes()
         addServiceInformation()
@@ -151,7 +153,7 @@ class AuditAPI {
                          properties: Properties, dataSource: DataSource) {
 
         PropertyLoader.setProperties(properties)
-        AuditTable.init(dataSource)
+        AuditDatabase.init(PropertyLoader[Conf.AUDIT_DATABASE], dataSource)
 
         this.auditRecordsNotCommitted = auditRecordsNotCommitted
         this.auditQueueInternal = auditQueueInternal
@@ -325,7 +327,7 @@ class AuditAPI {
      * WARNING: Be EXTREMELY careful with this method.
      * You can erase whole audit data with one call.
      */
-    fun getTable(): Table = AuditTable()
+    fun getTable(): Table = AuditTable
 
     /**
      * Deserialize AuditRecordsInternal to AuditRecords using batching deserialization.

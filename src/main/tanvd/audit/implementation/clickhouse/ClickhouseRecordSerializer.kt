@@ -4,7 +4,6 @@ import org.slf4j.LoggerFactory
 import tanvd.aorm.DbType
 import tanvd.aorm.Row
 import tanvd.aorm.expression.Column
-import tanvd.aorm.expression.Expression
 import tanvd.audit.implementation.clickhouse.aorm.AuditTable
 import tanvd.audit.model.external.records.InformationObject
 import tanvd.audit.model.external.records.ObjectState
@@ -31,7 +30,7 @@ internal object ClickhouseRecordSerializer {
             elements[it.type.column] = it.value
         }
 
-        elements[AuditTable().description] = description
+        elements[AuditTable.description] = description
 
         return elements
     }
@@ -42,10 +41,10 @@ internal object ClickhouseRecordSerializer {
         return groupedObjects.mapKeys { it.key.column }.toMutableMap()
     }
 
-    fun deserialize(row: Row<Expression<Any, DbType<Any>>>): AuditRecordInternal {
-        val description = row[AuditTable().description]
+    fun deserialize(row: Row): AuditRecordInternal {
+        val description = row[AuditTable.description]
         if (description == null) {
-            logger.error("Clickhouse scheme violated. Not found ${AuditTable().description.name} column.")
+            logger.error("Clickhouse scheme violated. Not found ${AuditTable.description.name} column.")
             return AuditRecordInternal(emptyList(), LinkedHashSet())
         }
 
@@ -53,7 +52,7 @@ internal object ClickhouseRecordSerializer {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun deserializeObjects(description: List<String>, row: Row<Expression<Any, DbType<Any>>>): ArrayList<Pair<ObjectType<Any>, ObjectState>> {
+    private fun deserializeObjects(description: List<String>, row: Row): ArrayList<Pair<ObjectType<Any>, ObjectState>> {
         val objects = ArrayList<Pair<ObjectType<Any>, ObjectState>>()
         val currentNumberOfType = HashMap<String, Int>()
 
@@ -64,8 +63,8 @@ internal object ClickhouseRecordSerializer {
                 val value = row[stateType.column as Column<Any, DbType<Any>>] as List<Any>?
                 if (value != null) {
                     val index = currentNumberOfType[stateType.column.name] ?: 0
-                    stateList.put(stateType, value[index])
-                    currentNumberOfType.put(stateType.column.name, index + 1)
+                    stateList[stateType] = value[index]
+                    currentNumberOfType[stateType.column.name] = index + 1
                 }
             }
             objects.add(Pair(type, ObjectState(stateList)))
@@ -73,7 +72,7 @@ internal object ClickhouseRecordSerializer {
         return objects
     }
 
-    private fun deserializeInformation(row: Row<Expression<Any, DbType<Any>>>): LinkedHashSet<InformationObject<*>> {
+    private fun deserializeInformation(row: Row): LinkedHashSet<InformationObject<*>> {
         val information = LinkedHashSet<InformationObject<*>>()
         for (type in InformationType.getTypes()) {
             val curInformation = row[type.column]

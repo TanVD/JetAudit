@@ -12,8 +12,10 @@ import tanvd.audit.model.external.orderBy
 import tanvd.audit.model.external.presenters.StringPresenter
 import tanvd.audit.model.external.presenters.TimeStampType
 import tanvd.audit.model.external.records.InformationObject
-import utils.*
+import utils.InformationUtils
+import utils.SamplesGenerator
 import utils.SamplesGenerator.getRecordInternal
+import utils.TestUtil
 
 internal class PagingTest {
 

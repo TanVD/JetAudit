@@ -2,7 +2,7 @@ package tanvd.audit.model.external.types.objects
 
 import tanvd.aorm.DbBoolean
 import tanvd.aorm.DbDate
-import tanvd.aorm.DbLong
+import tanvd.aorm.DbInt64
 import tanvd.aorm.DbString
 import tanvd.audit.model.external.records.ObjectState
 import java.util.*
@@ -24,25 +24,25 @@ abstract class ObjectPresenter<T : Any> : ObjectSerializer<T> {
 }
 
 fun <T : Any> ObjectPresenter<T>.long(name: String, body: (T) -> Long): StateType<Long> {
-    val type = StateType(name, entityName, DbLong())
-    fieldSerializers.put(type, body)
+    val type = StateType(name, entityName, DbInt64())
+    fieldSerializers[type] = body
     return type
 }
 
 fun <T : Any> ObjectPresenter<T>.string(name: String, body: (T) -> String): StateType<String> {
     val type = StateType(name, entityName, DbString())
-    fieldSerializers.put(type, body)
+    fieldSerializers[type] = body
     return type
 }
 
 fun <T : Any> ObjectPresenter<T>.boolean(name: String, body: (T) -> Boolean): StateType<Boolean> {
     val type = StateType(name, entityName, DbBoolean())
-    fieldSerializers.put(type, body)
+    fieldSerializers[type] = body
     return type
 }
 
 fun <T : Any> ObjectPresenter<T>.date(name: String, body: (T) -> Date): StateType<Date> {
     val type = StateType(name, entityName, DbDate())
-    fieldSerializers.put(type, body)
+    fieldSerializers[type] = body
     return type
 }

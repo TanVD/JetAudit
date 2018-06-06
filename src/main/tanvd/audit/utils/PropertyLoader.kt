@@ -38,7 +38,8 @@ object PropertyLoader {
         overwriteProperties += properties
     }
 
-    operator fun get(property: Conf) = tryGet(property)?: error("Can't resolve configuration property ${property.paramName}")
+    operator fun get(property: Conf) = tryGet(property)
+            ?: error("Can't resolve configuration property ${property.paramName}")
 
     fun tryGet(property: Conf): String? {
         val propertyName = property.propertyName()

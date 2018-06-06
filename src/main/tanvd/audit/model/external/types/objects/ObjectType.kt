@@ -22,8 +22,8 @@ data class ObjectType<T : Any>(val klass: KClass<T>, val objectPresenter: Object
          * @throws UnknownObjectTypeException
          */
         fun resolveType(klass: KClass<*>): ObjectType<Any> {
-            return _resolveType(klass) ?:
-                    throw UnknownObjectTypeException("Unknown ObjectType requested to resolve by klass -- ${klass.qualifiedName}")
+            return _resolveType(klass)
+                    ?: throw UnknownObjectTypeException("Unknown ObjectType requested to resolve by klass -- ${klass.qualifiedName}")
         }
 
         private fun _resolveType(klass: KClass<*>): ObjectType<Any>? {
@@ -38,8 +38,8 @@ data class ObjectType<T : Any>(val klass: KClass<T>, val objectPresenter: Object
          * @throws UnknownObjectTypeException
          */
         fun resolveType(name: String): ObjectType<Any> {
-            return typesByEntityName[name] ?:
-                    throw UnknownObjectTypeException("Unknown ObjectType requested to resolve by name -- $name")
+            return typesByEntityName[name]
+                    ?: throw UnknownObjectTypeException("Unknown ObjectType requested to resolve by name -- $name")
         }
 
         @Synchronized

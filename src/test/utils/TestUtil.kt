@@ -2,40 +2,43 @@ package utils
 
 import tanvd.aorm.Database
 import tanvd.audit.implementation.clickhouse.AuditDaoClickhouse
+import tanvd.audit.implementation.clickhouse.aorm.AuditDatabase
 import tanvd.audit.implementation.clickhouse.aorm.AuditTable
+import tanvd.audit.implementation.clickhouse.aorm.withAuditDatabase
 import tanvd.audit.model.external.presenters.*
 import tanvd.audit.model.external.types.information.InformationType
 import tanvd.audit.model.external.types.objects.ObjectType
+import tanvd.audit.utils.Conf
+import tanvd.audit.utils.PropertyLoader
 import tanvd.audit.utils.RandomGenerator
 
 internal object TestUtil {
 
     init {
-        AuditTable.init(DbUtils.getDataSource())
+        AuditDatabase.init(PropertyLoader[Conf.AUDIT_DATABASE], DbUtils.getDataSource())
         val randomPostfix = RandomGenerator.next()
-        AuditTable().name += randomPostfix.toString()
+        AuditTable.name += randomPostfix.toString()
     }
 
-    fun create(): AuditDaoClickhouse {
-
+    fun create(): AuditDaoClickhouse = withAuditDatabase {
         try {
-            AuditTable().drop()
+            AuditTable.drop()
         } catch (e: Exception) {
         }
-        AuditTable().resetColumns()
-        AuditTable().create()
+        AuditTable.resetColumns()
+        AuditTable.create()
 
         val auditDao = AuditDaoClickhouse()
 
         addObjectTypePrimitives()
         addAuditTypePrimitive(auditDao)
         addInformationTypesPrimitive()
-        return auditDao
+        auditDao
     }
 
     fun drop() {
         try {
-            AuditTable().drop()
+            withAuditDatabase { AuditTable.drop() }
         } catch (e: Exception) {
         }
         clearTypes()

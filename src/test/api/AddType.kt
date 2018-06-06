@@ -61,7 +61,7 @@ internal class AddType : PowerMockTestCase() {
         reset(auditExecutor)
         reset(auditQueueInternal)
         TestUtil.clearTypes()
-        AuditTable().resetColumns()
+        AuditTable.resetColumns()
     }
 
 
