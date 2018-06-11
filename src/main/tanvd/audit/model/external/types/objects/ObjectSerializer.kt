@@ -16,7 +16,7 @@ interface ObjectSerializer<T> {
     fun deserializeBatch(states: List<ObjectState>): Map<ObjectState, T?> {
         val deserializedMap: MutableMap<ObjectState, T?> = HashMap()
         for (primaryKey in states) {
-            deserializedMap.put(primaryKey, deserialize(primaryKey))
+            deserializedMap[primaryKey] = deserialize(primaryKey)
         }
         return deserializedMap
     }

@@ -44,8 +44,8 @@ data class ObjectType<T : Any>(val klass: KClass<T>, val objectPresenter: Object
 
         @Synchronized
         internal fun addType(type: ObjectType<Any>) {
-            typesByClass.put(type.klass, type)
-            typesByEntityName.put(type.entityName, type)
+            typesByClass[type.klass] = type
+            typesByEntityName[type.entityName] = type
         }
 
         internal fun getTypes(): Set<ObjectType<Any>> = typesByClass.values.toSet()

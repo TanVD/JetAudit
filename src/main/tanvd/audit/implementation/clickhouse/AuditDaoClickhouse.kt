@@ -22,7 +22,7 @@ internal open class AuditDaoClickhouse : AuditDao {
     override fun saveRecord(auditRecordInternal: AuditRecordInternal) = withAuditDatabase {
         AuditTable.insert { row ->
             ClickhouseRecordSerializer.serialize(auditRecordInternal).forEach {
-                row[it.key as Column<Any, DbType<Any>>] = it.value
+                row[it.key] = it.value
             }
         }
     }
@@ -30,7 +30,7 @@ internal open class AuditDaoClickhouse : AuditDao {
     override fun saveRecords(auditRecordInternals: List<AuditRecordInternal>) = withAuditDatabase {
         AuditTable.batchInsert(auditRecordInternals, AuditTable.columns.toList()) { row, value ->
             ClickhouseRecordSerializer.serialize(value).forEach {
-                row[it.key as Column<Any, DbType<Any>>] = it.value
+                row[it.key] = it.value
             }
         }
     }

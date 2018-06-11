@@ -1,7 +1,7 @@
 package tanvd.audit.implementation.clickhouse.aorm
 
-import tanvd.aorm.ConnectionContext
 import tanvd.aorm.Database
+import tanvd.aorm.context.ConnectionContext
 import tanvd.aorm.withDatabase
 import javax.sql.DataSource
 

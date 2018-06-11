@@ -1,7 +1,7 @@
 package tanvd.audit.implementation.writer
 
 import tanvd.aorm.InsertExpression
-import tanvd.aorm.Row
+import tanvd.aorm.InsertRow
 import tanvd.audit.implementation.clickhouse.ClickhouseRecordSerializer
 import tanvd.audit.implementation.clickhouse.aorm.AuditTable
 import tanvd.audit.model.internal.AuditRecordInternal
@@ -19,10 +19,9 @@ internal class ClickhouseSqlFileWriter : AuditReserveWriter {
         this.writer = writer
     }
 
-    @Suppress("UNCHECKED_CAST")
     override fun write(record: AuditRecordInternal) {
         val row = ClickhouseRecordSerializer.serialize(record)
-        writer.println(InsertExpression(AuditTable, Row(row.toMutableMap())).toSql())
+        writer.println(InsertExpression(AuditTable, InsertRow(row.toMutableMap())).toSql())
     }
 
     override fun flush() {

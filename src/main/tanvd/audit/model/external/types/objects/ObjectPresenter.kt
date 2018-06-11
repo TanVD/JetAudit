@@ -17,7 +17,7 @@ abstract class ObjectPresenter<T : Any> : ObjectSerializer<T> {
     override fun serialize(entity: T): ObjectState {
         val stateList = HashMap<StateType<*>, Any>()
         for ((key, value) in fieldSerializers) {
-            stateList.put(key, value.invoke(entity))
+            stateList[key] = value.invoke(entity)
         }
         return ObjectState(stateList)
     }

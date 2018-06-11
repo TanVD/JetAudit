@@ -31,7 +31,7 @@ abstract class InformationType<T : Any>(val code: String, val type: DbPrimitiveT
         @Suppress("UNCHECKED_CAST")
         @Synchronized
         internal fun addType(type: InformationType<*>) {
-            informationTypesByCode.put(type.code, type as InformationType<Any>)
+            informationTypesByCode[type.code] = type as InformationType<Any>
         }
 
         internal fun getTypes(): Set<InformationType<Any>> = informationTypesByCode.values.toSet()
