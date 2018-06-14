@@ -35,13 +35,13 @@ internal open class AuditDaoClickhouse : AuditDao {
         }
     }
 
-    @Suppress("UNCHECKED_CAST")
     override fun <T : Any> addTypeInDbModel(type: ObjectType<T>): Unit = withAuditDatabase {
         for (stateType in type.state) {
             if (AuditTable.useDDL) {
+                @Suppress("UNCHECKED_CAST")
                 AuditTable.addColumn(stateType.column as Column<List<T>, DbType<List<T>>>)
             } else {
-                AuditTable.columns.add(stateType.column as Column<Any, DbType<Any>>)
+                AuditTable.columns.add(stateType.column)
             }
         }
     }
@@ -51,7 +51,7 @@ internal open class AuditDaoClickhouse : AuditDao {
         if (AuditTable.useDDL) {
             AuditTable.addColumn(information.column)
         } else {
-            AuditTable.columns.add(information.column as Column<Any, DbType<Any>>)
+            AuditTable.columns.add(information.column)
         }
     }
 
