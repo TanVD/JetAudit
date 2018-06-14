@@ -28,7 +28,7 @@ internal open class AuditDaoClickhouse : AuditDao {
     }
 
     override fun saveRecords(auditRecordInternals: List<AuditRecordInternal>) = withAuditDatabase {
-        AuditTable.batchInsert(auditRecordInternals, AuditTable.columns.toList()) { row, value ->
+        AuditTable.batchInsert(auditRecordInternals, AuditTable.columns) { row, value ->
             ClickhouseRecordSerializer.serialize(value).forEach {
                 row[it.key] = it.value
             }
