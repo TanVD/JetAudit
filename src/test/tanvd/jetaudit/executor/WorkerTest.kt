@@ -22,7 +22,7 @@ import tanvd.jetaudit.utils.StringInf
 import java.util.concurrent.ArrayBlockingQueue
 
 @PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*")
-@PrepareForTest(fullyQualifiedNames = ["tanvd.audit.implementation.*"])
+@PrepareForTest(fullyQualifiedNames = ["tanvd.jetaudit.implementation.*"])
 internal class WorkerTest : PowerMockTestCase() {
 
     private var auditDao: AuditDao? = null

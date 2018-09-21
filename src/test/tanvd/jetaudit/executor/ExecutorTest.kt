@@ -19,7 +19,7 @@ import java.util.concurrent.Executors
 
 
 @PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*")
-@PrepareForTest(fullyQualifiedNames = ["tanvd.audit.implementation.*"])
+@PrepareForTest(fullyQualifiedNames = ["tanvd.jetaudit.implementation.*"])
 internal class ExecutorTest : PowerMockTestCase() {
 
     private var auditWorker: AuditWorker? = null
