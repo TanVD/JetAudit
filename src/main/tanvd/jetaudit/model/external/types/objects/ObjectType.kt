@@ -22,13 +22,13 @@ data class ObjectType<T : Any>(val klass: KClass<T>, val objectPresenter: Object
          * @throws UnknownObjectTypeException
          */
         fun resolveType(klass: KClass<*>): ObjectType<Any> {
-            return _resolveType(klass)
+            return recResolveType(klass)
                     ?: throw UnknownObjectTypeException("Unknown ObjectType requested to resolve by klass -- ${klass.qualifiedName}")
         }
 
-        private fun _resolveType(klass: KClass<*>): ObjectType<Any>? {
+        private fun recResolveType(klass: KClass<*>): ObjectType<Any>? {
             return typesByClass[klass] ?: klass.superclasses
-                    .map { _resolveType(it) }
+                    .map { recResolveType(it) }
                     .firstOrNull { it != null }
         }
 
