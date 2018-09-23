@@ -20,6 +20,10 @@ Every object will be mapped in accordance with it's type (see [type systems para
 
 ## Setup
 
+JetAudit releases are published to [JCenter](https://bintray.com/tanvd/jetaudit/jetaudit).
+
+Also you can get snapshot versions from [Artifactory](https://oss.jfrog.org) (see libs-snapshot/tanvd/jetaudit/jetaudit packages group)
+
 To use JetAudit you'll need ClickHouse installation (we recommend to use replicated cluster in production).
 
 Setup properties file in accordance with documentation of AuditApi class. Once it is done, you can try to save your first audit record. Note, that by default JetAudit type system initialized only with primitive types.
