@@ -1,7 +1,9 @@
 import com.jfrog.bintray.gradle.BintrayExtension
+import groovy.lang.GroovyObject
+import org.jfrog.gradle.plugin.artifactory.dsl.PublisherConfig
 
 group = "tanvd.jetaudit"
-version = "1.1.0"
+version = "1.1.1-SNAPSHOT"
 
 val kotlinVersion = "1.2.70"
 
@@ -9,12 +11,12 @@ plugins {
     kotlin("jvm") version "1.2.70" apply true
     `maven-publish` apply true
     id("com.jfrog.bintray") version "1.8.4" apply true
+    id("com.jfrog.artifactory") version "4.7.5" apply true
 }
 
 repositories {
     mavenCentral()
     maven { setUrl("https://dl.bintray.com/jfrog/jfrog-jars") }
-    maven { setUrl("https://dl.bintray.com/tanvd/aorm") }
     jcenter()
 
 }
@@ -52,12 +54,10 @@ dependencies {
 }
 
 
-
 val sourceJar = task<Jar>("sourceJar") {
     classifier = "sources"
     from(kotlin.sourceSets["main"]!!.kotlin.sourceDirectories)
 }
-
 
 publishing {
     publications.invoke {
@@ -69,6 +69,26 @@ publishing {
         }
     }
 }
+
+artifactory {
+    setContextUrl("https://oss.jfrog.org/artifactory")
+
+    publish(delegateClosureOf<PublisherConfig> {
+        repository(delegateClosureOf<GroovyObject> {
+            setProperty("repoKey", "oss-snapshot-local")
+            setProperty("username", "tanvd")
+            setProperty("password", System.getenv("artifactory_api_key"))
+            setProperty("maven", true)
+        })
+
+        defaults(delegateClosureOf<GroovyObject> {
+            setProperty("publishArtifacts", true)
+            setProperty("publishPom", true)
+            invokeMethod("publications", "MavenJava")
+        })
+    })
+}
+
 
 bintray {
     user = "tanvd"
