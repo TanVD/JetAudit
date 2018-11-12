@@ -7,8 +7,8 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import org.joda.time.format.DateTimeFormat
-import tanvd.aorm.InsertExpression
 import tanvd.aorm.InsertRow
+import tanvd.aorm.insert.InsertExpression
 import tanvd.jetaudit.implementation.clickhouse.ClickhouseRecordSerializer
 import tanvd.jetaudit.implementation.clickhouse.aorm.AuditTable
 import tanvd.jetaudit.model.internal.AuditRecordInternal

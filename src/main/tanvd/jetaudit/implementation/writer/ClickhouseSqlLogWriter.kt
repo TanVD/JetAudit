@@ -2,8 +2,8 @@ package tanvd.jetaudit.implementation.writer
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import tanvd.aorm.InsertExpression
 import tanvd.aorm.InsertRow
+import tanvd.aorm.insert.InsertExpression
 import tanvd.jetaudit.implementation.clickhouse.ClickhouseRecordSerializer
 import tanvd.jetaudit.implementation.clickhouse.aorm.AuditTable
 import tanvd.jetaudit.model.internal.AuditRecordInternal
