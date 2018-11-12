@@ -5,20 +5,18 @@ import org.jfrog.gradle.plugin.artifactory.dsl.PublisherConfig
 group = "tanvd.jetaudit"
 version = "1.1.1-SNAPSHOT"
 
-val kotlinVersion = "1.2.70"
+val kotlinVersion = "1.3.0"
 
 plugins {
-    kotlin("jvm") version "1.2.70" apply true
+    kotlin("jvm") version "1.3.0" apply true
     `maven-publish` apply true
     id("com.jfrog.bintray") version "1.8.4" apply true
     id("com.jfrog.artifactory") version "4.7.5" apply true
 }
 
 repositories {
-    mavenCentral()
-    maven { setUrl("https://dl.bintray.com/jfrog/jfrog-jars") }
     jcenter()
-
+    maven { setUrl("https://dl.bintray.com/jfrog/jfrog-jars") }
 }
 
 kotlin.sourceSets {
@@ -36,7 +34,7 @@ dependencies {
     compile("org.jetbrains.kotlin", "kotlin-stdlib", kotlinVersion)
     compile("org.jetbrains.kotlin", "kotlin-reflect", kotlinVersion)
 
-    compile("tanvd.aorm", "aorm", "1.1.0")
+    compile("tanvd.aorm", "aorm", "1.1.2")
     compile("com.amazonaws", "aws-java-sdk-s3", "1.11.160")
 
     testCompile("ch.qos.logback", "logback-classic", "1.2.2")
