@@ -35,7 +35,7 @@ dependencies {
     compile("org.jetbrains.kotlin", "kotlin-reflect", kotlinVersion)
 
     compile("tanvd.aorm", "aorm", "1.1.2")
-    compile("com.amazonaws", "aws-java-sdk-s3", "1.11.160")
+    compile("com.amazonaws", "aws-java-sdk-s3", "1.11.446")
 
     testCompile("ch.qos.logback", "logback-classic", "1.2.2")
     testCompile("org.testng", "testng", "6.11")
