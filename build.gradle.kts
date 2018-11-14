@@ -3,7 +3,7 @@ import groovy.lang.GroovyObject
 import org.jfrog.gradle.plugin.artifactory.dsl.PublisherConfig
 
 group = "tanvd.jetaudit"
-version = "1.1.2-SNAPSHOT"
+version = "1.1.2"
 
 val kotlinVersion = "1.3.0"
 
