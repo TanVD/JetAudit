@@ -2,7 +2,9 @@ package tanvd.jetaudit
 
 import org.jetbrains.annotations.TestOnly
 import org.slf4j.LoggerFactory
+import tanvd.aorm.InsertRow
 import tanvd.aorm.Table
+import tanvd.aorm.insert.InsertExpression
 import tanvd.aorm.query.LimitExpression
 import tanvd.aorm.query.OrderByExpression
 import tanvd.aorm.query.QueryExpression
@@ -14,6 +16,7 @@ import tanvd.jetaudit.implementation.QueueCommand
 import tanvd.jetaudit.implementation.SaveRecords
 import tanvd.jetaudit.implementation.clickhouse.AuditDao
 import tanvd.jetaudit.implementation.clickhouse.AuditDaoClickhouse
+import tanvd.jetaudit.implementation.clickhouse.ClickhouseRecordSerializer
 import tanvd.jetaudit.implementation.clickhouse.aorm.AuditDatabase
 import tanvd.jetaudit.implementation.clickhouse.aorm.AuditTable
 import tanvd.jetaudit.model.external.presenters.*
@@ -221,10 +224,6 @@ class AuditAPI {
      * In case of shutting down audit all records will be ignored including partly saved, but not committed
      */
     fun save(vararg objects: Any, information: Set<InformationObject<*>> = emptySet()) {
-        if (shuttingDown) {
-            return
-        }
-
         val recordObjects = ArrayList<Pair<ObjectType<Any>, ObjectState>>()
         for (o in objects) {
             try {
@@ -235,7 +234,14 @@ class AuditAPI {
             }
         }
 
-        auditRecordsNotCommitted.get().add(AuditRecordInternal(recordObjects, LinkedHashSet(information)))
+        val auditRecord = AuditRecordInternal(recordObjects, LinkedHashSet(information))
+
+        if (shuttingDown) {
+            val row = ClickhouseRecordSerializer.serialize(auditRecord)
+            logger.error("Missed audit statement (due to shutdown): " + InsertExpression(AuditTable, InsertRow(row.toMutableMap())).toSql())
+        } else {
+            auditRecordsNotCommitted.get().add(auditRecord)
+        }
     }
 
     /**
