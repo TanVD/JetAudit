@@ -1,38 +1,23 @@
-import com.jfrog.bintray.gradle.BintrayExtension
-import groovy.lang.GroovyObject
-import org.jfrog.gradle.plugin.artifactory.dsl.PublisherConfig
+import tanvd.kosogor.proxy.publishJar
 
 group = "tanvd.jetaudit"
 version = "1.1.4-SNAPSHOT"
 
-val kotlinVersion = "1.3.0"
-
 plugins {
-    kotlin("jvm") version "1.3.0" apply true
-    `maven-publish` apply true
-    id("com.jfrog.bintray") version "1.8.4" apply true
-    id("com.jfrog.artifactory") version "4.7.5" apply true
+    kotlin("jvm") version "1.3.21" apply true
+    id("tanvd.kosogor") version "1.0.0" apply true
 }
 
 repositories {
     jcenter()
-    maven { setUrl("https://dl.bintray.com/jfrog/jfrog-jars") }
-}
-
-kotlin.sourceSets {
-    this["main"].kotlin.also {
-        it.srcDir("src/main")
-    }
-    this["test"].kotlin.also {
-        it.srcDir("src/test")
-    }
+    maven("https://dl.bintray.com/jfrog/jfrog-jars")
 }
 
 dependencies {
     compile("org.slf4j", "slf4j-api", "1.7.25")
 
-    compile("org.jetbrains.kotlin", "kotlin-stdlib", kotlinVersion)
-    compile("org.jetbrains.kotlin", "kotlin-reflect", kotlinVersion)
+    compile(kotlin("stdlib"))
+    compile(kotlin("reflect"))
 
     compile("tanvd.aorm", "aorm", "1.1.2")
     compile("com.amazonaws", "aws-java-sdk-s3", "1.11.446")
@@ -51,60 +36,28 @@ dependencies {
     useTestNG()
 }
 
+publishJar {
+    publication {
+        artifactId = "jetaudit"
+    }
 
-val sourceJar = task<Jar>("sourceJar") {
-    classifier = "sources"
-    from(kotlin.sourceSets["main"]!!.kotlin.sourceDirectories)
-}
+    artifactory {
+        serverUrl = "https://oss.jfrog.org/artifactory"
+        repository = "oss-snapshot-local"
+        username = "tanvd"
+        secretKey = System.getenv("artifactory_api_key")
+    }
 
-publishing {
-    publications.invoke {
-        "MavenJava"(MavenPublication::class) {
-            artifactId = rootProject.name
-
-            from(components.getByName("java"))
-            artifact(sourceJar)
+    bintray {
+        username = "tanvd"
+        secretKey = System.getenv("bintray_api_key")
+        repository = "jetaudit"
+        info {
+            githubRepo = "tanvd/jetaudit"
+            vcsUrl = "https://github.com/tanvd/jetaudit"
+            labels.addAll(listOf("kotlin", "clickhouse", "audit"))
+            license = "MIT"
+            description = "Kotlin library for business audit upon Clickhouse"
         }
     }
 }
-
-artifactory {
-    setContextUrl("https://oss.jfrog.org/artifactory")
-
-    publish(delegateClosureOf<PublisherConfig> {
-        repository(delegateClosureOf<GroovyObject> {
-            setProperty("repoKey", "oss-snapshot-local")
-            setProperty("username", "tanvd")
-            setProperty("password", System.getenv("artifactory_api_key"))
-            setProperty("maven", true)
-        })
-
-        defaults(delegateClosureOf<GroovyObject> {
-            setProperty("publishArtifacts", true)
-            setProperty("publishPom", true)
-            invokeMethod("publications", "MavenJava")
-        })
-    })
-}
-
-
-bintray {
-    user = "tanvd"
-    key = System.getenv("bintray_api_key")
-    publish = true
-    setPublications("MavenJava")
-    pkg(delegateClosureOf<BintrayExtension.PackageConfig> {
-        repo = "jetaudit"
-        name = rootProject.name
-        githubRepo = "tanvd/jetaudit"
-        vcsUrl = "https://github.com/tanvd/jetaudit"
-        setLabels("kotlin", "clickhouse", "audit")
-        setLicenses("MIT")
-        desc = "Kotlin library for business audit upon Clickhouse"
-    })
-}
-
-task<Wrapper>("wrapper") {
-    gradleVersion = "4.9"
-}
-
