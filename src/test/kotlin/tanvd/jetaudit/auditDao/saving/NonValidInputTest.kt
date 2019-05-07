@@ -1,19 +1,13 @@
 package tanvd.jetaudit.auditDao.saving
 
-import org.testng.Assert
-import org.testng.annotations.AfterMethod
-import org.testng.annotations.BeforeMethod
-import org.testng.annotations.Test
+import org.junit.*
 import tanvd.jetaudit.implementation.clickhouse.AuditDaoClickhouse
 import tanvd.jetaudit.model.external.equal
 import tanvd.jetaudit.model.external.presenters.StringPresenter
 import tanvd.jetaudit.model.external.records.InformationObject
 import tanvd.jetaudit.model.external.types.information.InformationType
-import tanvd.jetaudit.utils.InformationUtils
-import tanvd.jetaudit.utils.SamplesGenerator
+import tanvd.jetaudit.utils.*
 import tanvd.jetaudit.utils.SamplesGenerator.getRecordInternal
-import tanvd.jetaudit.utils.StringInf
-import tanvd.jetaudit.utils.TestUtil
 
 internal class NonValidInputTest {
 
@@ -22,17 +16,15 @@ internal class NonValidInputTest {
         var auditDao: AuditDaoClickhouse? = null
     }
 
-    @BeforeMethod
-    @Suppress("UNCHECKED_CAST")
+    @Before
     fun createAll() {
         auditDao = TestUtil.create()
 
-        @Suppress("UNCHECKED_CAST")
         InformationType.addType(StringInf)
         auditDao!!.addInformationInDbModel(StringInf)
     }
 
-    @AfterMethod
+    @After
     fun clearAll() {
         TestUtil.drop()
     }

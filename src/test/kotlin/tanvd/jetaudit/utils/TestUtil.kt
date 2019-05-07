@@ -1,10 +1,7 @@
 package tanvd.jetaudit.utils
 
-import tanvd.aorm.Database
 import tanvd.jetaudit.implementation.clickhouse.AuditDaoClickhouse
-import tanvd.jetaudit.implementation.clickhouse.aorm.AuditDatabase
-import tanvd.jetaudit.implementation.clickhouse.aorm.AuditTable
-import tanvd.jetaudit.implementation.clickhouse.aorm.withAuditDatabase
+import tanvd.jetaudit.implementation.clickhouse.aorm.*
 import tanvd.jetaudit.model.external.presenters.*
 import tanvd.jetaudit.model.external.types.information.InformationType
 import tanvd.jetaudit.model.external.types.objects.ObjectType
@@ -70,5 +67,3 @@ internal object TestUtil {
         InformationType.addType(IsDeletedType)
     }
 }
-
-val TestDatabase = Database("testDb", DbUtils.getDataSource())

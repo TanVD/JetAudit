@@ -1,9 +1,6 @@
 package tanvd.jetaudit.performance
 
-import org.testng.Assert
-import org.testng.annotations.AfterMethod
-import org.testng.annotations.BeforeMethod
-import org.testng.annotations.Test
+import org.junit.*
 import tanvd.jetaudit.AuditAPI
 import tanvd.jetaudit.model.external.equal
 import tanvd.jetaudit.model.external.presenters.IntPresenter
@@ -15,13 +12,13 @@ internal class ApiPerformanceTest {
 
     private var auditApi: AuditAPI? = null
 
-    @BeforeMethod
+    @Before
     fun addTypes() {
         TestUtil.drop()
         auditApi = AuditAPI(DbUtils.getProperties(), DbUtils.getDataSource())
     }
 
-    @AfterMethod
+    @After
     fun clear() {
         TestUtil.drop()
     }

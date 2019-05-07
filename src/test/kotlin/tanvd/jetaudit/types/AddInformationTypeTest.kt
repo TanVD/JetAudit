@@ -1,8 +1,6 @@
 package tanvd.jetaudit.types
 
-import org.testng.Assert
-import org.testng.annotations.AfterMethod
-import org.testng.annotations.Test
+import org.junit.*
 import tanvd.jetaudit.exceptions.UnknownObjectTypeException
 import tanvd.jetaudit.model.external.records.ObjectState
 import tanvd.jetaudit.model.external.types.objects.ObjectPresenter
@@ -26,7 +24,7 @@ internal class AddInformationTypeTest {
 
     class Second
 
-    @AfterMethod
+    @After
     fun clean() {
         TestUtil.drop()
     }

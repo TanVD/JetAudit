@@ -1,19 +1,13 @@
 package tanvd.jetaudit.auditDao.loading.information
 
-import org.testng.Assert
-import org.testng.annotations.AfterMethod
-import org.testng.annotations.BeforeMethod
-import org.testng.annotations.Test
+import org.junit.*
 import tanvd.jetaudit.implementation.clickhouse.AuditDaoClickhouse
 import tanvd.jetaudit.model.external.equal
 import tanvd.jetaudit.model.external.inList
 import tanvd.jetaudit.model.external.records.InformationObject
 import tanvd.jetaudit.model.external.types.information.InformationType
-import tanvd.jetaudit.utils.BooleanInf
-import tanvd.jetaudit.utils.InformationUtils
-import tanvd.jetaudit.utils.SamplesGenerator
+import tanvd.jetaudit.utils.*
 import tanvd.jetaudit.utils.SamplesGenerator.getRecordInternal
-import tanvd.jetaudit.utils.TestUtil
 
 internal class InformationBooleanQueriesTest {
 
@@ -22,8 +16,7 @@ internal class InformationBooleanQueriesTest {
         var auditDao: AuditDaoClickhouse? = null
     }
 
-    @BeforeMethod
-    @Suppress("UNCHECKED_CAST")
+    @Before
     fun createAll() {
         auditDao = TestUtil.create()
 
@@ -31,7 +24,7 @@ internal class InformationBooleanQueriesTest {
         InformationType.addType(BooleanInf)
     }
 
-    @AfterMethod
+    @After
     fun clearAll() {
         TestUtil.drop()
         currentId = 0

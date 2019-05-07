@@ -2,14 +2,10 @@ package tanvd.jetaudit.implementation.clickhouse.aorm
 
 import org.jetbrains.annotations.TestOnly
 import org.joda.time.DateTime
-import tanvd.aorm.DbType
-import tanvd.aorm.Engine
-import tanvd.aorm.Table
+import tanvd.aorm.*
 import tanvd.aorm.expression.Column
 import tanvd.aorm.expression.default
-import tanvd.jetaudit.utils.Conf
-import tanvd.jetaudit.utils.PropertyLoader
-import tanvd.jetaudit.utils.RandomGenerator
+import tanvd.jetaudit.utils.*
 
 object AuditTable : Table(PropertyLoader[Conf.AUDIT_TABLE]) {
     val useDDL: Boolean by lazy { PropertyLoader[Conf.DEFAULT_DDL].toBoolean() }

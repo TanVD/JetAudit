@@ -1,9 +1,6 @@
 package tanvd.jetaudit.model.external.types.objects
 
-import tanvd.aorm.DbBoolean
-import tanvd.aorm.DbDate
-import tanvd.aorm.DbInt64
-import tanvd.aorm.DbString
+import tanvd.aorm.*
 import tanvd.jetaudit.model.external.records.ObjectState
 import java.util.*
 

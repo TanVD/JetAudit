@@ -1,16 +1,11 @@
 package tanvd.jetaudit.auditDao
 
-import org.testng.Assert
-import org.testng.annotations.AfterMethod
-import org.testng.annotations.BeforeMethod
-import org.testng.annotations.Test
+import org.junit.*
 import tanvd.jetaudit.implementation.clickhouse.AuditDaoClickhouse
 import tanvd.jetaudit.model.external.equal
 import tanvd.jetaudit.model.external.presenters.LongPresenter
 import tanvd.jetaudit.model.external.records.InformationObject
-import tanvd.jetaudit.utils.InformationUtils
-import tanvd.jetaudit.utils.SamplesGenerator
-import tanvd.jetaudit.utils.TestUtil
+import tanvd.jetaudit.utils.*
 
 internal class CountTest {
 
@@ -19,13 +14,12 @@ internal class CountTest {
         var currentId = 0L
     }
 
-    @BeforeMethod
-    @Suppress("UNCHECKED_CAST")
+    @Before
     fun createAll() {
         auditDao = TestUtil.create()
     }
 
-    @AfterMethod
+    @After
     fun clearAll() {
         TestUtil.drop()
         currentId = 0

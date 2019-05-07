@@ -1,26 +1,20 @@
 package tanvd.jetaudit
 
+import org.junit.*
+import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.powermock.api.mockito.PowerMockito
 import org.powermock.core.classloader.annotations.PowerMockIgnore
 import org.powermock.core.classloader.annotations.PrepareForTest
-import org.powermock.modules.testng.PowerMockTestCase
-import org.testng.Assert
-import org.testng.annotations.AfterMethod
-import org.testng.annotations.BeforeClass
-import org.testng.annotations.Test
-import tanvd.aorm.query.LimitExpression
-import tanvd.aorm.query.OrderByExpression
-import tanvd.aorm.query.QueryExpression
+import org.powermock.modules.junit4.PowerMockRunner
+import tanvd.aorm.query.*
 import tanvd.jetaudit.exceptions.UnknownObjectTypeException
 import tanvd.jetaudit.implementation.AuditExecutor
 import tanvd.jetaudit.implementation.QueueCommand
 import tanvd.jetaudit.implementation.clickhouse.AuditDao
 import tanvd.jetaudit.model.external.equal
 import tanvd.jetaudit.model.external.presenters.StringPresenter
-import tanvd.jetaudit.model.external.records.AuditObject
-import tanvd.jetaudit.model.external.records.AuditRecord
-import tanvd.jetaudit.model.external.records.InformationObject
+import tanvd.jetaudit.model.external.records.*
 import tanvd.jetaudit.model.external.types.objects.ObjectType
 import tanvd.jetaudit.model.internal.AuditRecordInternal
 import tanvd.jetaudit.utils.*
@@ -28,9 +22,10 @@ import tanvd.jetaudit.utils.SamplesGenerator.getRecordInternal
 import java.util.*
 import java.util.concurrent.BlockingQueue
 
+@RunWith(PowerMockRunner::class)
 @PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*")
 @PrepareForTest(AuditExecutor::class, ObjectType::class)
-internal class LoadAudit : PowerMockTestCase() {
+internal class LoadAudit {
 
     private var auditDao: AuditDao? = null
 
@@ -42,7 +37,7 @@ internal class LoadAudit : PowerMockTestCase() {
 
     private var auditApi: AuditAPI? = null
 
-    @BeforeClass
+    @Before
     fun setMocks() {
         auditDao = PowerMockito.mock(AuditDao::class.java)
         auditExecutor = PowerMockito.mock(AuditExecutor::class.java)
@@ -56,7 +51,7 @@ internal class LoadAudit : PowerMockTestCase() {
         auditApi = AuditAPI(auditDao!!, auditExecutor!!, auditQueueInternal!!, auditRecordsNotCommitted!!, DbUtils.getProperties(), DbUtils.getDataSource())
     }
 
-    @AfterMethod
+    @After
     fun resetMocks() {
         auditRecordsNotCommitted!!.remove()
         Mockito.reset(auditDao)

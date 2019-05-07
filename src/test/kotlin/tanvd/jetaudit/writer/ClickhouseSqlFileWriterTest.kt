@@ -1,31 +1,29 @@
 package tanvd.jetaudit.writer
 
+import org.junit.*
+import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.powermock.api.mockito.PowerMockito
 import org.powermock.core.classloader.annotations.PowerMockIgnore
-import org.powermock.modules.testng.PowerMockTestCase
-import org.testng.annotations.AfterMethod
-import org.testng.annotations.BeforeMethod
-import org.testng.annotations.Test
+import org.powermock.modules.junit4.PowerMockRunner
 import tanvd.jetaudit.implementation.clickhouse.aorm.AuditTable
 import tanvd.jetaudit.implementation.writer.ClickhouseSqlFileWriter
 import tanvd.jetaudit.model.external.presenters.*
 import tanvd.jetaudit.model.external.records.InformationObject
-import tanvd.jetaudit.utils.InformationUtils
-import tanvd.jetaudit.utils.SamplesGenerator
+import tanvd.jetaudit.utils.*
 import tanvd.jetaudit.utils.SamplesGenerator.getRecordInternal
-import tanvd.jetaudit.utils.TestUtil
 import java.io.PrintWriter
 
+@RunWith(PowerMockRunner::class)
 @PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*")
-internal class ClickhouseSqlFileWriterTest : PowerMockTestCase() {
+internal class ClickhouseSqlFileWriterTest {
 
-    @BeforeMethod
+    @Before
     fun init() {
         TestUtil.create()
     }
 
-    @AfterMethod
+    @After
     fun clean() {
         TestUtil.drop()
     }

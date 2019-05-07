@@ -1,9 +1,6 @@
 package tanvd.jetaudit.auditDao
 
-import org.testng.Assert
-import org.testng.annotations.AfterMethod
-import org.testng.annotations.BeforeMethod
-import org.testng.annotations.Test
+import org.junit.*
 import tanvd.jetaudit.implementation.clickhouse.AuditDaoClickhouse
 import tanvd.jetaudit.model.external.equal
 import tanvd.jetaudit.model.external.presenters.StringPresenter
@@ -13,21 +10,18 @@ import tanvd.jetaudit.utils.*
 import tanvd.jetaudit.utils.SamplesGenerator.getRecordInternal
 
 internal class AddObjectTypeTest {
-
-
     companion object {
         var auditDao: AuditDaoClickhouse? = null
         var currentId = 0L
 
     }
 
-    @BeforeMethod
-    @Suppress("UNCHECKED_CAST")
+    @Before
     fun createAll() {
         auditDao = TestUtil.create()
     }
 
-    @AfterMethod
+    @After
     fun clearAll() {
         TestUtil.drop()
         currentId = 0

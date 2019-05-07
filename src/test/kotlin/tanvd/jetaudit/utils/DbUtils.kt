@@ -5,12 +5,18 @@ import java.util.*
 import javax.sql.DataSource
 
 object DbUtils {
+    const val testInsertWorkerDelayMs = 2000L
+    private const val containerPort = 8123
+
+    private val localstack = KGenericContainer("yandex/clickhouse-server:19.5")
+            .withExposedPorts(containerPort)
+            .apply { start() }
+
     fun getProperties(): Properties {
         val properties = Properties()
-        properties.setProperty("user", System.getProperty("clickhouseUser")?.takeIf(String::isNotBlank) ?: "default")
-        properties.setProperty("password", System.getProperty("clickhousePassword")?.takeIf(String::isNotBlank) ?: "")
-        properties.setProperty("Url", System.getProperty("clickhouseUrl")?.takeIf(String::isNotBlank)
-                ?: "jdbc:clickhouse://localhost:8123")
+        properties.setProperty("user", "default")
+        properties.setProperty("password", "")
+        properties.setProperty("Url", "jdbc:clickhouse://localhost:${localstack.getMappedPort(containerPort)}")
         return properties
     }
 

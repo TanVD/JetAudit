@@ -1,9 +1,6 @@
 package tanvd.jetaudit.auditDao.loading.information
 
-import org.testng.Assert
-import org.testng.annotations.AfterMethod
-import org.testng.annotations.BeforeMethod
-import org.testng.annotations.Test
+import org.junit.*
 import tanvd.jetaudit.implementation.clickhouse.AuditDaoClickhouse
 import tanvd.jetaudit.model.external.*
 import tanvd.jetaudit.model.external.records.InformationObject
@@ -17,15 +14,14 @@ internal class InformationDateTimeQueriesTest {
         var auditDao: AuditDaoClickhouse? = null
     }
 
-    @BeforeMethod
-    @Suppress("UNCHECKED_CAST")
+    @Before
     fun createAll() {
         auditDao = TestUtil.create()
         InformationType.addType(DateTimeInf)
         auditDao!!.addInformationInDbModel(DateTimeInf)
     }
 
-    @AfterMethod
+    @After
     fun clearAll() {
         TestUtil.drop()
         currentId = 0

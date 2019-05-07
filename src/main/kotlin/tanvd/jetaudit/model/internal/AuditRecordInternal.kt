@@ -2,9 +2,7 @@ package tanvd.jetaudit.model.internal
 
 import tanvd.jetaudit.model.external.presenters.IsDeletedType
 import tanvd.jetaudit.model.external.presenters.VersionType
-import tanvd.jetaudit.model.external.records.AuditRecord
-import tanvd.jetaudit.model.external.records.InformationObject
-import tanvd.jetaudit.model.external.records.ObjectState
+import tanvd.jetaudit.model.external.records.*
 import tanvd.jetaudit.model.external.types.objects.ObjectType
 
 /**

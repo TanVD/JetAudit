@@ -1,19 +1,14 @@
 package tanvd.jetaudit.executor
 
+import org.junit.*
+import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.powermock.api.mockito.PowerMockito
 import org.powermock.core.classloader.annotations.PowerMockIgnore
 import org.powermock.core.classloader.annotations.PrepareForTest
-import org.powermock.modules.testng.PowerMockTestCase
-import org.testng.Assert
-import org.testng.annotations.AfterMethod
-import org.testng.annotations.BeforeMethod
-import org.testng.annotations.Test
+import org.powermock.modules.junit4.PowerMockRunner
 import tanvd.aorm.exceptions.BasicDbException
-import tanvd.jetaudit.implementation.AuditWorker
-import tanvd.jetaudit.implementation.QueueCommand
-import tanvd.jetaudit.implementation.SaveRecords
-import tanvd.jetaudit.implementation.ShutDown
+import tanvd.jetaudit.implementation.*
 import tanvd.jetaudit.implementation.clickhouse.AuditDao
 import tanvd.jetaudit.implementation.writer.AuditReserveWriter
 import tanvd.jetaudit.model.external.records.InformationObject
@@ -21,9 +16,10 @@ import tanvd.jetaudit.model.internal.AuditRecordInternal
 import tanvd.jetaudit.utils.StringInf
 import java.util.concurrent.ArrayBlockingQueue
 
+@RunWith(PowerMockRunner::class)
 @PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*")
 @PrepareForTest(fullyQualifiedNames = ["tanvd.jetaudit.implementation.*"])
-internal class WorkerTest : PowerMockTestCase() {
+internal class WorkerTest {
 
     private var auditDao: AuditDao? = null
 
@@ -35,14 +31,14 @@ internal class WorkerTest : PowerMockTestCase() {
 
     private val queue = ArrayBlockingQueue<QueueCommand>(1)
 
-    @BeforeMethod
+    @Before
     fun setMocks() {
         auditDao = PowerMockito.mock(AuditDao::class.java)
         auditWriter = PowerMockito.mock(AuditReserveWriter::class.java)
 
     }
 
-    @AfterMethod
+    @After
     fun resetMocks() {
         buffer.clear()
         reserveBuffer.clear()

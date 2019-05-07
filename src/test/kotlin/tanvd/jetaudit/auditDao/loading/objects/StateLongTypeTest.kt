@@ -1,14 +1,8 @@
 package tanvd.jetaudit.auditDao.loading.objects
 
-import org.testng.Assert
-import org.testng.annotations.AfterMethod
-import org.testng.annotations.BeforeMethod
-import org.testng.annotations.Test
+import org.junit.*
 import tanvd.jetaudit.implementation.clickhouse.AuditDaoClickhouse
-import tanvd.jetaudit.model.external.equal
-import tanvd.jetaudit.model.external.inList
-import tanvd.jetaudit.model.external.less
-import tanvd.jetaudit.model.external.more
+import tanvd.jetaudit.model.external.*
 import tanvd.jetaudit.model.external.records.InformationObject
 import tanvd.jetaudit.model.external.types.objects.ObjectType
 import tanvd.jetaudit.utils.*
@@ -24,8 +18,7 @@ internal class StateLongTypeTest {
 
     val type = ObjectType(TestClassLong::class, TestClassLongPresenter) as ObjectType<Any>
 
-    @BeforeMethod
-    @Suppress("UNCHECKED_CAST")
+    @Before
     fun createAll() {
         auditDao = TestUtil.create()
 
@@ -33,7 +26,7 @@ internal class StateLongTypeTest {
         auditDao!!.addTypeInDbModel(type)
     }
 
-    @AfterMethod
+    @After
     fun clearAll() {
         TestUtil.drop()
         currentId = 0

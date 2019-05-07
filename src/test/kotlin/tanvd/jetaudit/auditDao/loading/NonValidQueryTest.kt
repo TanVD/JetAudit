@@ -1,9 +1,6 @@
 package tanvd.jetaudit.auditDao.loading
 
-import org.testng.Assert
-import org.testng.annotations.AfterMethod
-import org.testng.annotations.BeforeMethod
-import org.testng.annotations.Test
+import org.junit.*
 import tanvd.jetaudit.implementation.clickhouse.AuditDaoClickhouse
 import tanvd.jetaudit.model.external.equal
 import tanvd.jetaudit.model.external.presenters.StringPresenter
@@ -18,7 +15,7 @@ internal class NonValidQueryTest {
         var auditDao: AuditDaoClickhouse? = null
     }
 
-    @BeforeMethod
+    @Before
     @Suppress("UNCHECKED_CAST")
     fun createAll() {
         auditDao = TestUtil.create()
@@ -28,7 +25,7 @@ internal class NonValidQueryTest {
         auditDao!!.addInformationInDbModel(StringInf)
     }
 
-    @AfterMethod
+    @After
     fun clearAll() {
         TestUtil.drop()
     }

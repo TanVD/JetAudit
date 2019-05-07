@@ -1,18 +1,14 @@
 package tanvd.jetaudit
 
+import org.junit.*
+import org.junit.runner.RunWith
 import org.mockito.Mockito.reset
 import org.powermock.api.mockito.PowerMockito.`when`
 import org.powermock.api.mockito.PowerMockito.mock
 import org.powermock.core.classloader.annotations.PowerMockIgnore
 import org.powermock.core.classloader.annotations.PrepareForTest
-import org.powermock.modules.testng.PowerMockTestCase
-import org.testng.Assert
-import org.testng.annotations.AfterMethod
-import org.testng.annotations.BeforeClass
-import org.testng.annotations.Test
-import tanvd.jetaudit.implementation.AuditExecutor
-import tanvd.jetaudit.implementation.QueueCommand
-import tanvd.jetaudit.implementation.SaveRecords
+import org.powermock.modules.junit4.PowerMockRunner
+import tanvd.jetaudit.implementation.*
 import tanvd.jetaudit.implementation.clickhouse.AuditDao
 import tanvd.jetaudit.model.external.records.InformationObject
 import tanvd.jetaudit.model.external.types.objects.ObjectType
@@ -23,10 +19,10 @@ import java.util.*
 import java.util.concurrent.BlockingQueue
 
 
+@RunWith(PowerMockRunner::class)
 @PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*")
 @PrepareForTest(AuditExecutor::class, ObjectType::class)
-internal class SaveAudit : PowerMockTestCase() {
-
+internal class SaveAudit {
     private var currentId = 0L
 
     private var auditDao: AuditDao? = null
@@ -39,7 +35,7 @@ internal class SaveAudit : PowerMockTestCase() {
 
     private var auditApi: AuditAPI? = null
 
-    @BeforeClass
+    @Before
     fun setMocks() {
         auditDao = mock(AuditDao::class.java)
         auditExecutor = mock(AuditExecutor::class.java)
@@ -53,7 +49,7 @@ internal class SaveAudit : PowerMockTestCase() {
         auditApi = AuditAPI(auditDao!!, auditExecutor!!, auditQueueInternal!!, auditRecordsNotCommitted!!, DbUtils.getProperties(), DbUtils.getDataSource())
     }
 
-    @AfterMethod
+    @After
     fun resetMocks() {
         currentId = 0
         auditRecordsNotCommitted!!.remove()

@@ -1,9 +1,7 @@
 package tanvd.jetaudit.implementation.clickhouse
 
 import tanvd.aorm.exceptions.BasicDbException
-import tanvd.aorm.query.LimitExpression
-import tanvd.aorm.query.OrderByExpression
-import tanvd.aorm.query.QueryExpression
+import tanvd.aorm.query.*
 import tanvd.jetaudit.model.external.types.information.InformationType
 import tanvd.jetaudit.model.external.types.objects.ObjectType
 import tanvd.jetaudit.model.internal.AuditRecordInternal

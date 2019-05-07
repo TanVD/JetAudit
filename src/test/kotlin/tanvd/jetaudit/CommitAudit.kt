@@ -1,18 +1,14 @@
 package tanvd.jetaudit
 
+import org.junit.*
+import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.powermock.api.mockito.PowerMockito
 import org.powermock.core.classloader.annotations.PowerMockIgnore
 import org.powermock.core.classloader.annotations.PrepareForTest
-import org.powermock.modules.testng.PowerMockTestCase
-import org.testng.Assert
-import org.testng.annotations.AfterMethod
-import org.testng.annotations.BeforeMethod
-import org.testng.annotations.Test
+import org.powermock.modules.junit4.PowerMockRunner
 import tanvd.jetaudit.exceptions.AuditQueueFullException
-import tanvd.jetaudit.implementation.AuditExecutor
-import tanvd.jetaudit.implementation.QueueCommand
-import tanvd.jetaudit.implementation.SaveRecords
+import tanvd.jetaudit.implementation.*
 import tanvd.jetaudit.implementation.clickhouse.AuditDao
 import tanvd.jetaudit.model.external.records.InformationObject
 import tanvd.jetaudit.model.external.types.objects.ObjectType
@@ -22,10 +18,10 @@ import tanvd.jetaudit.utils.SamplesGenerator.getRecordInternal
 import java.util.*
 import java.util.concurrent.BlockingQueue
 
-@Suppress("UNCHECKED_CAST")
+@RunWith(PowerMockRunner::class)
 @PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*")
 @PrepareForTest(AuditExecutor::class, ObjectType::class)
-internal class CommitAudit : PowerMockTestCase() {
+internal class CommitAudit {
 
     private var currentId: Long = 0
 
@@ -39,7 +35,7 @@ internal class CommitAudit : PowerMockTestCase() {
 
     private var auditApi: AuditAPI? = null
 
-    @BeforeMethod
+    @Before
     fun setMocks() {
         auditDao = PowerMockito.mock(AuditDao::class.java)
         auditExecutor = PowerMockito.mock(AuditExecutor::class.java)
@@ -55,7 +51,7 @@ internal class CommitAudit : PowerMockTestCase() {
         auditApi!!.addPrimitiveTypes()
     }
 
-    @AfterMethod
+    @After
     fun resetMocks() {
         auditRecordsNotCommitted!!.remove()
         TestUtil.clearTypes()

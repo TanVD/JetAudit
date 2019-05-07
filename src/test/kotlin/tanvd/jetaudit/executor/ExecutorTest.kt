@@ -1,26 +1,21 @@
 package tanvd.jetaudit.executor
 
+import org.junit.*
+import org.junit.runner.RunWith
 import org.mockito.Mockito.*
 import org.powermock.api.mockito.PowerMockito
+import org.powermock.api.mockito.PowerMockito.doAnswer
 import org.powermock.api.mockito.PowerMockito.mockStatic
 import org.powermock.core.classloader.annotations.PowerMockIgnore
 import org.powermock.core.classloader.annotations.PrepareForTest
-import org.powermock.modules.testng.PowerMockTestCase
-import org.testng.Assert
-import org.testng.annotations.AfterMethod
-import org.testng.annotations.BeforeMethod
-import org.testng.annotations.Test
-import tanvd.jetaudit.implementation.AuditExecutor
-import tanvd.jetaudit.implementation.AuditWorker
-import tanvd.jetaudit.implementation.QueueCommand
-import java.util.concurrent.ArrayBlockingQueue
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
+import org.powermock.modules.junit4.PowerMockRunner
+import tanvd.jetaudit.implementation.*
+import java.util.concurrent.*
 
-
+@RunWith(PowerMockRunner::class)
 @PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*")
 @PrepareForTest(fullyQualifiedNames = ["tanvd.jetaudit.implementation.*"])
-internal class ExecutorTest : PowerMockTestCase() {
+internal class ExecutorTest {
 
     private var auditWorker: AuditWorker? = null
 
@@ -29,7 +24,7 @@ internal class ExecutorTest : PowerMockTestCase() {
     private val queue = ArrayBlockingQueue<QueueCommand>(1)
 
 
-    @BeforeMethod
+    @Before
     fun setMocks() {
         //mock audit worker
         auditWorker = PowerMockito.mock(AuditWorker::class.java)
@@ -45,7 +40,7 @@ internal class ExecutorTest : PowerMockTestCase() {
         PowerMockito.whenNew(AuditWorker::class.java).withArguments(queue).thenReturn(auditWorker)
     }
 
-    @AfterMethod
+    @After
     fun resetMocks() {
         reset(auditWorker)
         reset(executorService)

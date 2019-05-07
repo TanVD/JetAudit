@@ -1,10 +1,7 @@
 package tanvd.jetaudit.utils
 
 import tanvd.jetaudit.model.external.records.ObjectState
-import tanvd.jetaudit.model.external.types.objects.ObjectPresenter
-import tanvd.jetaudit.model.external.types.objects.boolean
-import tanvd.jetaudit.model.external.types.objects.long
-import tanvd.jetaudit.model.external.types.objects.string
+import tanvd.jetaudit.model.external.types.objects.*
 
 data class TestClassLong(val hash: Long)
 

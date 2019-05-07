@@ -1,19 +1,14 @@
 package tanvd.jetaudit.auditDao.loading
 
-import org.testng.Assert
-import org.testng.annotations.AfterMethod
-import org.testng.annotations.BeforeMethod
-import org.testng.annotations.Test
+import org.junit.*
 import tanvd.aorm.query.and
 import tanvd.aorm.query.or
 import tanvd.jetaudit.implementation.clickhouse.AuditDaoClickhouse
 import tanvd.jetaudit.model.external.equal
 import tanvd.jetaudit.model.external.presenters.StringPresenter
 import tanvd.jetaudit.model.external.records.InformationObject
-import tanvd.jetaudit.utils.InformationUtils
-import tanvd.jetaudit.utils.SamplesGenerator
+import tanvd.jetaudit.utils.*
 import tanvd.jetaudit.utils.SamplesGenerator.getRecordInternal
-import tanvd.jetaudit.utils.TestUtil
 
 internal class BinaryQueryOperatorsTest {
 
@@ -23,13 +18,13 @@ internal class BinaryQueryOperatorsTest {
     }
 
 
-    @BeforeMethod
+    @Before
     @Suppress("UNCHECKED_CAST")
     fun createAll() {
         auditDao = TestUtil.create()
     }
 
-    @AfterMethod
+    @After
     fun clearAll() {
         TestUtil.drop()
         currentId = 0

@@ -1,9 +1,7 @@
 package tanvd.jetaudit.model.external.presenters
 
 import tanvd.jetaudit.model.external.records.ObjectState
-import tanvd.jetaudit.model.external.types.objects.ObjectPresenter
-import tanvd.jetaudit.model.external.types.objects.long
-import tanvd.jetaudit.model.external.types.objects.string
+import tanvd.jetaudit.model.external.types.objects.*
 
 object IntPresenter : ObjectPresenter<Int>() {
     override val useDeserialization: Boolean = true

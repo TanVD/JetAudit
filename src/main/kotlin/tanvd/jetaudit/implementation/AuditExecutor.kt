@@ -4,9 +4,7 @@ import org.jetbrains.annotations.TestOnly
 import tanvd.jetaudit.utils.Conf
 import tanvd.jetaudit.utils.PropertyLoader
 import java.util.*
-import java.util.concurrent.BlockingQueue
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
+import java.util.concurrent.*
 
 /**
  * Starts audit saving workers.

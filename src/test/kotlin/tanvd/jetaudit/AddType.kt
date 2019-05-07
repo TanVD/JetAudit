@@ -1,16 +1,14 @@
 package tanvd.jetaudit
 
+import junit.framework.Assert.assertEquals
+import org.junit.*
+import org.junit.runner.RunWith
 import org.mockito.Mockito.reset
 import org.mockito.Mockito.verify
 import org.powermock.api.mockito.PowerMockito.mock
 import org.powermock.core.classloader.annotations.PowerMockIgnore
 import org.powermock.core.classloader.annotations.PrepareForTest
-import org.powermock.modules.testng.PowerMockTestCase
-import org.testng.Assert
-import org.testng.Assert.assertEquals
-import org.testng.annotations.AfterMethod
-import org.testng.annotations.BeforeClass
-import org.testng.annotations.Test
+import org.powermock.modules.junit4.PowerMockRunner
 import tanvd.jetaudit.exceptions.AddExistingAuditTypeException
 import tanvd.jetaudit.implementation.AuditExecutor
 import tanvd.jetaudit.implementation.QueueCommand
@@ -18,16 +16,14 @@ import tanvd.jetaudit.implementation.clickhouse.AuditDao
 import tanvd.jetaudit.implementation.clickhouse.aorm.AuditTable
 import tanvd.jetaudit.model.external.types.objects.ObjectType
 import tanvd.jetaudit.model.internal.AuditRecordInternal
-import tanvd.jetaudit.utils.DbUtils
-import tanvd.jetaudit.utils.TestClassString
-import tanvd.jetaudit.utils.TestClassStringPresenter
-import tanvd.jetaudit.utils.TestUtil
+import tanvd.jetaudit.utils.*
 import java.util.concurrent.BlockingQueue
 
 
+@RunWith(PowerMockRunner::class)
 @PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*")
 @PrepareForTest(AuditExecutor::class, ObjectType::class)
-internal class AddType : PowerMockTestCase() {
+internal class AddType {
 
     private var auditDao: AuditDao? = null
 
@@ -39,7 +35,7 @@ internal class AddType : PowerMockTestCase() {
 
     private var auditApi: AuditAPI? = null
 
-    @BeforeClass
+    @Before
     fun setMocks() {
         auditDao = mock(AuditDao::class.java)
         auditExecutor = mock(AuditExecutor::class.java)
@@ -53,7 +49,7 @@ internal class AddType : PowerMockTestCase() {
         auditApi = AuditAPI(auditDao!!, auditExecutor!!, auditQueueInternal!!, auditRecordsNotCommitted!!, DbUtils.getProperties(), DbUtils.getDataSource())
     }
 
-    @AfterMethod
+    @After
     fun resetMocks() {
         auditRecordsNotCommitted!!.remove()
         reset(auditDao)
