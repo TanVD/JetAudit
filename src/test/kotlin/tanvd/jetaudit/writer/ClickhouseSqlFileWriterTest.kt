@@ -15,7 +15,10 @@ import tanvd.jetaudit.utils.SamplesGenerator.getRecordInternal
 import java.io.PrintWriter
 
 @RunWith(PowerMockRunner::class)
-@PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*")
+@PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "javax.net.ssl.*",
+        "jdk.*",
+        "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*",
+        "org.slf4j.*")
 internal class ClickhouseSqlFileWriterTest {
 
     @Before
