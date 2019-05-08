@@ -1,6 +1,7 @@
 # JetAudit
 
 [ ![Download](https://api.bintray.com/packages/tanvd/jetaudit/jetaudit/images/download.svg) ](https://bintray.com/tanvd/jetaudit/jetaudit/_latestVersion)
+[![CircleCI](https://circleci.com/gh/TanVD/JetAudit.svg?style=svg)](https://circleci.com/gh/TanVD/JetAudit)
 
 JetAudit is library for business process audit. It uses ClickHouse as a data storage for audit events.
 
@@ -10,7 +11,7 @@ Basically, it is an interface to save and load different events and do it under 
 
 Events, in terms of JetAudit, are lists of objects and some information relevant to them. Mostly, it suits for business-process audit needs.
 
-For example, you have object of type "Contract" and object of type "Customer". You can save following event:
+For example, you have an object of type "Contract" and object of type "Customer". You can save following event:
 
 ```
 Audit.save(customer, "paid for", contract);
@@ -22,19 +23,17 @@ Every object will be mapped in accordance with it's type (see [type systems para
 
 JetAudit releases are published to [JCenter](https://bintray.com/tanvd/jetaudit/jetaudit).
 
-Also you can get snapshot versions from [Artifactory](https://oss.jfrog.org) (see libs-snapshot/tanvd/jetaudit/jetaudit packages group)
-
 To use JetAudit you'll need ClickHouse installation (we recommend to use replicated cluster in production).
 
-Setup properties file in accordance with documentation of AuditApi class. Once it is done, you can try to save your first audit record. Note, that by default JetAudit type system initialized only with primitive types.
+Setup properties file in accordance with a documentation of AuditApi class. Once it is done, you can try to save your first audit record. Note, that by default JetAudit type system initialized only with primitive types.
 
 ## How to
 
 First of all you'll need to define your own set of types. Consult [type systems paragraph](#type-system) paragraph for how to.
 
-Once it is done, you'll need to create AuditAPI object (it is strongly recommended to instantiate it as singleton). 
+Once it is done, you'll need to create AuditAPI object (it is strongly recommended instantiate it as singleton). 
 
-Once AuditAPI object is created, it will start AuditWorkers which are used to asynchronously save records.
+Once AuditAPI object is created, it will start AuditWorkers, which are used to asynchronously save records.
 
 After it you can save records:
 
@@ -52,7 +51,7 @@ Also you can load records.
 
 Note, that format of loaded records depends on your type definitions. You can enable deserialization and add deserializers to every ObjectType and then you'll get exactly the data you've been saving (of course, if your deserializers works right).
  
-Otherwise, you can disable serialization and you'll get back only saved state of each audit record object. But in that case you'll have no overhead on deserialization and will load records very fast.
+Otherwise, you can disable serialization, and you'll get back only saved state of each audit record object. In that case you'll have no overhead on deserialization and will load records very fast.
 
 Depending on a situation one or another load format may suit your needs. 
 
@@ -62,7 +61,7 @@ Every object saved using JetAudit should be added to it's type system. There are
 
 ### Object type
 
-ObjectType should be used for objects, that can occur more than one time in audit record. For example, it is customers (one customer may buy something from another). Every ObjectPresenter (presenters implements logic of ObjectType and works as interface for load of events) may have few serializers and appropriate StateTypes. When event is saved, serializers are invoked on object and their results are saved into ClickHouse, each to defined by StateType column.
+ObjectType should be used for objects, that can occur more than one time in audit record. For example, it is customers (one customer may buy something from another). Every ObjectPresenter (presenters implements logic of ObjectType and works as interface for load of events) may have few serializers and appropriate StateTypes. When event is saved, serializers are invoked on an object, and their results are saved into ClickHouse, each to defined by StateType column.
 
 Let's see it working:
 
@@ -87,7 +86,7 @@ Audit.addObjectType(ObjectType(TestClass::class, TestClassPresenter))
 
 Here is a simple example. When object of type TestClass will be saved, as part of audit event, JetAudit will find corresponding ObjectType in type system (TestClassPresenter implements it) and will serialize it to 2 fields - "TestClass_Id" with value from id field, and "TestClass_Name" with value from name field. Here `val id` and `val name` are StateTypes with serializers, and TestClassPresenter is an object implementing all the logic for TestClass ObjectType.
 
-Also note, that "TestClass_Id" and "TestClass_Name" will be also columns used in ClickHouse to save objects of this ObjectType. Columns will be of type `Array(String)`.
+Note, that "TestClass_Id" and "TestClass_Name" will be also columns used in ClickHouse to save objects of this ObjectType. Columns will be of type `Array(String)`.
 
 ### Information type
 
@@ -105,9 +104,9 @@ Note, that values of this type will be mapped to column LongInfColumn in Clickho
 
 We strongly encourage you to use replicated ClickHouse setup. 
 
-JetAudit requires *ReplacingMergeTree engine family. It writes version of audit record and you can delete some records just writing new empty one with later version and equal id and timestamp
+JetAudit requires *ReplacingMergeTree engine family. It writes a version of audit record, and you can delete some records just writing new empty one with later version and equal id and timestamp
 
-JetAudit may align it's own scheme even in replicated setup but we recommend you to disable defaultDDL in production and align scheme manually, so you can react on any errors ClickHouse may produce.
+JetAudit may align it's own scheme even in replicated setup, but we recommend you to disable defaultDDL in production and align the scheme manually, so you can react on any errors ClickHouse may produce.
 
 ## More examples
 

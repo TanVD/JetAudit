@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompile
 import tanvd.kosogor.proxy.publishJar
 
 group = "tanvd.jetaudit"
-version = "1.1.4-SNAPSHOT"
+version = "1.1.4"
 
 plugins {
     kotlin("jvm") version "1.3.31" apply true
@@ -14,13 +14,13 @@ repositories {
 }
 
 dependencies {
-    compile("org.slf4j", "slf4j-api", "1.7.25")
+    api("org.slf4j", "slf4j-api", "1.7.25")
 
-    compile(kotlin("stdlib"))
-    compile(kotlin("reflect"))
+    api(kotlin("stdlib"))
+    api(kotlin("reflect"))
 
-    compile("tanvd.aorm", "aorm", "1.1.4")
-    compile("com.amazonaws", "aws-java-sdk-s3", "1.11.546")
+    api("tanvd.aorm", "aorm", "1.1.4")
+    api("com.amazonaws", "aws-java-sdk-s3", "1.11.546")
 
     testCompile("ch.qos.logback", "logback-classic", "1.2.2")
 
