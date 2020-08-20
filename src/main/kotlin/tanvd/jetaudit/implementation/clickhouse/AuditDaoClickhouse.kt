@@ -69,10 +69,10 @@ internal open class AuditDaoClickhouse : AuditDao {
         val rows = query.toResult()
         //filter to newest version
         val rowsFiltered = rows.groupBy { row ->
-            row[AuditTable.id] as Long
+            row[AuditTable.id]
         }.mapValues {
-            it.value.maxBy { row ->
-                row[AuditTable.version]!!.toLong()
+            it.value.maxByOrNull { row ->
+                row[AuditTable.version].toLong()
             }!!
         }.values
 
@@ -87,7 +87,7 @@ internal open class AuditDaoClickhouse : AuditDao {
 
         val resultList = query.toResult()
         resultList.singleOrNull()?.let {
-            it[countExpression] as Long
+            it[countExpression]
         } ?: 0L
     }
 }

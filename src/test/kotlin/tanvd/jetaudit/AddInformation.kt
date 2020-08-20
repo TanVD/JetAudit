@@ -1,6 +1,6 @@
 package tanvd.jetaudit
 
-import junit.framework.Assert.assertTrue
+import org.junit.Assert.assertTrue
 import org.junit.*
 import org.junit.runner.RunWith
 import org.mockito.Mockito.verify
@@ -63,7 +63,7 @@ internal class AddInformation {
     fun addInformation_typeAdded_typeToInformationTypesAdded() {
         auditApi?.addInformationType(BooleanInf)
 
-        assertTrue(InformationType.getTypes().contains(BooleanInf as InformationType<Any>))
+        assertTrue(InformationType.getTypes().contains(BooleanInf as InformationType<*>))
     }
 
     @Test

@@ -44,10 +44,6 @@ internal object ClickhouseRecordSerializer {
 
     fun deserialize(row: SelectRow): AuditRecordInternal {
         val description = row[AuditTable.description]
-        if (description == null) {
-            logger.error("Clickhouse scheme violated. Not found ${AuditTable.description.name} column.")
-            return AuditRecordInternal(emptyList(), LinkedHashSet())
-        }
 
         return AuditRecordInternal(deserializeObjects(description, row), deserializeInformation(row))
     }
@@ -77,9 +73,7 @@ internal object ClickhouseRecordSerializer {
         val information = LinkedHashSet<InformationObject<*>>()
         for (type in InformationType.getTypes()) {
             val curInformation = row[type.column]
-            if (curInformation != null) {
-                information.add(InformationObject(curInformation, type))
-            }
+            information.add(InformationObject(curInformation, type))
         }
         return information
     }

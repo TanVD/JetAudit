@@ -1,6 +1,6 @@
 package tanvd.jetaudit
 
-import junit.framework.Assert.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.*
 import org.junit.runner.RunWith
 import org.mockito.Mockito.reset

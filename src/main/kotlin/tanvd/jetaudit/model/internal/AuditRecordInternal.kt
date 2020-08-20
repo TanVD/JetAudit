@@ -23,7 +23,7 @@ internal data class AuditRecordInternal(val objects: List<Pair<ObjectType<*>, Ob
         fun createFromRecordWithNewVersion(auditRecord: AuditRecord) =
                 makeCopyWithChangedInformation(auditRecord) {
                     if (it.type == VersionType)
-                        it.copy(value = (it.value as Long) + 1)
+                        (it as InformationObject<Long>).copy(it.value + 1)
                     else
                         it
                 }
@@ -31,8 +31,8 @@ internal data class AuditRecordInternal(val objects: List<Pair<ObjectType<*>, Ob
         fun markRecordAsDeleted(auditRecord: AuditRecord) =
                 makeCopyWithChangedInformation(auditRecord) {
                     when {
-                        it.type == IsDeletedType && !(it.value as Boolean) -> it.copy(value = true)
-                        it.type == VersionType -> it.copy(value = it.value as Long + 1)
+                        it.type == IsDeletedType && !(it.value as Boolean) -> (it as InformationObject<Boolean>).copy(value = true)
+                        it.type == VersionType -> (it as InformationObject<Long>).copy(value = it.value + 1)
                         else -> it
                     }
                 }
