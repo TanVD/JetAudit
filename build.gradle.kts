@@ -33,6 +33,10 @@ dependencies {
     testImplementation("org.powermock", "powermock-module-junit4", "1.6.4")
 }
 
+tasks.withType(JavaCompile::class) {
+    targetCompatibility = "1.8"
+}
+
 tasks.withType<KotlinJvmCompile> {
     kotlinOptions {
         jvmTarget = "1.8"
