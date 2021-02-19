@@ -8,7 +8,7 @@ object DbUtils {
     const val testInsertWorkerDelayMs = 2000L
     private const val containerPort = 8123
 
-    private val localstack = KGenericContainer("yandex/clickhouse-server:19.5")
+    private val localstack = KGenericContainer("yandex/clickhouse-server:21.1")
             .withExposedPorts(containerPort)
             .apply { start() }
 
