@@ -1,7 +1,6 @@
 # JetAudit
 
 [ ![Download](https://api.bintray.com/packages/tanvd/jetaudit/jetaudit/images/download.svg) ](https://bintray.com/tanvd/jetaudit/jetaudit/_latestVersion)
-[![CircleCI](https://circleci.com/gh/TanVD/JetAudit.svg?style=svg)](https://circleci.com/gh/TanVD/JetAudit)
 
 JetAudit is library for business process audit. It uses ClickHouse as a data storage for audit events.
 
