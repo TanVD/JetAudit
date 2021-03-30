@@ -18,6 +18,10 @@ repositories {
         jcenter()
     if (artifactoryUploadEnabled)
         maven(System.getenv("artifactory_url")!!)
+
+    System.getenv("aorm_repo_url")?.let { aorm_repo ->
+        maven(aorm_repo)
+    }
 }
 
 dependencies {
