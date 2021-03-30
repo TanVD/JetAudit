@@ -2,15 +2,22 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompile
 import tanvd.kosogor.proxy.publishJar
 
 group = "tanvd.jetaudit"
-version = "1.1.5"
+version = "1.1.6"
 
 plugins {
-    kotlin("jvm") version "1.4.30" apply true
+    kotlin("jvm") version "1.4.32" apply true
     id("tanvd.kosogor") version "1.0.10" apply true
 }
 
+val bintrayUploadEnabled = System.getenv("bintray_key") != null
+val artifactoryUploadEnabled = System.getenv("artifactory_url") != null
+
 repositories {
-    jcenter()
+    mavenCentral()
+    if (bintrayUploadEnabled)
+        jcenter()
+    if (artifactoryUploadEnabled)
+        maven(System.getenv("artifactory_url")!!)
 }
 
 dependencies {
@@ -58,15 +65,23 @@ publishJar {
         artifactId = "jetaudit"
     }
 
-    bintray {
-        username = "tanvd"
-        repository = "jetaudit"
-        info {
-            githubRepo = "tanvd/jetaudit"
-            vcsUrl = "https://github.com/tanvd/jetaudit"
-            labels.addAll(listOf("kotlin", "clickhouse", "audit"))
-            license = "MIT"
-            description = "Kotlin library for a business audit upon Clickhouse"
+    if (bintrayUploadEnabled) {
+        bintray {
+            username = "tanvd"
+            repository = "jetaudit"
+            info {
+                githubRepo = "tanvd/jetaudit"
+                vcsUrl = "https://github.com/tanvd/jetaudit"
+                labels.addAll(listOf("kotlin", "clickhouse", "audit"))
+                license = "MIT"
+                description = "Kotlin library for a business audit upon Clickhouse"
+            }
+        }
+    }
+
+    if (artifactoryUploadEnabled) {
+        artifactory {
+            secretKey = System.getenv("artifactory_api_key")
         }
     }
 }
