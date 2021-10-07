@@ -18,7 +18,7 @@ repositories {
 
     System.getenv("aorm_repo_url")?.let { aorm_repo ->
         maven(aorm_repo)
-    }
+    } ?: maven("https://jitpack.io")
 }
 
 dependencies {
