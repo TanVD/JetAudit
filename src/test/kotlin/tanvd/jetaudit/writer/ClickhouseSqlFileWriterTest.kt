@@ -51,7 +51,7 @@ internal class ClickhouseSqlFileWriterTest {
                 "${IsDeletedType.column.name}, " +
                 "${AuditTable.description.name}, " +
                 "${LongPresenter.value.column.name}) VALUES " +
-                "([123], ['456'], 0, 2, 1, '2000-01-01', 0, ['Int', 'String'], []);")
+                "([123], ['456'], 0, 2, 1, '2000-01-01', 0, ['Int', 'String'], [])")
     }
 
     @Test
