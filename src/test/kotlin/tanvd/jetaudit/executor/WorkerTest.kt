@@ -17,7 +17,7 @@ import tanvd.jetaudit.utils.StringInf
 import java.util.concurrent.ArrayBlockingQueue
 
 @RunWith(PowerMockRunner::class)
-@PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "javax.net.ssl.*",
+@PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "javax.net.*",
         "jdk.*",
         "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*",
         "org.slf4j.*")

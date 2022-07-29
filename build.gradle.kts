@@ -5,7 +5,7 @@ group = "tanvd.jetaudit"
 version = "1.1.8-SNAPSHOT"
 
 plugins {
-    kotlin("jvm") version "1.5.31" apply true
+    kotlin("jvm") version "1.5.32" apply true
     id("tanvd.kosogor") version "1.0.12" apply true
 }
 
@@ -27,28 +27,28 @@ dependencies {
     api(kotlin("stdlib"))
     api(kotlin("reflect"))
 
-    api("tanvd.aorm", "aorm", "1.1.9")
+    api("tanvd.aorm", "aorm", "1.1.10")
     api("com.amazonaws", "aws-java-sdk-s3", "1.12.55")
 
     testImplementation("ch.qos.logback", "logback-classic", "1.2.2")
 
     testImplementation("junit", "junit", "4.12")
-    testImplementation("org.testcontainers", "testcontainers", "1.16.0")
-    testImplementation("org.testcontainers", "clickhouse", "1.16.0")
+    testImplementation("org.testcontainers", "testcontainers", "1.17.3")
+    testImplementation("org.testcontainers", "clickhouse", "1.17.3")
 
-    testImplementation("org.mockito", "mockito-core", "1.10.19")
-    testImplementation("org.powermock", "powermock-api-mockito", "1.6.4")
-    testImplementation("org.powermock", "powermock-core", "1.6.4")
-    testImplementation("org.powermock", "powermock-module-junit4", "1.6.4")
+    testImplementation("org.mockito", "mockito-core", "3.12.4")
+    testImplementation("org.powermock", "powermock-api-mockito2", "2.0.9")
+    testImplementation("org.powermock", "powermock-core", "2.0.9")
+    testImplementation("org.powermock", "powermock-module-junit4", "2.0.9")
 }
 
 tasks.withType(JavaCompile::class) {
-    targetCompatibility = "1.8"
+    targetCompatibility = "11"
 }
 
 tasks.withType<KotlinJvmCompile> {
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
         languageVersion = "1.5"
         apiVersion = "1.5"
     }

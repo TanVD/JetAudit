@@ -2,6 +2,7 @@ package tanvd.jetaudit.model.external.types.objects
 
 import org.jetbrains.annotations.TestOnly
 import tanvd.jetaudit.exceptions.UnknownObjectTypeException
+import kotlin.jvm.Throws
 import kotlin.reflect.KClass
 import kotlin.reflect.full.superclasses
 
@@ -21,6 +22,7 @@ data class ObjectType<T : Any>(val klass: KClass<T>, val objectPresenter: Object
          *
          * @throws UnknownObjectTypeException
          */
+        @Throws(UnknownObjectTypeException::class)
         fun resolveType(klass: KClass<*>): ObjectType<Any> {
             return recResolveType(klass)
                     ?: throw UnknownObjectTypeException("Unknown ObjectType requested to resolve by klass -- ${klass.qualifiedName}")
@@ -37,6 +39,7 @@ data class ObjectType<T : Any>(val klass: KClass<T>, val objectPresenter: Object
          *
          * @throws UnknownObjectTypeException
          */
+        @Throws(UnknownObjectTypeException::class)
         fun resolveType(name: String): ObjectType<Any> {
             return typesByEntityName[name]
                     ?: throw UnknownObjectTypeException("Unknown ObjectType requested to resolve by name -- $name")

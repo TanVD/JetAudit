@@ -15,7 +15,7 @@ import tanvd.jetaudit.utils.SamplesGenerator.getRecordInternal
 import java.io.PrintWriter
 
 @RunWith(PowerMockRunner::class)
-@PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "javax.net.ssl.*",
+@PowerMockIgnore("javax.management.*", "javax.xml.parsers.*", "javax.net.*",
         "jdk.*",
         "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*",
         "org.slf4j.*")
