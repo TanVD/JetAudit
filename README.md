@@ -1,7 +1,5 @@
 # JetAudit
 
-[ ![Download](https://api.bintray.com/packages/tanvd/jetaudit/jetaudit/images/download.svg) ](https://bintray.com/tanvd/jetaudit/jetaudit/_latestVersion)
-
 JetAudit is library for business process audit. It uses ClickHouse as a data storage for audit events.
 
 Basically, it is an interface to save and load different events and do it under heavy load and very fast.
@@ -19,8 +17,6 @@ Audit.save(customer, "paid for", contract);
 Every object will be mapped in accordance with it's type (see [type systems paragraph](#type-system) ) and asynchronously saved to ClickHouse.
 
 ## Setup
-
-JetAudit releases are published to [JCenter](https://bintray.com/tanvd/jetaudit/jetaudit).
 
 To use JetAudit you'll need ClickHouse installation (we recommend to use replicated cluster in production).
 
