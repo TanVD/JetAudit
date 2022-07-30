@@ -27,7 +27,7 @@ dependencies {
     api(kotlin("stdlib"))
     api(kotlin("reflect"))
 
-    api("tanvd.aorm", "aorm", "1.1.10")
+    api("tanvd.aorm", "aorm", "1.1.11")
     api("com.amazonaws", "aws-java-sdk-s3", "1.12.55")
 
     testImplementation("ch.qos.logback", "logback-classic", "1.2.2")

@@ -3,6 +3,7 @@ package tanvd.jetaudit.implementation.clickhouse
 import tanvd.aorm.DbType
 import tanvd.aorm.expression.Column
 import tanvd.aorm.expression.count
+import tanvd.aorm.implementation.QueryClickhouse
 import tanvd.aorm.query.*
 import tanvd.jetaudit.implementation.clickhouse.aorm.AuditTable
 import tanvd.jetaudit.implementation.clickhouse.aorm.withAuditDatabase
@@ -46,7 +47,6 @@ internal open class AuditDaoClickhouse : AuditDao {
         }
     }
 
-    @Suppress("UNCHECKED_CAST")
     override fun <T : Any> addInformationInDbModel(information: InformationType<T>): Unit = withAuditDatabase {
         if (AuditTable.useDDL) {
             AuditTable.addColumn(information.column)
@@ -57,16 +57,37 @@ internal open class AuditDaoClickhouse : AuditDao {
 
     override fun loadRecords(expression: QueryExpression, orderByExpression: OrderByExpression?,
                              limitExpression: LimitExpression?) = withAuditDatabase {
-        var query = AuditTable.select() prewhere expression
+        // performance optimization via sub-query to preselect primary keys
+        // see: https://github.com/ClickHouse/ClickHouse/issues/7187#issuecomment-538174102
+        // and: https://github.com/ClickHouse/ClickHouse/issues/7187#issuecomment-539047920
+        val (exprSql, exprData) = expression.toSqlPreparedDef()
+        val sqlQuery = buildString {
+            val combinedKey = "${AuditTable.id.toSelectListDef()}+${AuditTable.timestamp.toSelectListDef()}"
 
-        if (limitExpression != null) {
-            query = query limit limitExpression
-        }
-        if (orderByExpression != null) {
-            query = query orderBy orderByExpression
-        }
+            val orderBySql = orderByExpression?.let {
+                " ORDER BY ${orderByExpression.map.toList().joinToString { "${it.first.toQueryQualifier()} ${it.second}" }}"
+            }.orEmpty()
 
-        val rows = query.toResult()
+            append("SELECT ")
+            AuditTable.columns.joinTo(this) {
+                it.toSelectListDef()
+            }
+            append(" FROM ${AuditTable.name}")
+            append(" PREWHERE $combinedKey IN (")
+            run {
+                append("SELECT $combinedKey")
+                append(" FROM ${AuditTable.name}")
+                append(" PREWHERE $exprSql")
+                append(orderBySql)
+                if (limitExpression != null) {
+                    append(" LIMIT ${limitExpression.offset}, ${limitExpression.limit}")
+                }
+            }
+            append(")")
+            append(orderBySql)
+        }
+        val rows = QueryClickhouse.getResult(db, PreparedSqlResult(sqlQuery, exprData), AuditTable.columns)
+
         //filter to newest version
         val rowsFiltered = rows.groupBy { row ->
             row[AuditTable.id]
@@ -76,8 +97,8 @@ internal open class AuditDaoClickhouse : AuditDao {
             }!!
         }.values
 
-        rowsFiltered.map { ClickhouseRecordSerializer.deserialize(it) }.filterNot {
-            it.information.any { it.type == IsDeletedType && it.value as Boolean }
+        rowsFiltered.map { ClickhouseRecordSerializer.deserialize(it) }.filterNot { r ->
+            r.information.any { it.type == IsDeletedType && it.value as Boolean }
         }
     }
 
