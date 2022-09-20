@@ -12,10 +12,11 @@ plugins {
 val artifactoryUploadEnabled = System.getenv("artifactory_url") != null
 
 repositories {
+    mavenLocal()
     mavenCentral()
     if (artifactoryUploadEnabled)
         maven(System.getenv("artifactory_url")!!)
-
+    maven("https://repo.labs.intellij.net/intdev")
     System.getenv("aorm_repo_url")?.let { aorm_repo ->
         maven(aorm_repo)
     } ?: maven("https://jitpack.io")
