@@ -96,6 +96,27 @@ internal class StateStringTypeTest {
     }
 
     @Test
+    fun loadRow_LoadByILike_loadedOne() {
+        val auditRecordFirstOriginal = getRecordInternal(TestClassString("string"), information = getSampleInformation())
+
+        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
+
+        val recordsLoaded = auditDao!!.loadRecords(TestClassStringPresenter.id iLike "sTr%")
+        Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
+    }
+
+    @Test
+    fun loadRow_LoadByILike_loadedNone() {
+        val auditRecordFirstOriginal = getRecordInternal(TestClassString("string"), information = getSampleInformation())
+
+        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
+
+        val recordsLoaded = auditDao!!.loadRecords(TestClassStringPresenter.id iLike "s_")
+        Assert.assertEquals(recordsLoaded.size, 0)
+    }
+
+
+    @Test
     fun loadRow_LoadByRegExp_loadedOne() {
         val auditRecordFirstOriginal = getRecordInternal(TestClassString("string"), information = getSampleInformation())
 

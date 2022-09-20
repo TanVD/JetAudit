@@ -73,6 +73,26 @@ internal class InformationStringQueriesTest {
     }
 
     @Test
+    fun loadRow_LoadByILike_loadedOne() {
+        val auditRecordFirstOriginal = getRecordInternal(information = getSampleInformation("String"))
+
+        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
+
+        val recordsLoaded = auditDao!!.loadRecords(StringInf iLike "sTr%")
+        Assert.assertEquals(recordsLoaded, listOf(auditRecordFirstOriginal))
+    }
+
+    @Test
+    fun loadRow_LoadByILike_loadedNone() {
+        val auditRecordFirstOriginal = getRecordInternal(information = getSampleInformation("String"))
+
+        auditDao!!.saveRecords(listOf(auditRecordFirstOriginal))
+
+        val recordsLoaded = auditDao!!.loadRecords(StringInf iLike "S_")
+        Assert.assertEquals(recordsLoaded.size, 0)
+    }
+
+    @Test
     fun loadRow_LoadByRegExp_loadedOne() {
         val auditRecordFirstOriginal = getRecordInternal(information = getSampleInformation("string"))
 

@@ -12,6 +12,8 @@ infix fun <T : Any> InformationType<T>.equal(value: T): QueryExpression = column
 //String interface:
 infix fun InformationType<String>.like(value: String): QueryExpression = column like value
 
+infix fun InformationType<String>.iLike(value: String): QueryExpression = column iLike value
+
 infix fun InformationType<String>.regex(value: String): QueryExpression = column regex value
 
 //Less or eq interface
@@ -34,6 +36,8 @@ infix fun <T : Any> StateType<T>.equal(number: T): QueryExpression = column exis
 //String interface
 infix fun StateType<String>.like(value: String): QueryExpression = column exists { x -> x like value }
 
+infix fun StateType<String>.iLike(value: String): QueryExpression = column exists { x -> x iLike value }
+
 infix fun StateType<String>.regex(pattern: String): QueryExpression = column exists { x -> x regex pattern }
 
 //Number interface
@@ -50,6 +54,6 @@ infix fun <T : Any> StateType<T>.inList(value: List<T>): QueryExpression = colum
 
 //QUERY PARAMETERS
 fun orderBy(vararg pair: Pair<ColumnWrapper<*, DbType<*>>, Order>): OrderByExpression =
-        OrderByExpression(pair.map { it.first.column to it.second }.toMap())
+        OrderByExpression(pair.associate { it.first.column to it.second })
 
 fun limit(limit: Long, offset: Long): LimitExpression = LimitExpression(limit, offset)
