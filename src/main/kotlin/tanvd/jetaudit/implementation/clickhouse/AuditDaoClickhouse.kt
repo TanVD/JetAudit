@@ -8,6 +8,7 @@ import tanvd.aorm.query.*
 import tanvd.jetaudit.implementation.clickhouse.aorm.AuditTable
 import tanvd.jetaudit.implementation.clickhouse.aorm.withAuditDatabase
 import tanvd.jetaudit.model.external.presenters.IsDeletedType
+import tanvd.jetaudit.model.external.records.InformationObject
 import tanvd.jetaudit.model.external.types.information.InformationType
 import tanvd.jetaudit.model.external.types.objects.ObjectType
 import tanvd.jetaudit.model.internal.AuditRecordInternal
@@ -57,48 +58,43 @@ internal open class AuditDaoClickhouse : AuditDao {
 
     override fun loadRecords(expression: QueryExpression, orderByExpression: OrderByExpression?,
                              limitExpression: LimitExpression?) = withAuditDatabase {
-        // performance optimization via sub-query to preselect primary keys
+        // performance optimization via two queries: 1st - preselect primary keys, 2nd - load records
         // see: https://github.com/ClickHouse/ClickHouse/issues/7187#issuecomment-538174102
         // and: https://github.com/ClickHouse/ClickHouse/issues/7187#issuecomment-539047920
-        val (exprSql, exprData) = expression.toSqlPreparedDef()
+        val orderBySql = orderByExpression?.let {
+            " ORDER BY ${orderByExpression.map.entries.joinToString { "${it.key.toQueryQualifier()} ${it.value}" }}"
+        }.orEmpty()
+
+        val idsQuery = AuditTable.select(AuditTable.id, AuditTable.timestamp).prewhere(expression).apply {
+            orderByExpression?.let { orderBy(it) }
+            limitExpression?.let { limit(it) }
+        }
+
+        val ids = QueryClickhouse.getResult(db, idsQuery).map { it[AuditTable.id] to it[AuditTable.timestamp] }.ifEmpty { return@withAuditDatabase emptyList() }
+
         val sqlQuery = buildString {
-            val combinedKey = "${AuditTable.id.toSelectListDef()}+${AuditTable.timestamp.toSelectListDef()}"
-
-            val orderBySql = orderByExpression?.let {
-                " ORDER BY ${orderByExpression.map.toList().joinToString { "${it.first.toQueryQualifier()} ${it.second}" }}"
-            }.orEmpty()
-
             append("SELECT ")
             AuditTable.columns.joinTo(this) {
                 it.toSelectListDef()
             }
             append(" FROM ${AuditTable.name}")
-            append(" PREWHERE $combinedKey IN (")
-            run {
-                append("SELECT $combinedKey")
-                append(" FROM ${AuditTable.name}")
-                append(" PREWHERE $exprSql")
-                append(orderBySql)
-                if (limitExpression != null) {
-                    append(" LIMIT ${limitExpression.offset}, ${limitExpression.limit}")
-                }
+            append(" PREWHERE (${AuditTable.id.toSelectListDef()},${AuditTable.timestamp.toSelectListDef()}) IN (")
+            ids.joinTo(this) {
+                "(${it.first}, ${it.second})"
             }
             append(")")
             append(orderBySql)
         }
-        val rows = QueryClickhouse.getResult(db, PreparedSqlResult(sqlQuery, exprData), AuditTable.columns)
-
+        val rows = QueryClickhouse.getResult(db, PreparedSqlResult(sqlQuery, emptyList()), AuditTable.columns)
+        val deletedMarker = InformationObject(true, IsDeletedType)
         //filter to newest version
-        val rowsFiltered = rows.groupBy { row ->
+        rows.groupBy { row ->
             row[AuditTable.id]
-        }.mapValues {
-            it.value.maxByOrNull { row ->
-                row[AuditTable.version].toLong()
-            }!!
-        }.values
-
-        rowsFiltered.map { ClickhouseRecordSerializer.deserialize(it) }.filterNot { r ->
-            r.information.any { it.type == IsDeletedType && it.value as Boolean }
+        }.mapNotNull { (_, rows) ->
+            val row = rows.maxBy { row -> row[AuditTable.version] }
+            ClickhouseRecordSerializer.deserialize(row).takeIf { r ->
+                deletedMarker !in r.information
+            }
         }
     }
 
