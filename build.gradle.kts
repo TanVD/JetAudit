@@ -1,12 +1,12 @@
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompile
+import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 import tanvd.kosogor.proxy.publishJar
 
 group = "tanvd.jetaudit"
 version = "1.1.9-SNAPSHOT"
 
 plugins {
-    kotlin("jvm") version "1.5.32" apply true
-    id("tanvd.kosogor") version "1.0.12" apply true
+    kotlin("jvm") version "1.7.10" apply true
+    id("tanvd.kosogor") version "1.0.15" apply true
 }
 
 val artifactoryUploadEnabled = System.getenv("artifactory_url") != null
@@ -22,13 +22,13 @@ repositories {
 }
 
 dependencies {
-    api("org.slf4j", "slf4j-api", "1.7.30")
+    api("org.slf4j", "slf4j-api", "1.7.36")
 
     api(kotlin("stdlib"))
     api(kotlin("reflect"))
 
-    api("tanvd.aorm", "aorm", "1.1.11")
-    api("com.amazonaws", "aws-java-sdk-s3", "1.12.55")
+    api("tanvd.aorm", "aorm", "1.1.13")
+    api("com.amazonaws", "aws-java-sdk-s3", "1.12.290")
 
     testImplementation("ch.qos.logback", "logback-classic", "1.2.2")
 
@@ -44,13 +44,14 @@ dependencies {
 
 tasks.withType(JavaCompile::class) {
     targetCompatibility = "11"
+    sourceCompatibility = "11"
 }
 
-tasks.withType<KotlinJvmCompile> {
+tasks.withType<KotlinJvmCompile>().configureEach {
     kotlinOptions {
         jvmTarget = "11"
-        languageVersion = "1.5"
-        apiVersion = "1.5"
+        apiVersion = "1.7"
+        languageVersion = "1.7"
     }
 }
 
