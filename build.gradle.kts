@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 import tanvd.kosogor.proxy.publishJar
 
 group = "tanvd.jetaudit"
-version = "1.1.11-SNAPSHOT"
+version = "1.1.11"
 
 plugins {
     kotlin("jvm") version "1.7.10" apply true
@@ -12,11 +12,9 @@ plugins {
 val artifactoryUploadEnabled = System.getenv("artifactory_url") != null
 
 repositories {
-    mavenLocal()
     mavenCentral()
     if (artifactoryUploadEnabled)
         maven(System.getenv("artifactory_url")!!)
-    maven("https://repo.labs.intellij.net/intdev")
     System.getenv("aorm_repo_url")?.let { aorm_repo ->
         maven(aorm_repo)
     } ?: maven("https://jitpack.io")

@@ -65,12 +65,16 @@ internal open class AuditDaoClickhouse : AuditDao {
             " ORDER BY ${orderByExpression.map.entries.joinToString { "${it.key.toQueryQualifier()} ${it.value}" }}"
         }.orEmpty()
 
-        val idsQuery = AuditTable.select(AuditTable.id, AuditTable.timestamp).prewhere(expression).apply {
+        val pkColumns = arrayOf(AuditTable.date, AuditTable.id, AuditTable.timestamp)
+
+        val idsQuery = AuditTable.select(*pkColumns).prewhere(expression).apply {
             orderByExpression?.let { orderBy(it) }
             limitExpression?.let { limit(it) }
         }
 
-        val ids = QueryClickhouse.getResult(db, idsQuery).map { it[AuditTable.id] to it[AuditTable.timestamp] }.ifEmpty { return@withAuditDatabase emptyList() }
+        val ids = QueryClickhouse.getResult(db, idsQuery).map {
+            listOf(it[AuditTable.date], it[AuditTable.id], it[AuditTable.timestamp])
+        }.ifEmpty { return@withAuditDatabase emptyList() }
 
         val sqlQuery = buildString {
             append("SELECT ")
@@ -78,14 +82,21 @@ internal open class AuditDaoClickhouse : AuditDao {
                 it.toSelectListDef()
             }
             append(" FROM ${AuditTable.name}")
-            append(" PREWHERE (${AuditTable.id.toSelectListDef()},${AuditTable.timestamp.toSelectListDef()}) IN (")
+            append(" PREWHERE (")
+            pkColumns.joinTo(this) { it.toSelectListDef() }
+            append(") IN (")
             ids.joinTo(this) {
-                "(${it.first}, ${it.second})"
+                "(?, ?, ?)"
             }
             append(")")
             append(orderBySql)
         }
-        val rows = QueryClickhouse.getResult(db, PreparedSqlResult(sqlQuery, emptyList()), AuditTable.columns)
+        @Suppress("UNCHECKED_CAST") val params = ids.flatMap {
+            pkColumns.mapIndexed { indx, col ->
+                col.type to it[indx]
+            }
+        } as List<Pair<DbType<Any>, Any>>
+        val rows = QueryClickhouse.getResult(db, PreparedSqlResult(sqlQuery, params), AuditTable.columns)
         val deletedMarker = InformationObject(true, IsDeletedType)
         //filter to newest version
         rows.groupBy { row ->
