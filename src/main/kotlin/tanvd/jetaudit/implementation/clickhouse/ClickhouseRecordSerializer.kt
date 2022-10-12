@@ -37,9 +37,9 @@ internal object ClickhouseRecordSerializer {
     }
 
     private fun serializeObjects(auditRecordInternal: AuditRecordInternal): MutableMap<Column<*, DbType<*>>, Any> {
-        val groupedObjects = auditRecordInternal.objects.flatMap { it.second.stateList.entries }.groupBy { it.key }
-                .mapValues { it.value.map { it.value } }
-        return groupedObjects.mapKeys { it.key.column }.toMutableMap()
+        return auditRecordInternal.objects.flatMap {
+            it.second.stateList.entries
+        }.groupByTo(mutableMapOf(), { it.key.column }) { it.value } as MutableMap<Column<*, DbType<*>>, Any>
     }
 
     fun deserialize(row: SelectRow): AuditRecordInternal {
