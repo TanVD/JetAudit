@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 import tanvd.kosogor.proxy.publishJar
 
 group = "tanvd.jetaudit"
-version = "1.1.11"
+version = "1.1.12-SNAPSHOT"
 
 plugins {
     kotlin("jvm") version "1.7.10" apply true
@@ -26,7 +26,7 @@ dependencies {
     api(kotlin("stdlib"))
     api(kotlin("reflect"))
 
-    api("tanvd.aorm", "aorm", "1.1.13")
+    api("tanvd.aorm", "aorm", "1.1.15")
     api("com.amazonaws", "aws-java-sdk-s3", "1.12.290")
 
     testImplementation("ch.qos.logback", "logback-classic", "1.2.2")
