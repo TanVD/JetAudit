@@ -2,11 +2,11 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 import tanvd.kosogor.proxy.publishJar
 
 group = "tanvd.jetaudit"
-version = "1.1.12-SNAPSHOT"
+version = "1.1.12"
 
 plugins {
-    kotlin("jvm") version "1.7.10" apply true
-    id("tanvd.kosogor") version "1.0.15" apply true
+    kotlin("jvm") version "1.8.21" apply true
+    id("tanvd.kosogor") version "1.0.18" apply true
 }
 
 val artifactoryUploadEnabled = System.getenv("artifactory_url") != null
@@ -26,14 +26,14 @@ dependencies {
     api(kotlin("stdlib"))
     api(kotlin("reflect"))
 
-    api("tanvd.aorm", "aorm", "1.1.15")
-    api("com.amazonaws", "aws-java-sdk-s3", "1.12.290")
+    api("tanvd.aorm", "aorm", "1.1.16")
+    api("com.amazonaws", "aws-java-sdk-s3", "1.12.470")
 
-    testImplementation("ch.qos.logback", "logback-classic", "1.2.2")
+    testImplementation("ch.qos.logback", "logback-classic", "1.4.7")
 
     testImplementation("junit", "junit", "4.12")
-    testImplementation("org.testcontainers", "testcontainers", "1.17.3")
-    testImplementation("org.testcontainers", "clickhouse", "1.17.3")
+    testImplementation("org.testcontainers", "clickhouse", "1.18.1")
+    testImplementation("org.lz4", "lz4-java", "1.8.0")
 
     testImplementation("org.mockito", "mockito-core", "3.12.4")
     testImplementation("org.powermock", "powermock-api-mockito2", "2.0.9")
@@ -49,8 +49,10 @@ tasks.withType(JavaCompile::class) {
 tasks.withType<KotlinJvmCompile>().configureEach {
     kotlinOptions {
         jvmTarget = "11"
-        apiVersion = "1.7"
-        languageVersion = "1.7"
+        apiVersion = "1.8"
+        languageVersion = "1.8"
+        freeCompilerArgs += "-Xuse-ir"
+        freeCompilerArgs += "-Xbackend-threads=3"
     }
 }
 
