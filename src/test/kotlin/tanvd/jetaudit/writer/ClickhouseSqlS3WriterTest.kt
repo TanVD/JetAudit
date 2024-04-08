@@ -1,12 +1,13 @@
 package tanvd.jetaudit.writer
 
-import com.amazonaws.services.s3.AmazonS3
 import org.junit.*
 import org.junit.runner.RunWith
 import org.mockito.Mockito
-import org.powermock.api.mockito.PowerMockito
 import org.powermock.core.classloader.annotations.PowerMockIgnore
 import org.powermock.modules.junit4.PowerMockRunner
+import software.amazon.awssdk.core.sync.RequestBody
+import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import tanvd.jetaudit.implementation.clickhouse.aorm.AuditTable
 import tanvd.jetaudit.implementation.writer.ClickhouseSqlS3Writer
 import tanvd.jetaudit.model.external.presenters.*
@@ -36,24 +37,29 @@ internal class ClickhouseSqlS3WriterTest {
         val version = 1L
         val timeStamp = 2L
         val auditRecord = SamplesGenerator.getRecordInternal(123, "456", information = getSampleInformation(id, timeStamp, version))
-        val s3Client = PowerMockito.mock(AmazonS3::class.java)
+        val s3Client = Mockito.mock(S3Client::class.java)
         val reserveWriter = ClickhouseSqlS3Writer(s3Client)
 
         reserveWriter.write(auditRecord)
         reserveWriter.flush()
 
+        val content = "INSERT INTO ${AuditTable.name} (" +
+                "${IntPresenter.value.column.name}, ${StringPresenter.value.column.name}, " +
+                "${IdType.column.name}, " +
+                "${TimeStampType.column.name}, " +
+                "${VersionType.column.name}, " +
+                "${DateType.column.name}, " +
+                "${IsDeletedType.column.name}, " +
+                "${AuditTable.description.name}, " +
+                "${LongPresenter.value.column.name}) VALUES " +
+                "([123], ['456'], 0, 2, 1, '2000-01-01', 0, ['Int', 'String'], [])"
+        val body = RequestBody.fromString(content)
 
-        Mockito.verify(s3Client).putObject(Mockito.eq("ClickhouseFailover"), Mockito.anyString(),
-                Mockito.eq("INSERT INTO ${AuditTable.name} (" +
-                        "${IntPresenter.value.column.name}, ${StringPresenter.value.column.name}, " +
-                        "${IdType.column.name}, " +
-                        "${TimeStampType.column.name}, " +
-                        "${VersionType.column.name}, " +
-                        "${DateType.column.name}, " +
-                        "${IsDeletedType.column.name}, " +
-                        "${AuditTable.description.name}, " +
-                        "${LongPresenter.value.column.name}) VALUES " +
-                        "([123], ['456'], 0, 2, 1, '2000-01-01', 0, ['Int', 'String'], [])"))
+        Mockito.verify(s3Client).putObject(
+            Mockito.argThat<PutObjectRequest> {it.bucket() == "ClickhouseFailover" },
+            Mockito.argThat<RequestBody> { it.contentStreamProvider().newStream()
+                .readBytes().toString(Charsets.UTF_8) == content }
+        )
     }
 
     private fun getSampleInformation(id: Long, timeStamp: Long, version: Long): LinkedHashSet<InformationObject<*>> {

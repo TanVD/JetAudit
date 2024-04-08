@@ -1,12 +1,16 @@
+@file:JvmName("ClickhouseSqlS3WriterKt")
+
 package tanvd.jetaudit.implementation.writer
 
-import com.amazonaws.ClientConfiguration
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
-import com.amazonaws.services.s3.AmazonS3
-import com.amazonaws.services.s3.AmazonS3ClientBuilder
+
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import org.joda.time.format.DateTimeFormat
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider
+import software.amazon.awssdk.core.sync.RequestBody
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import tanvd.aorm.InsertRow
 import tanvd.aorm.insert.InsertExpression
 import tanvd.jetaudit.implementation.clickhouse.ClickhouseRecordSerializer
@@ -14,6 +18,8 @@ import tanvd.jetaudit.implementation.clickhouse.aorm.AuditTable
 import tanvd.jetaudit.model.internal.AuditRecordInternal
 import tanvd.jetaudit.utils.Conf
 import tanvd.jetaudit.utils.PropertyLoader
+
+private const val DEFAULT_REGION = "eu-west-1"
 
 internal class ClickhouseSqlS3Writer : AuditReserveWriter {
 
@@ -25,21 +31,18 @@ internal class ClickhouseSqlS3Writer : AuditReserveWriter {
 
     private val buffer = ArrayList<String>()
 
-    private val s3Client: AmazonS3
+    private val s3Client: S3Client
 
     constructor() {
-        s3Client = AmazonS3ClientBuilder.standard()
-                .withCredentials(DefaultAWSCredentialsProviderChain.getInstance())
-                .withClientConfiguration(ClientConfiguration().withGzip(true))
-                .apply {
-                    awsRegion?.let { withRegion(it) }
-                }.build()!!
+        s3Client = S3Client.builder()
+            .credentialsProvider(DefaultCredentialsProvider.create())
+            .region(Region.of(awsRegion?: DEFAULT_REGION))
+            .build()
     }
 
-    constructor(s3Client: AmazonS3) {
+    constructor(s3Client: S3Client) {
         this.s3Client = s3Client
     }
-
 
     override fun write(record: AuditRecordInternal) {
         val row = ClickhouseRecordSerializer.serialize(record)
@@ -51,8 +54,15 @@ internal class ClickhouseSqlS3Writer : AuditReserveWriter {
     override fun close() {
         if (buffer.isNotEmpty()) {
             val key = "Failover_" + formatter.print(DateTime.now().withZone(DateTimeZone.UTC))
-            s3Client.putObject(bucketName, key, buffer.joinToString(separator = "\n"))
+            val putObjectRequest = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build()
+            val responseBody = s3Client.putObject(
+                putObjectRequest,
+                RequestBody.fromString(buffer.joinToString(separator = "\n")))
             buffer.clear()
         }
     }
+
 }
