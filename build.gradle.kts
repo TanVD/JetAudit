@@ -2,10 +2,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 import tanvd.kosogor.proxy.publishJar
 
 group = "tanvd.jetaudit"
-version = "1.1.13-SNAPSHOT"
+version = "1.2.0-SNAPSHOT"
 
 plugins {
-    kotlin("jvm") version "1.8.21" apply true
+    kotlin("jvm") version "1.9.22" apply true
     id("tanvd.kosogor") version "1.0.18" apply true
 }
 
@@ -27,7 +27,8 @@ dependencies {
     api(kotlin("reflect"))
 
     api("tanvd.aorm", "aorm", "1.1.16")
-    api("com.amazonaws", "aws-java-sdk-s3", "1.12.470")
+
+    api("software.amazon.awssdk", "s3", "2.25.14")
 
     testImplementation("ch.qos.logback", "logback-classic", "1.4.7")
 
@@ -49,8 +50,8 @@ tasks.withType(JavaCompile::class) {
 tasks.withType<KotlinJvmCompile>().configureEach {
     kotlinOptions {
         jvmTarget = "11"
-        apiVersion = "1.8"
-        languageVersion = "1.8"
+        apiVersion = "1.9"
+        languageVersion = "1.9"
         freeCompilerArgs += "-Xuse-ir"
         freeCompilerArgs += "-Xbackend-threads=3"
     }
