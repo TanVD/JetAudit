@@ -21,7 +21,7 @@ abstract class ObjectPresenter<T : Any> : ObjectSerializer<T> {
 }
 
 fun <T : Any> ObjectPresenter<T>.long(name: String, body: (T) -> Long): StateType<Long> {
-    val type = StateType(name, entityName, DbInt64())
+    val type = StateType(name, entityName, DbInt64)
     fieldSerializers[type] = body
     return type
 }

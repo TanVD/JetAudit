@@ -1,26 +1,28 @@
 package tanvd.jetaudit.utils
 
+import com.clickhouse.client.api.ClientConfigProperties
 import com.clickhouse.client.config.ClickHouseDefaults
 import com.clickhouse.jdbc.ClickHouseDataSource
+import com.clickhouse.jdbc.DataSourceImpl
 import org.testcontainers.containers.ClickHouseContainer
 import java.util.*
 import javax.sql.DataSource
 
 object DbUtils {
     private val localstack by lazy {
-        ClickHouseContainer("clickhouse/clickhouse-server:22.3.8.39-alpine").apply {
+        ClickHouseContainer("clickhouse/clickhouse-server:22.3.8.39").withTmpFs(mapOf("/var/lib/clickhouse" to "rw")).apply {
             start()
         }
     }
 
     fun getProperties(): Properties {
         val properties = Properties()
-        properties[ClickHouseDefaults.USER] = localstack.username
-        properties[ClickHouseDefaults.PASSWORD] =  localstack.password
+        properties[ClientConfigProperties.USER.key] = localstack.username
+        properties[ClientConfigProperties.PASSWORD.key] =  localstack.password
         return properties
     }
 
     fun getDataSource(): DataSource {
-        return ClickHouseDataSource(localstack.jdbcUrl, getProperties())
+        return DataSourceImpl(localstack.jdbcUrl, getProperties())
     }
 }

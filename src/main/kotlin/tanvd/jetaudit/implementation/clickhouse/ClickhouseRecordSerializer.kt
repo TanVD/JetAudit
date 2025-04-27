@@ -16,8 +16,6 @@ import kotlin.collections.LinkedHashSet
 
 internal object ClickhouseRecordSerializer {
 
-    private val logger = LoggerFactory.getLogger(ClickhouseRecordSerializer::class.java)
-
     /**
      * Serialize AuditRecordInternal for Clickhouse
      */

@@ -1,11 +1,12 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import tanvd.kosogor.proxy.publishJar
 
 group = "tanvd.jetaudit"
-version = "1.2.1-SNAPSHOT"
+version = "1.2.1"
 
 plugins {
-    kotlin("jvm") version "1.9.22" apply true
+    kotlin("jvm") version "2.1.20" apply true
     id("tanvd.kosogor") version "1.0.18" apply true
 }
 
@@ -21,19 +22,19 @@ repositories {
 }
 
 dependencies {
-    api("org.slf4j", "slf4j-api", "1.7.36")
+    api("org.slf4j", "slf4j-api", "2.0.17")
 
     api(kotlin("stdlib"))
     api(kotlin("reflect"))
 
-    api("tanvd.aorm", "aorm", "1.1.16")
+    api("tanvd.aorm", "aorm", "1.1.18")
 
-    api("software.amazon.awssdk", "s3", "2.25.14")
+    api("software.amazon.awssdk", "s3", "2.31.1")
 
     testImplementation("ch.qos.logback", "logback-classic", "1.4.7")
 
     testImplementation("junit", "junit", "4.12")
-    testImplementation("org.testcontainers", "clickhouse", "1.18.1")
+    testImplementation("org.testcontainers", "clickhouse", "1.21.0")
     testImplementation("org.lz4", "lz4-java", "1.8.0")
 
     testImplementation("org.mockito", "mockito-core", "3.12.4")
@@ -42,22 +43,32 @@ dependencies {
     testImplementation("org.powermock", "powermock-module-junit4", "2.0.9")
 }
 
-tasks.withType(JavaCompile::class) {
-    targetCompatibility = "11"
-    sourceCompatibility = "11"
+kotlin {
+    jvmToolchain(17)
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+        apiVersion.set(KotlinVersion.KOTLIN_2_1)
+        languageVersion.set(KotlinVersion.KOTLIN_2_1)
+        // https://jakewharton.com/kotlins-jdk-release-compatibility-flag/
+        // https://youtrack.jetbrains.com/issue/KT-49746/Support-Xjdk-release-in-gradle-toolchain#focus=Comments-27-8935065.0-0
+        freeCompilerArgs.addAll("-Xjdk-release=17")
+    }
 }
 
-tasks.withType<KotlinJvmCompile>().configureEach {
-    kotlinOptions {
-        jvmTarget = "11"
-        apiVersion = "1.9"
-        languageVersion = "1.9"
-        freeCompilerArgs += "-Xuse-ir"
-        freeCompilerArgs += "-Xbackend-threads=3"
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of("17"))
     }
 }
 
 tasks.withType<Test> {
+    jvmArgs = listOf(
+        "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+        "--add-opens", "java.base/java.util.concurrent=ALL-UNNAMED",
+        "--add-opens", "java.base/java.util=ALL-UNNAMED",
+        "--add-opens", "java.base/java.io=ALL-UNNAMED"
+    )
+
     useJUnit()
 
     testLogging {

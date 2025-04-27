@@ -5,7 +5,7 @@ import tanvd.aorm.*
 import tanvd.jetaudit.model.external.types.information.InformationType
 import java.util.*
 
-internal object LongInf : InformationType<Long>("LongInfColumn", DbInt64(), { 0 })
+internal object LongInf : InformationType<Long>("LongInfColumn", DbInt64, { 0 })
 
 internal object StringInf : InformationType<String>("StringInfColumn", DbString(), { "" })
 
