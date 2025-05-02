@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import tanvd.kosogor.proxy.publishJar
 
 group = "tanvd.jetaudit"
-version = "1.2.1"
+version = "1.2.2"
 
 plugins {
     kotlin("jvm") version "2.1.20" apply true
@@ -27,7 +27,7 @@ dependencies {
     api(kotlin("stdlib"))
     api(kotlin("reflect"))
 
-    api("tanvd.aorm", "aorm", "1.1.18")
+    api("tanvd.aorm", "aorm", "1.1.19")
 
     api("software.amazon.awssdk", "s3", "2.31.1")
 

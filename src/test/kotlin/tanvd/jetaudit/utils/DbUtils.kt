@@ -1,10 +1,8 @@
 package tanvd.jetaudit.utils
 
 import com.clickhouse.client.api.ClientConfigProperties
-import com.clickhouse.client.config.ClickHouseDefaults
-import com.clickhouse.jdbc.ClickHouseDataSource
 import com.clickhouse.jdbc.DataSourceImpl
-import org.testcontainers.containers.ClickHouseContainer
+import org.testcontainers.clickhouse.ClickHouseContainer
 import java.util.*
 import javax.sql.DataSource
 
