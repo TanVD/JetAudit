@@ -75,6 +75,22 @@ internal class WorkerTest {
     }
 
     @Test
+    fun start_BufferRecordsOverflow_CalledSaveBuffer() {
+        val record = simpleAuditRecordInternalFirst()
+        for (i in 1..AuditWorker.capacityOfWorkerBuffer + 1) {
+            buffer.add(record)
+        }
+        queue.add(SaveRecords(record))
+        val auditWorker = AuditWorker(queue, buffer, reserveBuffer, auditDao!!, auditWriter!!)
+        auditWorker.disable()
+        val spyWorker = PowerMockito.spy(auditWorker)
+
+        spyWorker.start()
+
+        Mockito.verify(spyWorker).saveBuffer(Mockito.anyInt())
+    }
+
+    @Test
     fun start_bufferFullReserveBufferEmpty_NotCalledProcessNewRecord() {
         val record = simpleAuditRecordInternalFirst()
         for (i in 1..AuditWorker.capacityOfWorkerBuffer) {
