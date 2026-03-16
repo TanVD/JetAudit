@@ -96,7 +96,7 @@ internal class AuditWorker {
                 saveBuffer(batchSize)
             }
             is SaveRecords -> {
-                if (buffer.size == capacityOfWorkerBuffer) {
+                if (buffer.size >= capacityOfWorkerBuffer) {
                     saveBuffer(batchSize)
                 }
                 buffer += record.recordsInternal
